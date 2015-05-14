@@ -28,12 +28,12 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.WeightedRandom;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -147,6 +147,26 @@ public class CopyStructureBuilder implements IStructureBuilder {
 				ex.printStackTrace();
 			}
 		}
+		
+		for(Entity e: schematic.getEntities()) {
+			int x = (int)e.posX;
+			int y = (int)e.posY;
+			int z = (int)e.posZ;
+			
+			if(!isVecInside(x, y, z, box))
+				continue;
+
+			try {
+				// Place it into the world
+	            Vector coord = structure.getWorldCoordinates(x, y, z);
+	            Entity entity = cloneEntity(e);
+	            entity.setPosition(coord.x, coord.y, coord.z);
+	            
+	            world.spawnEntityInWorld(entity);
+			} catch(Throwable t) {
+				ModLog.warn("Unable to place entity");
+			}
+		}
 	}
 	
 	void generateChestContents(IInventory inventory, String category, int count) {
@@ -202,5 +222,11 @@ public class CopyStructureBuilder implements IStructureBuilder {
 		NBTTagCompound nbt = new NBTTagCompound();
 		source.writeToNBT(nbt);
 		return TileEntity.createAndLoadEntity(nbt);
+	}
+	
+	Entity cloneEntity(Entity entity) {
+		NBTTagCompound nbt = new NBTTagCompound();
+		entity.writeToNBTOptional(nbt);
+		return EntityList.createEntityFromNBT(nbt, world);
 	}
 }

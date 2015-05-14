@@ -38,6 +38,7 @@ import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -121,20 +122,34 @@ public class SchematicAlpha extends SchematicFormat {
             }
         }
         
-        /*
-        NBTTagList entitiesList = tagCompound.getTagList(Names.NBT.ENTITIES, Constants.NBT.TAG_COMPOUND);
-        
-        for(int i = 0; i < entitiesList.tagCount(); i++) {
-        	try {
-        		NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
-        		Entity entity = EntityList.createEntityFromNBT(cp, null);
-        		schematic.addEntity(entity);
-        		int x = 0;
-        	} catch(Exception e) {
-        		ModLog.error("Entity failed to load properly!", e);
-        	}
+        if(tagCompound.hasKey("WEOriginX") && tagCompound.hasKey("WEOriginY") && tagCompound.hasKey("WEOriginZ")) {
+        	
+        	// Get WorldEdit origin information so we can offset the entities
+        	// properly.
+        	int originX = tagCompound.getInteger("WEOriginX");
+        	int originY = tagCompound.getInteger("WEOriginY");
+        	int originZ = tagCompound.getInteger("WEOriginZ");
+        	
+	        NBTTagList entitiesList = tagCompound.getTagList(Names.NBT.ENTITIES, Constants.NBT.TAG_COMPOUND);
+	        
+	        for(int i = 0; i < entitiesList.tagCount(); i++) {
+	        	try {
+	        		NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
+	        		Entity entity = EntityList.createEntityFromNBT(cp, null);
+	        		if(entity != null) {
+	        			
+	        			entity.posX = Math.floor(entity.posX - originX);
+	        			entity.posY = Math.floor(entity.posY - originY);
+	        			entity.posZ = Math.floor(entity.posZ - originZ);
+	        			
+	        			schematic.addEntity(entity);
+	        		}
+	        	} catch(Exception e) {
+	        		ModLog.error("Entity failed to load properly!", e);
+	        	}
+	        }
         }
-*/
+        
         return schematic;
     }
 
