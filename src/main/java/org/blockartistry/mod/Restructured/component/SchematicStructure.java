@@ -29,6 +29,7 @@ import java.util.Random;
 
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
+import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -43,7 +44,7 @@ public class SchematicStructure extends VillageStructureBase {
 	SchematicProperties properties;
 
 	public SchematicStructure() {
-		super(null, EAST, null, null, EAST);
+		super(null, 0, null, null, 0);
 	}
 
 	public SchematicStructure(Start start, int type, Random rand,
@@ -89,8 +90,30 @@ public class SchematicStructure extends VillageStructureBase {
 	public void build(World world, Random rand, StructureBoundingBox box) {
 
 		CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
-				coordBaseMode, properties.suppressFire, this);
-		builder.place(properties.schematic);
+				coordBaseMode, properties, this);
+		builder.generate();
+	}
+	
+	Vector getSafeVillagerLocation() {
+		
+		// Initialize starting point
+		Vector size = new Vector(properties.schematic);
+		int x = size.x / 2;
+		int z = size.z / 2;
+		int y = properties.groundOffset;
+		
+		// Try several times finding a suitable spot
+		for(int i = 0; i < 4; i++) {
+			BlockHelper block = new BlockHelper(properties.schematic.getBlock(x, y + 1, z));
+			if(block.canBreath())
+				break;
+			
+			// No - won't cut it.  Adjust.
+			x += 1 - rand.nextInt(3);
+			z += 1 - rand.nextInt(3);
+		}
+		
+		return new Vector(x, y, z);
 	}
 
 	@Override
@@ -98,23 +121,19 @@ public class SchematicStructure extends VillageStructureBase {
 
 		int count = properties.villagerCount;
 		if (count == -1)
-			count = new Random().nextInt(4);
+			count = rand.nextInt(4);
 		if (count == 0)
 			return;
 
-		Vector size = new Vector(properties.schematic);
-		int x = size.x / 2;
-		int z = size.z / 2;
-		int y = properties.groundOffset;
-		
-		this.spawnVillagers(world, box, x, y, z, count);
+		Vector loc = getSafeVillagerLocation();
+		this.spawnVillagers(world, box, loc.x, loc.y, loc.z, count);
 	}
 
 	@Override
 	protected int getVillagerType(int p_74888_1_) {
 		int type = properties.villagerProfession;
 		if (type == -1)
-			type = new Random().nextInt(5);
+			type = rand.nextInt(5);
 		return type;
 	}
 

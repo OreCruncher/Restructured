@@ -22,14 +22,53 @@
  * THE SOFTWARE.
  */
 
-package org.blockartistry.mod.Restructured.component;
+package org.blockartistry.mod.Restructured.util;
 
-import org.blockartistry.mod.Restructured.util.Vector;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 
-public interface IStructureBuilder {
+public class BlockHelper {
 	
-	Vector getDimensions();
+	final Block block;
 	
-	void generate();
+	public BlockHelper(Block block) {
+		this.block = (block != null) ? block : Blocks.air;
+	}
+	
+	public Block theBlock() {
+		return block;
+	}
+	
+	public boolean isAir() {
+		return block == Blocks.air;
+	}
+	
+	public boolean canBreath() {
+		return isAir() || !block.getMaterial().isSolid();
+	}
+	
+	public boolean isChest() {
+		return block == Blocks.chest;
+	}
+	
+	public boolean isLava() {
+		return block == Blocks.lava || block == Blocks.flowing_lava;
+	}
+	
+	public boolean isWater() {
+		return block == Blocks.water || block == Blocks.flowing_water;
+	}
+	
+	public boolean isFire() {
+		return block == Blocks.fire;
+	}
+	
+	public boolean isFireSource() {
+		return isFire() || isLava();
+	}
+	
+	public boolean isTorch() {
+		return block == Blocks.torch || block == Blocks.redstone_torch;
+	}
 
 }

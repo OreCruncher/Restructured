@@ -39,12 +39,9 @@ import net.minecraft.world.gen.structure.StructureVillagePieces;
 
 public abstract class VillageStructureBase extends
 		StructureVillagePieces.Village {
-
-	protected static final int SOUTH = 0;
-	protected static final int WEST  = 1;
-	protected static final int NORTH = 2;
-	protected static final int EAST  = 3;
 	
+	protected static final Random rand = new Random();
+
 	public VillageStructureBase(StructureVillagePieces.Start p_i2102_1_,
 			int p_i2102_2_, Random p_i2102_3_, StructureBoundingBox p_i2102_4_,
 			int p_i2102_5_) {

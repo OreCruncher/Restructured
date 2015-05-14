@@ -25,37 +25,47 @@
 package org.blockartistry.mod.Restructured.component;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.WeightedRandom;
+import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
+import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import org.blockartistry.mod.Restructured.ModLog;
+import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.forge.RotationHelper;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
+import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 public class CopyStructureBuilder implements IStructureBuilder {
+	
+	static final Random rand = new Random();
 	
 	final VillageStructureBase structure;
 	final World world;
 	final StructureBoundingBox box;
 	final int orientation;
-	final boolean suppressFire;
+	final SchematicProperties properties;
 	
 	ArrayList<Vector> waitToPlace = new ArrayList<Vector>();
 	
-	public CopyStructureBuilder(World world, StructureBoundingBox box, int orientation, boolean suppressFire, VillageStructureBase structure) {
+	public CopyStructureBuilder(World world, StructureBoundingBox box, int orientation, SchematicProperties properties, VillageStructureBase structure) {
 		
 		this.world = world;
 		this.box = box;
 		this.orientation = orientation;
 		this.structure = structure;
-		this.suppressFire = suppressFire;
+		this.properties = properties;
 	}
 
 	@Override
@@ -63,7 +73,6 @@ public class CopyStructureBuilder implements IStructureBuilder {
 		return structure.getDimensions();
 	}
 
-	@Override
 	public void place(Block block, int meta, int x, int y, int z) {
 		if(block == null)
 			block = Blocks.air;
@@ -75,7 +84,9 @@ public class CopyStructureBuilder implements IStructureBuilder {
 	}
 	
 	@Override
-	public void place(ISchematic schematic) {
+	public void generate() {
+		
+		ISchematic schematic = properties.schematic;
 		
 		Vector size = getDimensions();
 		for(int x = 0; x < size.x; x++)
@@ -84,15 +95,16 @@ public class CopyStructureBuilder implements IStructureBuilder {
 					
 					if(isVecInside(x, y, z, box)) {
 					
-						Block block = schematic.getBlock(x, y, z);
-						if(suppressFire && isFireSource(block))
+						BlockHelper block = new BlockHelper(schematic.getBlock(x, y, z));
+						
+						if(doSkipFireSource(block))
 							continue;
 						
 						if(waitToPlace(block))
 							waitToPlace.add(new Vector(x, y, z));
 						else {
 							int meta = schematic.getBlockMetadata(x, y, z);
-						    place(block, meta, x, y, z);
+						    place(block.theBlock(), meta, x, y, z);
 						}
 					}
 				}
@@ -115,14 +127,21 @@ public class CopyStructureBuilder implements IStructureBuilder {
 				TileEntity entity = cloneTileEntity(e);
 	            
 	            // Update the entity with the proper state.
+				BlockHelper helper = new BlockHelper(schematic.getBlock(entity.xCoord, entity.yCoord, entity.zCoord));
+				
 		        entity.setWorldObj(world);
-		        entity.blockType = schematic.getBlock(entity.xCoord, entity.yCoord, entity.zCoord);
+		        entity.blockType = helper.theBlock();
 		        entity.blockMetadata = translateMeta(entity.blockType, schematic.getBlockMetadata(entity.xCoord, entity.yCoord, entity.zCoord));
 	            entity.validate();
 	            
 	            // Place it into the world
 	            Vector coord = structure.getWorldCoordinates(entity.xCoord,  entity.yCoord, entity.zCoord);
 				world.setTileEntity(coord.x, coord.y, coord.z, entity);
+				
+				if(doFillChestContents(helper)) {
+					generateChestContents((IInventory)entity, properties.chestContents, properties.chestContentsCount);
+				}
+				
 			} catch(Exception ex) {
 				ModLog.warn("Unable to place TileEntity");
 				ex.printStackTrace();
@@ -130,12 +149,21 @@ public class CopyStructureBuilder implements IStructureBuilder {
 		}
 	}
 	
-	boolean isFireSource(Block block) {
-		return block == Blocks.lava || block == Blocks.flowing_lava || block == Blocks.fire;
+	void generateChestContents(IInventory inventory, String category, int count) {
+		WeightedRandomChestContent[] contents = ChestGenHooks.getItems(category, rand);
+        WeightedRandomChestContent.generateChestContents(rand, contents, inventory, count);
 	}
 	
-	boolean waitToPlace(Block block) {
-		return block == Blocks.torch;
+	boolean doFillChestContents(BlockHelper helper) {
+		return helper.isChest() && properties.chestContents != null && !properties.chestContents.isEmpty();
+	}
+	
+	boolean doSkipFireSource(BlockHelper helper) {
+		return helper.isFireSource() && properties.suppressFire;
+	}
+	
+	boolean waitToPlace(BlockHelper block) {
+		return block.isTorch();
 	}
 	
 	int translateMeta(Block block, int meta) {
