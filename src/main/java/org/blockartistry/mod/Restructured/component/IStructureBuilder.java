@@ -24,12 +24,60 @@
 
 package org.blockartistry.mod.Restructured.component;
 
+import net.minecraft.block.Block;
+import net.minecraft.world.World;
+import net.minecraft.world.gen.structure.StructureBoundingBox;
+
 import org.blockartistry.mod.Restructured.util.Vector;
 
 public interface IStructureBuilder {
-	
+
+	/**
+	 * Gets the dimensions of the structure. Dimensions have been translated for
+	 * direction.
+	 * 
+	 * @return
+	 */
 	Vector getDimensions();
-	
-	void generate();
+
+	/**
+	 * Determines if the location is within the bounding boxes of the region.
+	 * 
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param boundingBox
+	 * @return
+	 */
+	boolean isVecInside(int x, int y, int z, StructureBoundingBox box);
+
+	/**
+	 * Gets the translated real world coordinates for the given location.
+	 * 
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
+	Vector getWorldCoordinates(int x, int y, int z);
+
+	Vector getWorldCoordinates(double x, double y, double z);
+
+	Vector getWorldCoordinates(Vector v);
+
+	/**
+	 * Places a block into the world. The underlying logic is responsible for
+	 * translating locations before setting.
+	 * 
+	 * @param world
+	 * @param block
+	 * @param meta
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param boundingBox
+	 */
+	void placeBlock(World world, Block block, int meta, int x, int y, int z,
+			StructureBoundingBox box);
 
 }

@@ -40,20 +40,19 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 @Mod(modid = Restructured.MOD_ID, useMetadata = true, dependencies = Restructured.DEPENDENCIES, version = Restructured.VERSION, acceptableRemoteVersions = "*")
-public class Restructured
-{
+public class Restructured {
 	public static final String MOD_ID = "restructured";
 	public static final String MOD_NAME = "Restructured";
 	public static final String VERSION = "@VERSION@";
 	public static final String DEPENDENCIES = "";
-	
+
 	@Instance(MOD_ID)
 	protected static Restructured instance;
 
 	public static Restructured instance() {
 		return instance;
 	}
-	
+
 	@SidedProxy(clientSide = "org.blockartistry.mod.Restructured.proxy.ProxyClient", serverSide = "org.blockartistry.mod.Restructured.proxy.Proxy")
 	protected static Proxy proxy;
 
@@ -62,31 +61,35 @@ public class Restructured
 	}
 
 	protected static Configuration config;
+
 	public static Configuration config() {
 		return config;
 	}
-	
+
 	protected static File dataDirectory;
+
 	public static File dataDirectory() {
 		return dataDirectory;
 	}
-	
+
 	public Restructured() {
 		ModLog.setLogger(LogManager.getLogger(MOD_ID));
 	}
-	
+
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 
 		// Load up our configuration
-		dataDirectory = new File(event.getModConfigurationDirectory(), Restructured.MOD_ID);
+		dataDirectory = new File(event.getModConfigurationDirectory(),
+				Restructured.MOD_ID);
 		dataDirectory.mkdirs();
-		config = new Configuration(new File(dataDirectory, Restructured.MOD_ID + ".cfg"));
-		
+		config = new Configuration(new File(dataDirectory, Restructured.MOD_ID
+				+ ".cfg"));
+
 		config.load();
 		ModOptions.load(config);
 		config.save();
-		
+
 		proxy.preInit(event);
 	}
 
@@ -101,10 +104,10 @@ public class Restructured
 		proxy.postInit(event);
 		config.save();
 	}
-	
+
 	@EventHandler
 	public void serverLoad(FMLServerStartingEvent event) {
-		
+
 		proxy.serverLoad(event);
 	}
 }

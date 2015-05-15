@@ -33,21 +33,21 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 public class Proxy {
-	
+
 	public void preInit(FMLPreInitializationEvent event) {
-		
+
 	}
 
 	public void init(FMLInitializationEvent event) {
 
 	}
 
- 	public void postInit(FMLPostInitializationEvent event) {
- 		
- 		Assets.initialize();
+	public void postInit(FMLPostInitializationEvent event) {
+
+		Assets.initialize();
 
 	}
- 	
+
 	@EventHandler
 	public void serverLoad(FMLServerStartingEvent event) {
 

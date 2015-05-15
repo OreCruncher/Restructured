@@ -35,12 +35,12 @@
 package org.blockartistry.mod.Restructured.schematica;
 
 public class UnsupportedFormatException extends Exception {
-    /**
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 6276443000353123658L;
 
 	public UnsupportedFormatException(String format) {
-        super(String.format("Unsupported format: %s", format));
-    }
+		super(String.format("Unsupported format: %s", format));
+	}
 }

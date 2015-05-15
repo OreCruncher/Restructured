@@ -47,7 +47,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 public final class ItemStackHelper {
-	
+
 	static Random rand = new Random();
 
 	public static ItemStack getItemStack(String name) {
@@ -57,7 +57,7 @@ public final class ItemStackHelper {
 	public static ItemStack getItemStack(String name, int quantity) {
 
 		ItemStack result = null;
-		
+
 		// Parse out the possible subtype from the end of the string
 		String workingName = name;
 		int subType = -1;

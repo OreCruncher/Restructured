@@ -31,10 +31,10 @@ import org.blockartistry.mod.Restructured.util.WeightTable;
 public class SchematicWeightItem extends WeightTable.Item {
 
 	public final SchematicProperties properties;
-	
-	public SchematicWeightItem(SchematicProperties properties) {
-		super(properties.weight);
-		
+
+	public SchematicWeightItem(SchematicProperties properties, boolean asVillage) {
+		super(asVillage ? properties.villageWeight : properties.worldWeight);
+
 		this.properties = properties;
 	}
 }

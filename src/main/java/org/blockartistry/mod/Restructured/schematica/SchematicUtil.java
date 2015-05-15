@@ -46,17 +46,19 @@ import java.io.InputStream;
 import org.blockartistry.mod.Restructured.ModLog;
 
 public final class SchematicUtil {
-	
-	public static NBTTagCompound readTagCompoundFromStream(InputStream stream) throws IOException {
-        try {
-            return CompressedStreamTools.readCompressed(stream);
-        } catch (Exception ex) {
-            ModLog.warn("Failed compressed read, trying normal read...", ex);
-            return CompressedStreamTools.read((DataInputStream) stream);
-        }
+
+	public static NBTTagCompound readTagCompoundFromStream(InputStream stream)
+			throws IOException {
+		try {
+			return CompressedStreamTools.readCompressed(stream);
+		} catch (Exception ex) {
+			ModLog.warn("Failed compressed read, trying normal read...", ex);
+			return CompressedStreamTools.read((DataInputStream) stream);
+		}
 	}
-	
-    public static NBTTagCompound readTagCompoundFromFile(File file) throws IOException {
-    	return readTagCompoundFromStream(new FileInputStream(file));
-    }
+
+	public static NBTTagCompound readTagCompoundFromFile(File file)
+			throws IOException {
+		return readTagCompoundFromStream(new FileInputStream(file));
+	}
 }

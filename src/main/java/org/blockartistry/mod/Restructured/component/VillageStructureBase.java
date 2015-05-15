@@ -39,7 +39,7 @@ import net.minecraft.world.gen.structure.StructureVillagePieces;
 
 public abstract class VillageStructureBase extends
 		StructureVillagePieces.Village {
-	
+
 	protected static final Random rand = new Random();
 
 	public VillageStructureBase(StructureVillagePieces.Start p_i2102_1_,
@@ -51,6 +51,7 @@ public abstract class VillageStructureBase extends
 	}
 
 	public abstract Vector getDimensions();
+
 	public abstract int getGroundOffset();
 
 	/**
@@ -63,59 +64,44 @@ public abstract class VillageStructureBase extends
 	 * @param x
 	 * @param y
 	 * @param z
-	 * @param box
+	 * @param boundingBox
 	 */
-	public void placeBlock(World world, Block block, int meta, int x, int y, int z, StructureBoundingBox box) {
+	public void placeBlock(World world, Block block, int meta, int x, int y,
+			int z, StructureBoundingBox box) {
 		placeBlockAtCurrentPosition(world, block, meta, x, y, z, box);
 	}
-	
-	public boolean isVecInside(int x, int y, int z, StructureBoundingBox box) {
-		Vector v = getWorldCoordinates(x, y, z);
-		return box.isVecInside(v.x, v.y, v.z);
-	}
-	
+
 	public int getMetaWithOffset(Block block, int meta) {
 		return getMetadataWithOffset(block, meta);
-	}
-	
-	public Vector getWorldCoordinates(int x, int y, int z) {
-		
-		return new Vector(
-				this.getXWithOffset(x, z),
-				this.getYWithOffset(y),
-				this.getZWithOffset(x, z));
-	}
-	
-	public Vector getWorldCoordinates(Vector v) {
-		return getWorldCoordinates(v.x, v.y, v.z);
 	}
 
 	@Override
 	public boolean addComponentParts(World world, Random rand,
 			StructureBoundingBox box) {
-		
-		if(this.field_143015_k < 0) {
-			RegionStats stats = BoxHelper.getRegionStats(world, box, boundingBox);
+
+		if (this.field_143015_k < 0) {
+			RegionStats stats = BoxHelper.getRegionStats(world, box,
+					boundingBox);
 			ModLog.info(stats.toString());
 			this.field_143015_k = stats.mean;
 
-			if(stats.mean < 0)
+			if (stats.mean < 0)
 				return true;
 		}
-		
+
 		Vector size = getDimensions();
 		int offset = getGroundOffset();
-		
-		boundingBox.offset(0, this.field_143015_k
-				- boundingBox.maxY + size.y - offset - 1, 0);
+
+		boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
+				+ (int) size.y - offset - 1, 0);
 
 		// Ensure a platform for the structure
-		for (int xx = 0; xx < size.x; xx++){
-            for (int zz = 0; zz < size.z; zz++){
-                clearCurrentPositionBlocksUpwards(world, xx, 0, zz, box);
-                func_151554_b(world, Blocks.grass, 0, xx, -1, zz, box);
-            }
-        }
+		for (int xx = 0; xx < size.x; xx++) {
+			for (int zz = 0; zz < size.z; zz++) {
+				clearCurrentPositionBlocksUpwards(world, xx, 0, zz, box);
+				func_151554_b(world, Blocks.grass, 0, xx, -1, zz, box);
+			}
+		}
 
 		build(world, rand, box);
 		spawnPeople(world, box);

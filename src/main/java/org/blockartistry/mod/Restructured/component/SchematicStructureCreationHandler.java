@@ -74,25 +74,25 @@ public class SchematicStructureCreationHandler implements
 		// Get our next structure
 		SchematicPieceWeight pw = (SchematicPieceWeight) villagePiece;
 		SchematicProperties props = pw.getNextStructure();
-		
+
 		// If we don't get properties we may have exceeded
 		// the spawn limit.
-		if(props == null)
+		if (props == null)
 			return null;
 
 		// Bound it out
 		Vector size = new Vector(props.schematic);
 		StructureBoundingBox _boundingBox = StructureBoundingBox
-				.getComponentToAddBoundingBox(x, y, z, 0, 0, 0, size.x, size.y,
-						size.z, direction);
+				.getComponentToAddBoundingBox(x, y, z, 0, 0, 0, (int) size.x,
+						(int) size.y, (int) size.z, direction);
 
 		// Check to see if the region is OK, and if so return back
 		// a SchematicStructure proxy for the schematic.
 		if (canVillageGoDeeper(_boundingBox)) {
 			if (StructureComponent.findIntersecting(pieces, _boundingBox) == null) {
 				try {
-					ModLog.info("Structure [%s] @(%s); mode %d",
-							props.name, _boundingBox, direction);
+					ModLog.info("Structure [%s] @(%s); mode %d", props.name,
+							_boundingBox, direction);
 					SchematicStructure struct = new SchematicStructure(
 							startPiece, type, random, _boundingBox, direction);
 					struct.setProperties(props);

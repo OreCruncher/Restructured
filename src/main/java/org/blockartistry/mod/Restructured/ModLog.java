@@ -53,9 +53,9 @@ public final class ModLog {
 			logger.info(String.format(msg, parms));
 		}
 	}
-	
+
 	public static void error(String msg, Throwable e) {
-		if(logger != null)
+		if (logger != null)
 			logger.error(msg);
 		e.printStackTrace();
 	}

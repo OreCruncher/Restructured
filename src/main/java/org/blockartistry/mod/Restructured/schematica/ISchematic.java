@@ -40,68 +40,79 @@ import net.minecraft.tileentity.TileEntity;
 import java.util.List;
 
 public interface ISchematic {
-    /**
-     * Gets a block at a given location within the schematic. Requesting a block outside of those bounds returns Air.
-     *
-     * @param x the X coord in world space.
-     * @param y the Y coord in world space.
-     * @param z the Z coord in world space.
-     * @return the block at the requested location.
-     */
-    Block getBlock(int x, int y, int z);
+	/**
+	 * Gets a block at a given location within the schematic. Requesting a block
+	 * outside of those bounds returns Air.
+	 *
+	 * @param x
+	 *            the X coord in world space.
+	 * @param y
+	 *            the Y coord in world space.
+	 * @param z
+	 *            the Z coord in world space.
+	 * @return the block at the requested location.
+	 */
+	Block getBlock(int x, int y, int z);
 
-    /**
-     * Gets the Tile Entity at the requested location. If no tile entity exists at that location, null will be returned.
-     *
-     * @param x the X coord in world space.
-     * @param y the Y coord in world space.
-     * @param z the Z coord in world space.
-     * @return the located tile entity.
-     */
-    TileEntity getTileEntity(int x, int y, int z);
+	/**
+	 * Gets the Tile Entity at the requested location. If no tile entity exists
+	 * at that location, null will be returned.
+	 *
+	 * @param x
+	 *            the X coord in world space.
+	 * @param y
+	 *            the Y coord in world space.
+	 * @param z
+	 *            the Z coord in world space.
+	 * @return the located tile entity.
+	 */
+	TileEntity getTileEntity(int x, int y, int z);
 
-    /**
-     * Returns a list of all tile entities in the schematic.
-     *
-     * @return all tile entities.
-     */
-    List<TileEntity> getTileEntities();
+	/**
+	 * Returns a list of all tile entities in the schematic.
+	 *
+	 * @return all tile entities.
+	 */
+	List<TileEntity> getTileEntities();
 
-    /**
-     * Gets the metadata of the block at the requested location.
-     *
-     * @param x the X coord in world space.
-     * @param y the Y coord in world space.
-     * @param z the Z coord in world space.
-     * @return the Metadata Value
-     */
-    int getBlockMetadata(int x, int y, int z);
+	/**
+	 * Gets the metadata of the block at the requested location.
+	 *
+	 * @param x
+	 *            the X coord in world space.
+	 * @param y
+	 *            the Y coord in world space.
+	 * @param z
+	 *            the Z coord in world space.
+	 * @return the Metadata Value
+	 */
+	int getBlockMetadata(int x, int y, int z);
 
-    /**
-     * Returns a list of all entities in the schematic.
-     *
-     * @return all entities.
-     */
-    List<Entity> getEntities();
+	/**
+	 * Returns a list of all entities in the schematic.
+	 *
+	 * @return all entities.
+	 */
+	List<Entity> getEntities();
 
-    /**
-     * The width of the schematic
-     *
-     * @return the schematic width
-     */
-    int getWidth();
+	/**
+	 * The width of the schematic
+	 *
+	 * @return the schematic width
+	 */
+	int getWidth();
 
-    /**
-     * The length of the schematic
-     *
-     * @return the schematic length
-     */
-    int getLength();
+	/**
+	 * The length of the schematic
+	 *
+	 * @return the schematic length
+	 */
+	int getLength();
 
-    /**
-     * The height of the schematic
-     *
-     * @return the schematic height
-     */
-    int getHeight();
+	/**
+	 * The height of the schematic
+	 *
+	 * @return the schematic height
+	 */
+	int getHeight();
 }

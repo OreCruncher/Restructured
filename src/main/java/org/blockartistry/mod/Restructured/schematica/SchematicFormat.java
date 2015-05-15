@@ -50,13 +50,15 @@ import java.util.zip.GZIPOutputStream;
 import org.blockartistry.mod.Restructured.ModLog;
 
 public abstract class SchematicFormat {
-	
+
 	static Method func_150298_a = null;
-	
+
 	static {
-	
+
 		try {
-			func_150298_a = NBTTagCompound.class.getDeclaredMethod("func_150298_a", String.class, NBTBase.class, DataOutput.class);
+			func_150298_a = NBTTagCompound.class.getDeclaredMethod(
+					"func_150298_a", String.class, NBTBase.class,
+					DataOutput.class);
 			func_150298_a.setAccessible(true);
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
@@ -64,85 +66,92 @@ public abstract class SchematicFormat {
 			e.printStackTrace();
 		}
 	}
-	
-    public static final Map<String, SchematicFormat> FORMATS = new HashMap<String, SchematicFormat>();
-    public static String FORMAT_DEFAULT;
 
-    public abstract ISchematic readFromNBT(NBTTagCompound tagCompound);
+	public static final Map<String, SchematicFormat> FORMATS = new HashMap<String, SchematicFormat>();
+	public static String FORMAT_DEFAULT;
 
-    public abstract boolean writeToNBT(NBTTagCompound tagCompound, ISchematic schematic);
+	public abstract ISchematic readFromNBT(NBTTagCompound tagCompound);
 
-    public static ISchematic readFromStream(InputStream stream) {
-        try {
-            final NBTTagCompound tagCompound = SchematicUtil.readTagCompoundFromStream(stream);
-            final String format = tagCompound.getString(Names.NBT.MATERIALS);
-            final SchematicFormat schematicFormat = FORMATS.get(format);
+	public abstract boolean writeToNBT(NBTTagCompound tagCompound,
+			ISchematic schematic);
 
-            if (schematicFormat == null) {
-                throw new UnsupportedFormatException(format);
-            }
+	public static ISchematic readFromStream(InputStream stream) {
+		try {
+			final NBTTagCompound tagCompound = SchematicUtil
+					.readTagCompoundFromStream(stream);
+			final String format = tagCompound.getString(Names.NBT.MATERIALS);
+			final SchematicFormat schematicFormat = FORMATS.get(format);
 
-            return schematicFormat.readFromNBT(tagCompound);
-        } catch (Exception ex) {
-            ModLog.error("Failed to read schematic!", ex);
-        }
+			if (schematicFormat == null) {
+				throw new UnsupportedFormatException(format);
+			}
 
-        return null;
-    }
-    
-    public static ISchematic readFromFile(File file) {
-        try {
-            final NBTTagCompound tagCompound = SchematicUtil.readTagCompoundFromFile(file);
-            final String format = tagCompound.getString(Names.NBT.MATERIALS);
-            final SchematicFormat schematicFormat = FORMATS.get(format);
+			return schematicFormat.readFromNBT(tagCompound);
+		} catch (Exception ex) {
+			ModLog.error("Failed to read schematic!", ex);
+		}
 
-            if (schematicFormat == null) {
-                throw new UnsupportedFormatException(format);
-            }
+		return null;
+	}
 
-            return schematicFormat.readFromNBT(tagCompound);
-        } catch (Exception ex) {
-            ModLog.error("Failed to read schematic!", ex);
-        }
+	public static ISchematic readFromFile(File file) {
+		try {
+			final NBTTagCompound tagCompound = SchematicUtil
+					.readTagCompoundFromFile(file);
+			final String format = tagCompound.getString(Names.NBT.MATERIALS);
+			final SchematicFormat schematicFormat = FORMATS.get(format);
 
-        return null;
-    }
+			if (schematicFormat == null) {
+				throw new UnsupportedFormatException(format);
+			}
 
-    public static ISchematic readFromFile(File directory, String filename) {
-        return readFromFile(new File(directory, filename));
-    }
+			return schematicFormat.readFromNBT(tagCompound);
+		} catch (Exception ex) {
+			ModLog.error("Failed to read schematic!", ex);
+		}
 
-    public static boolean writeToFile(File file, ISchematic schematic) {
-        try {
-            NBTTagCompound tagCompound = new NBTTagCompound();
+		return null;
+	}
 
-            FORMATS.get(FORMAT_DEFAULT).writeToNBT(tagCompound, schematic);
+	public static ISchematic readFromFile(File directory, String filename) {
+		return readFromFile(new File(directory, filename));
+	}
 
-            DataOutputStream dataOutputStream = new DataOutputStream(new GZIPOutputStream(new FileOutputStream(file)));
+	public static boolean writeToFile(File file, ISchematic schematic) {
+		try {
+			NBTTagCompound tagCompound = new NBTTagCompound();
 
-            try {
-                //NBTTagCompound.func_150298_a(Names.NBT.ROOT, tagCompound, dataOutputStream);
-                func_150298_a.invoke(null, Names.NBT.ROOT, tagCompound, dataOutputStream);
-            } finally {
-                dataOutputStream.close();
-            }
+			FORMATS.get(FORMAT_DEFAULT).writeToNBT(tagCompound, schematic);
 
-            return true;
-        } catch (Exception ex) {
-            ModLog.error("Failed to write schematic!", ex);
-        }
+			DataOutputStream dataOutputStream = new DataOutputStream(
+					new GZIPOutputStream(new FileOutputStream(file)));
 
-        return false;
-    }
+			try {
+				// NBTTagCompound.func_150298_a(Names.NBT.ROOT, tagCompound,
+				// dataOutputStream);
+				func_150298_a.invoke(null, Names.NBT.ROOT, tagCompound,
+						dataOutputStream);
+			} finally {
+				dataOutputStream.close();
+			}
 
-    public static boolean writeToFile(File directory, String filename, ISchematic schematic) {
-        return writeToFile(new File(directory, filename), schematic);
-    }
+			return true;
+		} catch (Exception ex) {
+			ModLog.error("Failed to write schematic!", ex);
+		}
 
-    static {
-        FORMATS.put(Names.NBT.FORMAT_CLASSIC, new SchematicClassic());
-        FORMATS.put(Names.NBT.FORMAT_ALPHA, new SchematicAlpha());
+		return false;
+	}
 
-        FORMAT_DEFAULT = Names.NBT.FORMAT_ALPHA;
-    }
+	public static boolean writeToFile(File directory, String filename,
+			ISchematic schematic) {
+		return writeToFile(new File(directory, filename), schematic);
+	}
+
+	static {
+		FORMATS.put(Names.NBT.FORMAT_CLASSIC, new SchematicClassic());
+		FORMATS.put(Names.NBT.FORMAT_ALPHA, new SchematicAlpha());
+
+		FORMAT_DEFAULT = Names.NBT.FORMAT_ALPHA;
+	}
 }

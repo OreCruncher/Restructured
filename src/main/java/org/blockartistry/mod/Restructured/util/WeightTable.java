@@ -73,7 +73,7 @@ public class WeightTable<T extends WeightTable.Item> {
 
 		return items.get(i - 1);
 	}
-	
+
 	public int size() {
 		return items.size();
 	}

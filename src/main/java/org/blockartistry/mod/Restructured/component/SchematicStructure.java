@@ -37,7 +37,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureVillagePieces.Start;
 
-public class SchematicStructure extends VillageStructureBase {
+public class SchematicStructure extends VillageStructureBase implements
+		IStructureBuilder {
 
 	static final ArrayList<SchematicProperties> schematics = new ArrayList<SchematicProperties>();
 
@@ -93,26 +94,27 @@ public class SchematicStructure extends VillageStructureBase {
 				coordBaseMode, properties, this);
 		builder.generate();
 	}
-	
+
 	Vector getSafeVillagerLocation() {
-		
+
 		// Initialize starting point
 		Vector size = new Vector(properties.schematic);
-		int x = size.x / 2;
-		int z = size.z / 2;
-		int y = properties.groundOffset;
-		
+		double x = size.x / 2;
+		double z = size.z / 2;
+		double y = properties.groundOffset;
+
 		// Try several times finding a suitable spot
-		for(int i = 0; i < 4; i++) {
-			BlockHelper block = new BlockHelper(properties.schematic.getBlock(x, y + 1, z));
-			if(block.canBreath())
+		for (int i = 0; i < 4; i++) {
+			BlockHelper block = new BlockHelper(properties.schematic.getBlock(
+					(int) x, (int) y + 1, (int) z));
+			if (block.canBreath())
 				break;
-			
-			// No - won't cut it.  Adjust.
+
+			// No - won't cut it. Adjust.
 			x += 1 - rand.nextInt(3);
 			z += 1 - rand.nextInt(3);
 		}
-		
+
 		return new Vector(x, y, z);
 	}
 
@@ -126,7 +128,8 @@ public class SchematicStructure extends VillageStructureBase {
 			return;
 
 		Vector loc = getSafeVillagerLocation();
-		this.spawnVillagers(world, box, loc.x, loc.y, loc.z, count);
+		this.spawnVillagers(world, box, (int) loc.x, (int) loc.y, (int) loc.z,
+				count);
 	}
 
 	@Override
@@ -137,4 +140,25 @@ public class SchematicStructure extends VillageStructureBase {
 		return type;
 	}
 
+	@Override
+	public boolean isVecInside(int x, int y, int z, StructureBoundingBox box) {
+		Vector v = getWorldCoordinates(x, y, z);
+		return box.isVecInside((int) v.x, (int) v.y, (int) v.z);
+	}
+
+	@Override
+	public Vector getWorldCoordinates(int x, int y, int z) {
+		return new Vector(this.getXWithOffset(x, z), this.getYWithOffset(y),
+				this.getZWithOffset(x, z));
+	}
+
+	@Override
+	public Vector getWorldCoordinates(double x, double y, double z) {
+		return getWorldCoordinates((int) x, (int) y, (int) z);
+	}
+
+	@Override
+	public Vector getWorldCoordinates(Vector v) {
+		return getWorldCoordinates(v.x, v.y, v.z);
+	}
 }

@@ -24,48 +24,34 @@
 
 package org.blockartistry.mod.Restructured.util;
 
-import org.blockartistry.mod.Restructured.schematica.ISchematic;
+import java.util.ArrayList;
+import java.util.List;
 
-public final class Vector {
+public class ElementRule {
 
-	public final double x;
-	public final double y;
-	public final double z;
-
-	public Vector(ISchematic s) {
-		this.x = s.getWidth();
-		this.y = s.getHeight();
-		this.z = s.getLength();
+	public static enum Rule {
+		MUST_BE_IN, MUST_NOT_BE_IN
 	}
 
-	public Vector(int x, int y, int z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
+	private final List<Integer> elements = new ArrayList<Integer>();
+	private final boolean contains;
 
-	public Vector(double x, double y, double z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	@Override
-	public String toString() {
-		return String.format("(%f, %f, %f)", x, y, z);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-
-		if (obj == this)
-			return true;
-
-		if (obj instanceof Vector) {
-			Vector v = (Vector) obj;
-			return this.x == v.x && this.y == v.y && this.z == v.z;
+	public ElementRule(Rule rule, String[] list) {
+		this.contains = rule == Rule.MUST_BE_IN;
+		
+		for(String s: list) {
+			Integer i = Integer.getInteger(s);
+			if(i != null)
+				elements.add(i);
 		}
+	}
 
-		return false;
+	public void add(Integer e) {
+		elements.add(e);
+	}
+
+	public boolean isOk(Integer e) {
+		boolean isContained = elements.contains(e);
+		return contains && isContained || !contains && !isContained;
 	}
 }
