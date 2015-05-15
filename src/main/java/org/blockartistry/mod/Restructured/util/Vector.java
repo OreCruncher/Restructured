@@ -46,4 +46,18 @@ public final class Vector {
 	public String toString() {
 		return String.format("(%d, %d, %d)", x, y, z);
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		
+		if(obj == this)
+			return true;
+		
+		if(obj instanceof Vector) {
+			Vector v = (Vector)obj;
+			return this.x == v.x && this.y == v.y && this.z == v.z;
+		}
+		
+		return false;
+	}
 }

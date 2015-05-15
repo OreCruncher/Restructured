@@ -58,6 +58,7 @@ public class CopyStructureBuilder implements IStructureBuilder {
 	final SchematicProperties properties;
 	
 	ArrayList<Vector> waitToPlace = new ArrayList<Vector>();
+	ArrayList<Vector> blockList = new ArrayList<Vector>();
 	
 	public CopyStructureBuilder(World world, StructureBoundingBox box, int orientation, SchematicProperties properties, VillageStructureBase structure) {
 		
@@ -96,13 +97,18 @@ public class CopyStructureBuilder implements IStructureBuilder {
 					if(isVecInside(x, y, z, box)) {
 					
 						BlockHelper block = new BlockHelper(schematic.getBlock(x, y, z));
-						
-						if(doSkipFireSource(block))
+						Vector v = new Vector(x, y, z);
+
+						// Do we skip placement?
+						if(doSkipFireSource(block) || doSkipSpawnerPlacement(block, v))
 							continue;
 						
+						// Delay placing things that don't like being
+						// rotated or attached to blocks that change
 						if(waitToPlace(block))
-							waitToPlace.add(new Vector(x, y, z));
+							waitToPlace.add(v);
 						else {
+							
 							int meta = schematic.getBlockMetadata(x, y, z);
 						    place(block.theBlock(), meta, x, y, z);
 						}
@@ -119,6 +125,11 @@ public class CopyStructureBuilder implements IStructureBuilder {
 		
 		for(TileEntity e: schematic.getTileEntities()) {
 			if(!isVecInside(e.xCoord, e.yCoord, e.zCoord, box))
+				continue;
+
+			// If the block location is black listed we don't want
+			// to create the tile entity at the location
+			if(blockList.contains(new Vector(e.xCoord, e.yCoord, e.zCoord)))
 				continue;
 			
 			try {
@@ -181,7 +192,14 @@ public class CopyStructureBuilder implements IStructureBuilder {
 	boolean doSkipFireSource(BlockHelper helper) {
 		return helper.isFireSource() && properties.suppressFire;
 	}
-	
+
+	boolean doSkipSpawnerPlacement(BlockHelper helper, Vector v) {
+		if(helper.isSpawner() && rand.nextInt(100) >= properties.spawnerEnableChance) {
+			blockList.add(v);
+			return true;
+		}
+		return false;
+	}
 	boolean waitToPlace(BlockHelper block) {
 		return block.isTorch();
 	}

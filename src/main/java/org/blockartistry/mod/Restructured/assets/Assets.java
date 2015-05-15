@@ -70,6 +70,7 @@ public final class Assets {
 	static final int DEFAULT_VILLAGER_PROFESSION = -1;
 	static final String DEFAULT_CHEST_CONTENTS = "";
 	static final int DEFAULT_CHEST_CONTENTS_COUNT = 1;
+	static final int DEFAULT_SPAWNER_ENABLE_CHANCE = 15;
 
 	static final String CONFIG_STRUCTURES = "structures";
 	static final String OPTION_IS_WORLD = "includeInWorldGen";
@@ -82,6 +83,7 @@ public final class Assets {
 	static final String OPTION_OFFSET = "groundOffset";
 	static final String OPTION_CHEST_CONTENTS = "chestContents";
 	static final String OPTION_CHEST_CONTENTS_COUNT = "chestContentsCount";
+	static final String OPTION_SPAWNER_ENABLE_CHANCE = "spawnerEnableChance";
 	
 	static final String CONFIG_CHESTS = "chests";
 
@@ -159,6 +161,10 @@ public final class Assets {
 						.getInt(OPTION_CHEST_CONTENTS_COUNT, category, DEFAULT_CHEST_CONTENTS_COUNT, 0,
 								Integer.MAX_VALUE,
 								"The number of stacks to pull from the generation table");
+				props.spawnerEnableChance = config
+						.getInt(OPTION_SPAWNER_ENABLE_CHANCE, category, DEFAULT_SPAWNER_ENABLE_CHANCE, 0,
+								100,
+								"Chance that a spawner will be preserved when placed");
 
 				try {
 					InputStream stream = Assets.getSchematicFile(props.name);

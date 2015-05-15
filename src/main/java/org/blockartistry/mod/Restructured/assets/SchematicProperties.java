@@ -16,6 +16,7 @@ public final class SchematicProperties {
 	public int villagerProfession;
 	public String chestContents;
 	public int chestContentsCount;
+	public int spawnerEnableChance;
 
 	public SchematicProperties() {
 		super();
@@ -35,6 +36,7 @@ public final class SchematicProperties {
 				villagerCount, villagerProfession));
 		builder.append(String.format(" (chest: %s, count: %d)",
 				(chestContents == null) ? "<None>" : chestContents, chestContentsCount));
+		builder.append(String.format(" (spawner: %d)", spawnerEnableChance));
 
 		return builder.toString();
 	}

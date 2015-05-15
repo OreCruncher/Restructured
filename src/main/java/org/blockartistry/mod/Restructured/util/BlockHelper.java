@@ -70,5 +70,8 @@ public class BlockHelper {
 	public boolean isTorch() {
 		return block == Blocks.torch || block == Blocks.redstone_torch;
 	}
-
+	
+	public boolean isSpawner() {
+		return block == Blocks.mob_spawner;
+	}
 }
