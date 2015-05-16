@@ -39,13 +39,56 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class SchematicWorldGenHandler implements IWorldGenerator {
 
-	private static int CHUNK_SIZE = 16;
-	private static SchematicProperties noSpawnSentinel = new SchematicProperties();
-	private static int MINIMUM_SPAWN_DISTANCE = 8;
-	private static int MINIMUM_VILLAGE_DISTANCE = 10 * CHUNK_SIZE;
+	private static final int CHUNK_SIZE = 16;
+	private static final int CHUNK_HALFAREA = (CHUNK_SIZE * CHUNK_SIZE) / 2;
+	private static final SchematicProperties NOSPAWN_SENTINEL = new SchematicProperties();
+	private static final int MINIMUM_SPAWN_DISTANCE = 8;
+	private static final int MINIMUM_VILLAGE_DISTANCE = 8 * CHUNK_SIZE;
 
 	public SchematicWorldGenHandler() {
 		GameRegistry.registerWorldGenerator(this, 200);
+	}
+	
+	
+	/**
+	 * Analyze the chunk to determine the predominant biome that
+	 * is present.  The predominant biome will be used to filter
+	 * the weight list and make further decisions.
+	 * 
+	 * @param chunkX
+	 * @param chunkY
+	 * @return Predominant biome in the indicated chunk
+	 */
+	protected BiomeGenBase chunkBiomeSurvey(World world, int chunkX, int chunkZ) {
+		
+		final int xStart = chunkX * CHUNK_SIZE;
+		final int zStart = chunkZ * CHUNK_SIZE;
+		final int[] counts = new int[BiomeGenBase.getBiomeGenArray().length];
+		
+		int highIndex = -1;
+		int highCount = -1;
+		
+		for(int zIdx = 0; zIdx < CHUNK_SIZE; zIdx++) {
+			int z = zStart + zIdx;
+			for(int xIdx = 0; xIdx < CHUNK_SIZE; xIdx++) {
+				int x = xStart + xIdx;
+				BiomeGenBase b = world.getBiomeGenForCoords(x, z);
+				if(b != null) {
+					// Keep track of the high count
+					if(++counts[b.biomeID] > highCount) {
+						highIndex = b.biomeID;
+						highCount = counts[highIndex];
+					}
+					
+					// If the count is more than half the area
+					// leave - its going to be the winner.
+					if(highCount >= CHUNK_HALFAREA)
+						return BiomeGenBase.getBiome(highIndex);
+				}
+			}
+		}
+			
+		return BiomeGenBase.getBiome(highIndex);
 	}
 
 	@Override
@@ -77,30 +120,30 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 			return;
 
 		int dimension = world.provider.dimensionId;
-		BiomeGenBase b = world.getBiomeGenForCoords(chunkX, chunkZ);
+		BiomeGenBase biome = chunkBiomeSurvey(world, chunkX, chunkZ);
 
 		// Find applicable structures for this attempt. If there aren't
 		// any return.
 		WeightTable<SchematicWeightItem> structs = Assets.getTableForWorldGen(
-				dimension, b.biomeID);
+				dimension, biome);
 		if (structs.size() == 0)
 			return;
 		
 		// Only 1 in 100 chunks will have a chance.  Add a no
 		// spawn sentinel at 99 times the total weight of the current
 		// weight table.
-		noSpawnSentinel.worldWeight = structs.getTotalWeight() * 99;
-		structs.add(new SchematicWeightItem(noSpawnSentinel, false));
+		NOSPAWN_SENTINEL.worldWeight = structs.getTotalWeight() * 99;
+		structs.add(new SchematicWeightItem(NOSPAWN_SENTINEL, false));
 
 		// Assuming we get here are are going for it
 		SchematicProperties props = structs.next().properties;
-		if(props == noSpawnSentinel)
+		if(props == NOSPAWN_SENTINEL)
 			return;
 		
 		// Get a random orientation and build the structure
 		int direction = random.nextInt(4);
 		SchematicWorldGenStructure structure = new SchematicWorldGenStructure(
-				world, direction, x, z, props);
+				world, biome, direction, x, z, props);
 		structure.build();
 	}
 }

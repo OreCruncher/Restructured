@@ -36,14 +36,11 @@ public class ElementRule {
 	private final List<Integer> elements = new ArrayList<Integer>();
 	private final boolean contains;
 
-	public ElementRule(Rule rule, String[] list) {
+	public ElementRule(Rule rule, int[] list) {
 		this.contains = rule == Rule.MUST_BE_IN;
 		
-		for(String s: list) {
-			Integer i = Integer.getInteger(s);
-			if(i != null)
-				elements.add(i);
-		}
+		for(int i: list)
+			add(i);
 	}
 
 	public void add(Integer e) {

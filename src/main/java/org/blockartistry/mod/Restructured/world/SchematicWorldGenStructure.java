@@ -27,7 +27,10 @@ package org.blockartistry.mod.Restructured.world;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.terraingen.BiomeEvent;
 
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
@@ -36,19 +39,23 @@ import org.blockartistry.mod.Restructured.math.BoxHelper;
 import org.blockartistry.mod.Restructured.math.BoxHelper.RegionStats;
 import org.blockartistry.mod.Restructured.util.Vector;
 
+import cpw.mods.fml.common.eventhandler.Event.Result;
+
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
 	protected final World world;
 	protected final int direction;
 	protected final SchematicProperties properties;
 	protected StructureBoundingBox boundingBox;
+	protected final BiomeGenBase biome;
 
-	public SchematicWorldGenStructure(World world, int direction, int x, int z,
-			SchematicProperties properties) {
+	public SchematicWorldGenStructure(World world, BiomeGenBase biome,
+			int direction, int x, int z, SchematicProperties properties) {
 		Vector size = new Vector(properties.schematic);
 		this.world = world;
 		this.direction = direction;
 		this.properties = properties;
+		this.biome = biome;
 		this.boundingBox = StructureBoundingBox.getComponentToAddBoundingBox(x,
 				1, z, 0, 0, 0, (int) size.x, (int) size.y, (int) size.z,
 				direction);
@@ -90,7 +97,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			world.setBlock(i1, j1, k1, block, meta, 2);
+			Block blockToPlace = convertBlockForBiome(block, meta);
+			int newMeta = convertBlockMetadata(block, meta);
+			world.setBlock(i1, j1, k1, blockToPlace, newMeta, 2);
 		}
 	}
 
@@ -126,16 +135,76 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		}
 	}
 
+	protected Block convertBlockForBiome(Block block, int meta) {
+		BiomeEvent.GetVillageBlockID event = new BiomeEvent.GetVillageBlockID(
+				biome, block, meta);
+		MinecraftForge.TERRAIN_GEN_BUS.post(event);
+		if (event.getResult() == Result.DENY)
+			return event.replacement;
+
+		if (biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills) {
+			if (block == Blocks.log || block == Blocks.log2) {
+				return Blocks.sandstone;
+			}
+
+			if (block == Blocks.cobblestone) {
+				return Blocks.sandstone;
+			}
+
+			if (block == Blocks.planks) {
+				return Blocks.sandstone;
+			}
+
+			if (block == Blocks.oak_stairs) {
+				return Blocks.sandstone_stairs;
+			}
+
+			if (block == Blocks.stone_stairs) {
+				return Blocks.sandstone_stairs;
+			}
+
+			if (block == Blocks.gravel) {
+				return Blocks.sandstone;
+			}
+		}
+
+		return block;
+	}
+
+	protected int convertBlockMetadata(Block block, int meta) {
+		BiomeEvent.GetVillageBlockMeta event = new BiomeEvent.GetVillageBlockMeta(
+				biome, block, meta);
+		MinecraftForge.TERRAIN_GEN_BUS.post(event);
+		if (event.getResult() == Result.DENY)
+			return event.replacement;
+
+		if (biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills) {
+			if (block == Blocks.log || block == Blocks.log2) {
+				return 0;
+			}
+
+			if (block == Blocks.cobblestone) {
+				return 0;
+			}
+
+			if (block == Blocks.planks) {
+				return 2;
+			}
+		}
+
+		return meta;
+	}
+
 	/**
 	 * Deletes all continuous blocks from selected position upwards. Stops at
 	 * hitting air.
 	 */
-	protected void clearUpwards(int x, int y, int z) {
+	protected void clearUpwards(int x, int y, int z, StructureBoundingBox box) {
 		int l = getXWithOffset(x, z);
 		int i1 = getYWithOffset(y);
 		int j1 = getZWithOffset(x, z);
 
-		if (boundingBox.isVecInside(l, i1, j1)) {
+		if (box.isVecInside(l, i1, j1)) {
 			while (!world.isAirBlock(l, i1, j1) && i1 < 255) {
 				world.setBlock(l, i1, j1, Blocks.air, 0, 2);
 				++i1;
@@ -143,22 +212,27 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		}
 	}
 
-	protected void clearDownwards(Block block, int meta, int x, int y, int z) {
+	protected void clearDownwards(Block block, int meta, int x, int y, int z,
+			StructureBoundingBox box) {
+		
+		Block blockToPlace = convertBlockForBiome(block, meta);
+		int newMeta = convertBlockMetadata(block, meta);
+
 		int i1 = getXWithOffset(x, z);
 		int j1 = getYWithOffset(y);
 		int k1 = getZWithOffset(x, z);
 
-		if (boundingBox.isVecInside(i1, j1, k1)) {
+		if (box.isVecInside(i1, j1, k1)) {
 			while ((world.isAirBlock(i1, j1, k1) || world.getBlock(i1, j1, k1)
 					.getMaterial().isLiquid())
 					&& j1 > 1) {
-				world.setBlock(i1, j1, k1, block, meta, 2);
+				world.setBlock(i1, j1, k1, blockToPlace, newMeta, 2);
 				--j1;
 			}
 		}
 	}
 
-	protected void prep() {
+	protected void prep(StructureBoundingBox box) {
 
 		RegionStats stats = BoxHelper.getRegionStats(world, boundingBox,
 				boundingBox);
@@ -172,16 +246,16 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		// Ensure a platform for the structure
 		for (int xx = 0; xx < size.x; xx++) {
 			for (int zz = 0; zz < size.z; zz++) {
-				clearUpwards(xx, 0, zz);
-				clearDownwards(Blocks.grass, 0, xx, -1, zz);
+				clearUpwards(xx, 0, zz, box);
+				clearDownwards(Blocks.grass, 0, xx, -1, zz, box);
 			}
 		}
 	}
 
 	public void build() {
-		prep();
 		StructureBoundingBox box = new StructureBoundingBox(boundingBox.minX,
 				1, boundingBox.minZ, boundingBox.maxX, 512, boundingBox.maxZ);
+		prep(box);
 		CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
 				direction, properties, this);
 		builder.generate();

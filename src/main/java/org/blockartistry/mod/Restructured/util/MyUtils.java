@@ -118,11 +118,28 @@ public final class MyUtils {
 				builder.append(joiner);
 			else
 				seenOne = true;
-			builder.append(e.toString());
+			builder.append(e);
 		}
 		return builder.toString();
 	}
 
+	public static int[] split(String split, String list) throws Exception {
+	
+		String[] tokens = list.split(split);
+		if(tokens == null || tokens.length == 0)
+			return new int[] { };
+		
+		int[] result = new int[tokens.length];
+		for(int i = 0; i < tokens.length; i++) {
+			Integer v = Integer.parseInt(tokens[i]);
+			if(v == null)
+				throw new Exception("Invalid integer in string");
+			result[i] = v;
+		}
+		
+		return result;
+	}
+	
 	public static boolean contains(int[] list, int entity) {
 		if (list == null || list.length == 0)
 			return false;
@@ -131,5 +148,18 @@ public final class MyUtils {
 			if (e == entity)
 				return true;
 		return false;
+	}
+
+	public static String join(String joiner, int[] list) {
+		StringBuilder builder = new StringBuilder();
+		boolean seenOne = false;
+		for (int e : list) {
+			if (seenOne)
+				builder.append(joiner);
+			else
+				seenOne = true;
+			builder.append(e);
+		}
+		return builder.toString();
 	}
 }

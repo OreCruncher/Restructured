@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.WeightedRandomChestContent;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
@@ -50,6 +51,7 @@ import org.blockartistry.mod.Restructured.schematica.SchematicFormat;
 import org.blockartistry.mod.Restructured.util.ElementRule;
 import org.blockartistry.mod.Restructured.util.ElementRule.Rule;
 import org.blockartistry.mod.Restructured.util.ItemStackHelper;
+import org.blockartistry.mod.Restructured.util.MyUtils;
 import org.blockartistry.mod.Restructured.util.WeightTable;
 import org.blockartistry.mod.Restructured.world.SchematicWorldGenHandler;
 
@@ -77,6 +79,16 @@ public final class Assets {
 	static final int DEFAULT_SPAWNER_ENABLE_CHANCE = 15;
 	static final boolean DEFAULT_BIOME_LIST_TYPE = true;
 	static final boolean DEFAULT_DIMENSION_LIST_TYPE = true;
+	
+	static final int[] DEFAULT_BIOME_LIST = new int[] {
+		BiomeGenBase.deepOcean.biomeID,
+		BiomeGenBase.frozenOcean.biomeID,
+		BiomeGenBase.frozenRiver.biomeID,
+		BiomeGenBase.ocean.biomeID,
+		BiomeGenBase.river.biomeID,
+	};
+	
+	static final int[] DEFAULT_DIMENSION_LIST = new int[] { 1, -1 };
 
 	static final String CONFIG_STRUCTURES = "structures";
 	static final String OPTION_IS_WORLD = "includeInWorldGen";
@@ -185,12 +197,24 @@ public final class Assets {
 						"Chance that a spawner will be preserved when placed");
 				
 				boolean asBlackList = config.getBoolean(OPTION_BIOME_LIST_TYPE, category, DEFAULT_BIOME_LIST_TYPE, "Treat the biome list as a blacklist vs. whitelist");
-				String[] list = config.getStringList(OPTION_BIOME_LIST, category, new String[] { }, "List of biome IDs");
-				props.biomes = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN, list);
+				String def = MyUtils.join(";", DEFAULT_BIOME_LIST);
+				String list = config.getString(OPTION_BIOME_LIST, category, def, "List of biome IDs");
+				
+				try {
+					props.biomes = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN, MyUtils.split(";", list));
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 
 				asBlackList = config.getBoolean(OPTION_DIMENSION_LIST_TYPE, category, DEFAULT_DIMENSION_LIST_TYPE, "Treat the dimension list as a blacklist vs. whitelist");
-				list = config.getStringList(OPTION_DIMENSION_LIST, category, new String[] { }, "List of dimension IDs");
-				props.dimensions = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN, list);
+				def = MyUtils.join(";", DEFAULT_DIMENSION_LIST);
+				list = config.getString(OPTION_DIMENSION_LIST, category, def, "List of dimension IDs");
+				
+				try {
+					props.dimensions = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN, MyUtils.split(";", list));
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 
 				try {
 					InputStream stream = Assets.getSchematicFile(props.name);
@@ -310,16 +334,25 @@ public final class Assets {
 	}
 
 	public static WeightTable<SchematicWeightItem> getTableForWorldGen(
-			int dimId, int biomeId) {
+			int dimId, BiomeGenBase biome) {
 
 		WeightTable<SchematicWeightItem> table = new WeightTable<SchematicWeightItem>();
 		for (SchematicWeightItem e : worldSchematics.getEntries()) {
 			SchematicProperties p = e.properties;
-			if (p.dimensions.isOk(dimId) && p.biomes.isOk(biomeId))
+			if (p.dimensions.isOk(dimId) && p.biomes.isOk(biome.biomeID))
 				table.add(e);
 		}
 
 		return table;
+	}
+	
+	protected static void dumpBiomeList() {
+		
+		ModLog.info("Detected biomes:");
+		
+		for(BiomeGenBase b: BiomeGenBase.getBiomeGenArray())
+			if(b != null)
+				ModLog.info("Biome [%s] id=%d", b.biomeName, b.biomeID);
 	}
 
 	public static void initialize() {
@@ -351,5 +384,7 @@ public final class Assets {
 			ModLog.info("Regsitering world generation handler");
 			new SchematicWorldGenHandler();
 		}
+		
+		dumpBiomeList();
 	}
 }
