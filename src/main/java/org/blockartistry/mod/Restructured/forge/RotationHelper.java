@@ -325,6 +325,9 @@ public class RotationHelper {
 				meta = 0x7;
 			}
 		}
+		
+		if(blockType == BlockType.BED)
+			meta = meta & 3;
 
 		if (MAPPINGS.containsKey(blockType)) {
 			BiMap<Integer, ForgeDirection> biMap = MAPPINGS.get(blockType);
@@ -340,7 +343,7 @@ public class RotationHelper {
 			return ForgeDirection.getOrientation(5 - (meta & 3));
 		}
 		if (blockType == BlockType.CHEST || blockType == BlockType.DISPENSER
-				|| blockType == BlockType.SKULL) {
+				|| blockType == BlockType.SKULL || blockType == BlockType.BED) {
 			return ForgeDirection.getOrientation(meta);
 		}
 		if (blockType == BlockType.BUTTON) {
@@ -362,7 +365,7 @@ public class RotationHelper {
 			return SOUTH;
 
 		}
-
+		
 		return ForgeDirection.UNKNOWN;
 	}
 

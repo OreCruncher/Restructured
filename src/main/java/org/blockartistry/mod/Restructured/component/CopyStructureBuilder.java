@@ -138,17 +138,11 @@ public class CopyStructureBuilder {
 				// Clone it - we don't want to use the master copy because
 				// it will be used for other buildings.
 				TileEntity entity = cloneTileEntity(e);
+				entity.validate();
 
 				// Update the entity with the proper state.
 				BlockHelper helper = new BlockHelper(schematic.getBlock(
 						entity.xCoord, entity.yCoord, entity.zCoord));
-
-				entity.setWorldObj(world);
-				entity.blockType = helper.theBlock();
-				entity.blockMetadata = translateMeta(entity.blockType,
-						schematic.getBlockMetadata(entity.xCoord,
-								entity.yCoord, entity.zCoord));
-				entity.validate();
 
 				// Place it into the world
 				Vector coord = structure.getWorldCoordinates(entity.xCoord,
@@ -180,7 +174,7 @@ public class CopyStructureBuilder {
 				// Place it into the world
 				Vector coord = structure.getWorldCoordinates(x, y, z);
 				Entity entity = cloneEntity(e);
-				entity.setPosition(coord.x, coord.y, coord.z);
+				entity.setPosition(coord.x + 0.5F, coord.y + 0.5F, coord.z + 0.5F);
 
 				world.spawnEntityInWorld(entity);
 			} catch (Throwable t) {

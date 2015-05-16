@@ -29,9 +29,11 @@ import java.util.Random;
 
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
+import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -104,11 +106,19 @@ public class SchematicStructure extends VillageStructureBase implements
 		double y = properties.groundOffset;
 
 		// Try several times finding a suitable spot
+		ISchematic s = properties.schematic;
 		for (int i = 0; i < 4; i++) {
-			BlockHelper block = new BlockHelper(properties.schematic.getBlock(
+			BlockHelper block = new BlockHelper(s.getBlock(
 					(int) x, (int) y + 1, (int) z));
-			if (block.canBreath())
+			if (block.canBreath()) {
+				
+				// Bump up one in case he is standing in wood
+				// or something.
+				if(s.getBlock((int)x, (int)y, (int)z) != Blocks.air)
+					y += 1;
+				
 				break;
+			}
 
 			// No - won't cut it. Adjust.
 			x += 1 - rand.nextInt(3);
