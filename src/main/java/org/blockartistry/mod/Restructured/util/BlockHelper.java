@@ -74,4 +74,40 @@ public class BlockHelper {
 	public boolean isSpawner() {
 		return block == Blocks.mob_spawner;
 	}
+
+	public boolean isMonsterEgg() {
+		return block == Blocks.monster_egg;
+	}
+
+	public Tuple<Block, Integer> getNonMonsterEgg(int meta) {
+		Block temp = block;
+		if (isMonsterEgg())
+			switch (meta) {
+			case 0:
+				temp = Blocks.stone;
+				meta = 0;
+				break;
+			case 1:
+				temp = Blocks.cobblestone;
+				meta = 0;
+				break;
+			case 2:
+				temp = Blocks.stonebrick;
+				meta = 0;
+				break;
+			case 3:
+				temp = Blocks.stonebrick;
+				meta = 1;
+				break;
+			case 4:
+				temp = Blocks.stonebrick;
+				meta = 2;
+			case 5:
+				temp = Blocks.stonebrick;
+				meta = 3;
+				break;
+			}
+
+		return new Tuple<Block, Integer>(temp, meta);
+	}
 }

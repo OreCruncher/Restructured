@@ -31,8 +31,10 @@ import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
+import org.blockartistry.mod.Restructured.util.Tuple;
 import org.blockartistry.mod.Restructured.util.Vector;
 
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -74,6 +76,33 @@ public class SchematicStructure extends VillageStructureBase implements
 		if (temp != null)
 			this.properties = Assets.getProperties(temp);
 	}
+	
+	@Override
+	protected Block func_151558_b(Block block, int meta) {
+		
+		if(properties.suppressMonsterEgg) {
+			BlockHelper helper = new BlockHelper(block);
+			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
+			block = result.val1;
+			meta = result.val2;
+		}
+
+		return super.func_151558_b(block, meta);
+	}
+
+	@Override
+    protected int func_151557_c(Block block, int meta) {
+
+		if(properties.suppressMonsterEgg) {
+			BlockHelper helper = new BlockHelper(block);
+			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
+			block = result.val1;
+			meta = result.val2;
+		}
+		
+		return super.func_151557_c(block, meta);
+	}
+
 
 	@Override
 	public Vector getDimensions() {

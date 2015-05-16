@@ -32,8 +32,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -45,6 +47,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import org.apache.commons.lang3.StringUtils;
 import org.blockartistry.mod.Restructured.ModLog;
+import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.Restructured;
 import org.blockartistry.mod.Restructured.component.SchematicStructureCreationHandler;
 import org.blockartistry.mod.Restructured.schematica.SchematicFormat;
@@ -68,6 +71,7 @@ public final class Assets {
 	static final boolean DEFAULT_IS_WORLD = false;
 	static final boolean DEFAULT_IS_VILLAGE = true;
 	static final boolean DEFAULT_SUPPRESS_FIRE = true;
+	static final boolean DEFAULT_SUPPRESS_MONSTER_EGG = true;
 	static final int DEFAULT_VILLAGE_WEIGHT = 10;
 	static final int DEFAULT_WORLD_WEIGHT = 0;
 	static final int DEFAULT_LIMIT = 1;
@@ -79,21 +83,19 @@ public final class Assets {
 	static final int DEFAULT_SPAWNER_ENABLE_CHANCE = 15;
 	static final boolean DEFAULT_BIOME_LIST_TYPE = true;
 	static final boolean DEFAULT_DIMENSION_LIST_TYPE = true;
-	
+
 	static final int[] DEFAULT_BIOME_LIST = new int[] {
-		BiomeGenBase.deepOcean.biomeID,
-		BiomeGenBase.frozenOcean.biomeID,
-		BiomeGenBase.frozenRiver.biomeID,
-		BiomeGenBase.ocean.biomeID,
-		BiomeGenBase.river.biomeID,
-	};
-	
+			BiomeGenBase.deepOcean.biomeID, BiomeGenBase.frozenOcean.biomeID,
+			BiomeGenBase.frozenRiver.biomeID, BiomeGenBase.ocean.biomeID,
+			BiomeGenBase.river.biomeID, };
+
 	static final int[] DEFAULT_DIMENSION_LIST = new int[] { 1, -1 };
 
 	static final String CONFIG_STRUCTURES = "structures";
 	static final String OPTION_IS_WORLD = "includeInWorldGen";
 	static final String OPTION_IS_VILLAGE = "includeInVillageGen";
 	static final String OPTION_SUPPRESS_FIRE = "suppressFire";
+	static final String OPTION_SUPPRESS_MONSTER_EGG = "suppressMonsterEgg";
 	static final String OPTION_VILLAGE_WEIGHT = "villageWeight";
 	static final String OPTION_WORLD_WEIGHT = "worldWeight";
 	static final String OPTION_LIMIT = "limit";
@@ -145,9 +147,10 @@ public final class Assets {
 						SCHEMATIC_RESOURCE_EXTENSION);
 				String category = CONFIG_STRUCTURES + "." + props.name;
 
-				props.villageWeight = config.getInt(OPTION_VILLAGE_WEIGHT,
-						category, DEFAULT_VILLAGE_WEIGHT, 0, Integer.MAX_VALUE,
-						"Relative selection weight for village structure generation");
+				props.villageWeight = config
+						.getInt(OPTION_VILLAGE_WEIGHT, category,
+								DEFAULT_VILLAGE_WEIGHT, 0, Integer.MAX_VALUE,
+								"Relative selection weight for village structure generation");
 
 				props.worldWeight = config.getInt(OPTION_WORLD_WEIGHT,
 						category, DEFAULT_WORLD_WEIGHT, 0, Integer.MAX_VALUE,
@@ -157,11 +160,15 @@ public final class Assets {
 						category, DEFAULT_SUPPRESS_FIRE,
 						"Suppress fire sources when generating");
 
+				props.suppressMonsterEgg = config.getBoolean(OPTION_SUPPRESS_MONSTER_EGG,
+						category, DEFAULT_SUPPRESS_MONSTER_EGG,
+						"Suppress monster egg blocks when generating");
+
 				props.villagerCount = config
 						.getInt(OPTION_VILLAGER_COUNT, category,
 								DEFAULT_VILLAGER_COUNT, -1, Integer.MAX_VALUE,
 								"Number of villagers to spawn for the structure (-1 random)");
-				
+
 				props.villagerProfession = config
 						.getInt(OPTION_VILLAGER_PROFESSION,
 								category,
@@ -179,39 +186,50 @@ public final class Assets {
 						.getInt(OPTION_OFFSET, category, DEFAULT_OFFSET, 0,
 								Integer.MAX_VALUE,
 								"The number of blocks below ground the structure extends");
-				
+
 				props.chestContents = config
 						.getString(OPTION_CHEST_CONTENTS, category,
 								DEFAULT_CHEST_CONTENTS,
 								"What chest generation hook to use when filling chests");
-				
+
 				props.chestContentsCount = config
 						.getInt(OPTION_CHEST_CONTENTS_COUNT, category,
 								DEFAULT_CHEST_CONTENTS_COUNT, 0,
 								Integer.MAX_VALUE,
 								"The number of stacks to pull from the generation table");
-				
+
 				props.spawnerEnableChance = config.getInt(
 						OPTION_SPAWNER_ENABLE_CHANCE, category,
 						DEFAULT_SPAWNER_ENABLE_CHANCE, 0, 100,
 						"Chance that a spawner will be preserved when placed");
-				
-				boolean asBlackList = config.getBoolean(OPTION_BIOME_LIST_TYPE, category, DEFAULT_BIOME_LIST_TYPE, "Treat the biome list as a blacklist vs. whitelist");
+
+				boolean asBlackList = config.getBoolean(OPTION_BIOME_LIST_TYPE,
+						category, DEFAULT_BIOME_LIST_TYPE,
+						"Treat the biome list as a blacklist vs. whitelist");
 				String def = MyUtils.join(";", DEFAULT_BIOME_LIST);
-				String list = config.getString(OPTION_BIOME_LIST, category, def, "List of biome IDs");
-				
+				String list = config.getString(OPTION_BIOME_LIST, category,
+						def, "List of biome IDs");
+
 				try {
-					props.biomes = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN, MyUtils.split(";", list));
+					props.biomes = new ElementRule(
+							asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
+							MyUtils.split(";", list));
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 
-				asBlackList = config.getBoolean(OPTION_DIMENSION_LIST_TYPE, category, DEFAULT_DIMENSION_LIST_TYPE, "Treat the dimension list as a blacklist vs. whitelist");
+				asBlackList = config
+						.getBoolean(OPTION_DIMENSION_LIST_TYPE, category,
+								DEFAULT_DIMENSION_LIST_TYPE,
+								"Treat the dimension list as a blacklist vs. whitelist");
 				def = MyUtils.join(";", DEFAULT_DIMENSION_LIST);
-				list = config.getString(OPTION_DIMENSION_LIST, category, def, "List of dimension IDs");
-				
+				list = config.getString(OPTION_DIMENSION_LIST, category, def,
+						"List of dimension IDs");
+
 				try {
-					props.dimensions = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN, MyUtils.split(";", list));
+					props.dimensions = new ElementRule(
+							asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
+							MyUtils.split(";", list));
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -345,13 +363,13 @@ public final class Assets {
 
 		return table;
 	}
-	
+
 	protected static void dumpBiomeList() {
-		
+
 		ModLog.info("Detected biomes:");
-		
-		for(BiomeGenBase b: BiomeGenBase.getBiomeGenArray())
-			if(b != null)
+
+		for (BiomeGenBase b : BiomeGenBase.getBiomeGenArray())
+			if (b != null)
 				ModLog.info("Biome [%s] id=%d", b.biomeName, b.biomeID);
 	}
 
@@ -365,8 +383,17 @@ public final class Assets {
 			if (p.worldWeight > 0)
 				worldSchematics.add(new SchematicWeightItem(p, false));
 
-			if (p.villageWeight > 0 || p.worldWeight > 0)
+			if (p.villageWeight > 0 || p.worldWeight > 0) {
 				ModLog.info(p.toString());
+
+				if (ModOptions.getEnableDebugLogging()) {
+					Map<Block, Integer> analysis = p.analyze();
+					for (Entry<Block, Integer> e : analysis.entrySet()) {
+						ModLog.info("Block: [%s], count=%d", e.getKey()
+								.getLocalizedName(), e.getValue().intValue());
+					}
+				}
+			}
 		}
 
 		// Just call once - process will register the hook info
@@ -384,7 +411,7 @@ public final class Assets {
 			ModLog.info("Regsitering world generation handler");
 			new SchematicWorldGenHandler();
 		}
-		
+
 		dumpBiomeList();
 	}
 }

@@ -37,6 +37,8 @@ import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
 import org.blockartistry.mod.Restructured.component.IStructureBuilder;
 import org.blockartistry.mod.Restructured.math.BoxHelper;
 import org.blockartistry.mod.Restructured.math.BoxHelper.RegionStats;
+import org.blockartistry.mod.Restructured.util.BlockHelper;
+import org.blockartistry.mod.Restructured.util.Tuple;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 import cpw.mods.fml.common.eventhandler.Event.Result;
@@ -136,12 +138,20 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	}
 
 	protected Block convertBlockForBiome(Block block, int meta) {
+
+		if(properties.suppressMonsterEgg) {
+			BlockHelper helper = new BlockHelper(block);
+			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
+			block = result.val1;
+			meta = result.val2;
+		}
+
 		BiomeEvent.GetVillageBlockID event = new BiomeEvent.GetVillageBlockID(
 				biome, block, meta);
 		MinecraftForge.TERRAIN_GEN_BUS.post(event);
 		if (event.getResult() == Result.DENY)
 			return event.replacement;
-
+		
 		if (biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills) {
 			if (block == Blocks.log || block == Blocks.log2) {
 				return Blocks.sandstone;
@@ -172,6 +182,14 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	}
 
 	protected int convertBlockMetadata(Block block, int meta) {
+
+		if(properties.suppressMonsterEgg) {
+			BlockHelper helper = new BlockHelper(block);
+			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
+			block = result.val1;
+			meta = result.val2;
+		}
+
 		BiomeEvent.GetVillageBlockMeta event = new BiomeEvent.GetVillageBlockMeta(
 				biome, block, meta);
 		MinecraftForge.TERRAIN_GEN_BUS.post(event);
