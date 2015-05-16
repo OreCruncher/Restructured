@@ -2,7 +2,7 @@
 Master Branch: [![Master Branch](https://travis-ci.org/OreCruncher/Restructured.svg?branch=master)](https://travis-ci.org/OreCruncher/Restructured)
 
 
-###Thermal Recycling
+###Restructured
 
 Restructured is a Forge server side mod that provides the ability to modpack owners to add additional
 buildings to village and world generation by using schematics.
