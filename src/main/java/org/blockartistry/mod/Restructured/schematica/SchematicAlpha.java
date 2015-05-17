@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.blockartistry.mod.Restructured.ModLog;
+import org.blockartistry.mod.Restructured.world.FantasyIsland;
 
 public class SchematicAlpha extends SchematicFormat {
 	private static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData
@@ -143,11 +144,11 @@ public class SchematicAlpha extends SchematicFormat {
 
 			NBTTagList entitiesList = tagCompound.getTagList(
 					Names.NBT.ENTITIES, Constants.NBT.TAG_COMPOUND);
-
+			
 			for (int i = 0; i < entitiesList.tagCount(); i++) {
 				try {
 					NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
-					Entity entity = EntityList.createEntityFromNBT(cp, null);
+					Entity entity = EntityList.createEntityFromNBT(cp, FantasyIsland.instance);
 					if (entity != null) {
 
 						entity.posX = Math.floor(entity.posX - originX);
