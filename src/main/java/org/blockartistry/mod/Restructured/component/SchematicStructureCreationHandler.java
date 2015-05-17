@@ -87,7 +87,7 @@ public class SchematicStructureCreationHandler implements
 						(int) size.y, (int) size.z, direction);
 
 		// Check to see if the region is OK, and if so return back
-		// a SchematicStructure proxy for the schematic.
+		// a SchematicStructure surrogate for the schematic.
 		if (canVillageGoDeeper(_boundingBox)) {
 			if (StructureComponent.findIntersecting(pieces, _boundingBox) == null) {
 				try {

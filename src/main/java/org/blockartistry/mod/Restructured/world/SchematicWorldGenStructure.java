@@ -24,16 +24,11 @@
 
 package org.blockartistry.mod.Restructured.world;
 
-import java.util.HashMap;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.terraingen.BiomeEvent;
-
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
@@ -44,39 +39,9 @@ import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Tuple;
 import org.blockartistry.mod.Restructured.util.Vector;
 
-import cpw.mods.fml.common.eventhandler.Event.Result;
-
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
-	protected static final HashMap<Block, Tuple<Block,Integer>> desertReplacement = new HashMap<Block,Tuple<Block,Integer>>();
-
-	static {
-		desertReplacement.put(Blocks.log, new Tuple<Block,Integer>(Blocks.sandstone, 0));
-		desertReplacement.put(Blocks.log2, new Tuple<Block,Integer>(Blocks.sandstone, 0));
-		desertReplacement.put(Blocks.cobblestone, new Tuple<Block,Integer>(Blocks.sandstone, 0));
-		desertReplacement.put(Blocks.planks, new Tuple<Block,Integer>(Blocks.sandstone, 2));
-		desertReplacement.put(Blocks.oak_stairs, new Tuple<Block,Integer>(Blocks.sandstone, -1));
-		desertReplacement.put(Blocks.stone_stairs, new Tuple<Block,Integer>(Blocks.sandstone, -1));
-		desertReplacement.put(Blocks.gravel, new Tuple<Block,Integer>(Blocks.sandstone, -1));
-	}
-
-	protected static Block findReplacementBlock(BiomeGenBase biome, Block block, int meta) {
-		Tuple<Block, Integer> replace = null;
-		
-		if(biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills)
-			replace = desertReplacement.get(block);
-
-		return (replace == null) ? block : replace.val1;
-	}
-	
-	protected static int findReplacementMeta(BiomeGenBase biome, Block block, int meta) {
-		Tuple<Block, Integer> replace = null;
-		
-		if(biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills)
-			replace = desertReplacement.get(block);
-		
-		return (replace == null) ? meta : (replace.val2 == -1 ? meta : replace.val2); 
-	}
+	protected static final double VARIANCE_THRESHOLD = 6F;
 	
 	protected final World world;
 	protected final int direction;
@@ -179,13 +144,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 			meta = result.val2;
 		}
 
-		BiomeEvent.GetVillageBlockID event = new BiomeEvent.GetVillageBlockID(
-				biome, block, meta);
-		MinecraftForge.TERRAIN_GEN_BUS.post(event);
-		if (event.getResult() == Result.DENY)
-			return event.replacement;
-		
-		return findReplacementBlock(biome, block, meta);
+		return BiomeBlockMapping.findReplacementBlock(biome, block, meta);
 	}
 
 	protected int convertBlockMetadata(Block block, int meta) {
@@ -197,13 +156,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 			meta = result.val2;
 		}
 
-		BiomeEvent.GetVillageBlockMeta event = new BiomeEvent.GetVillageBlockMeta(
-				biome, block, meta);
-		MinecraftForge.TERRAIN_GEN_BUS.post(event);
-		if (event.getResult() == Result.DENY)
-			return event.replacement;
-
-		return findReplacementMeta(biome, block, meta);
+		return BiomeBlockMapping.findReplacementMeta(biome, block, meta);
 	}
 
 	/**
@@ -234,8 +187,8 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		int k1 = getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			while ((world.isAirBlock(i1, j1, k1) || world.getBlock(i1, j1, k1)
-					.getMaterial().isLiquid())
+			BlockHelper helper = new BlockHelper(world.getBlock(x, y, z));
+			while ((helper.isAir() || helper.isLiquid() || !helper.isSolid())
 					&& j1 > 1) {
 				world.setBlock(i1, j1, k1, blockToPlace, newMeta, 2);
 				--j1;
@@ -243,33 +196,43 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		}
 	}
 
-	protected void prep(StructureBoundingBox box) {
+	protected boolean prepare(StructureBoundingBox box) {
 
 		RegionStats stats = BoxHelper.getRegionStats(world, boundingBox,
 				boundingBox);
-		Vector size = getDimensions();
-		int offset = properties.groundOffset;
-
+		
+		// If there is too much variance return false.  Can't stand
+		// structures on dirt pillars.
+		if(stats.variance > VARIANCE_THRESHOLD)
+			return false;
+		
 		// Based on the terrain in the region adjust
 		// the Y to an appropriate level
-		boundingBox.offset(0, stats.mean - boundingBox.minY - offset, 0);
+		int offset = properties.groundOffset;
+		boundingBox.offset(0, (int)Math.round(stats.mean) - boundingBox.minY - offset, 0);
+		ModLog.debug("WorldGen structure [%s] @(%s); mode %d", properties.name, boundingBox, direction);
+		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
+		Vector size = getDimensions();
 		for (int xx = 0; xx < size.x; xx++) {
 			for (int zz = 0; zz < size.z; zz++) {
 				clearUpwards(xx, 0, zz, box);
-				clearDownwards(Blocks.grass, 0, xx, -1, zz, box);
+				clearDownwards(Blocks.dirt, 0, xx, -1, zz, box);
 			}
 		}
+		
+		return true;
 	}
 
 	public void build() {
 		
 		StructureBoundingBox box = new StructureBoundingBox(boundingBox.minX,
 				1, boundingBox.minZ, boundingBox.maxX, 512, boundingBox.maxZ);
-		ModLog.debug("WorldGen structure [%s] @(%s); mode %d", properties.name, boundingBox, direction);
 
-		prep(box);
+		if(!prepare(box))
+			return;
+		
 		CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
 				direction, properties, this);
 		builder.generate();

@@ -87,7 +87,8 @@ public final class Assets {
 	static final int[] DEFAULT_BIOME_LIST = new int[] {
 			BiomeGenBase.deepOcean.biomeID, BiomeGenBase.frozenOcean.biomeID,
 			BiomeGenBase.frozenRiver.biomeID, BiomeGenBase.ocean.biomeID,
-			BiomeGenBase.river.biomeID, };
+			BiomeGenBase.river.biomeID, BiomeGenBase.swampland.biomeID,
+			BiomeGenBase.beach.biomeID, };
 
 	static final int[] DEFAULT_DIMENSION_LIST = new int[] { 1, -1 };
 

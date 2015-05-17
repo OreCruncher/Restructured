@@ -78,6 +78,14 @@ public class BlockHelper {
 	public boolean isMonsterEgg() {
 		return block == Blocks.monster_egg;
 	}
+	
+	public boolean isLiquid() {
+		return block.getMaterial().isLiquid();
+	}
+	
+	public boolean isSolid() {
+		return block.getMaterial().isSolid();
+	}
 
 	public Tuple<Block, Integer> getNonMonsterEgg(int meta) {
 		Block temp = block;

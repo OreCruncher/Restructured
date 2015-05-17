@@ -33,11 +33,13 @@ import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Tuple;
 import org.blockartistry.mod.Restructured.util.Vector;
+import org.blockartistry.mod.Restructured.world.BiomeBlockMapping;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureVillagePieces.Start;
 
@@ -47,6 +49,7 @@ public class SchematicStructure extends VillageStructureBase implements
 	static final ArrayList<SchematicProperties> schematics = new ArrayList<SchematicProperties>();
 
 	SchematicProperties properties;
+	BiomeGenBase biome;
 
 	public SchematicStructure() {
 		super(null, 0, null, null, 0);
@@ -55,6 +58,8 @@ public class SchematicStructure extends VillageStructureBase implements
 	public SchematicStructure(Start start, int type, Random rand,
 			StructureBoundingBox box, int direction) {
 		super(start, type, rand, box, direction);
+		
+		this.biome = start.biome;
 	}
 
 	public void setProperties(SchematicProperties props) {
@@ -87,7 +92,7 @@ public class SchematicStructure extends VillageStructureBase implements
 			meta = result.val2;
 		}
 
-		return super.func_151558_b(block, meta);
+		return BiomeBlockMapping.findReplacementBlock(biome, block, meta);
 	}
 
 	@Override
@@ -100,9 +105,8 @@ public class SchematicStructure extends VillageStructureBase implements
 			meta = result.val2;
 		}
 		
-		return super.func_151557_c(block, meta);
+		return BiomeBlockMapping.findReplacementMeta(biome, block, meta);
 	}
-
 
 	@Override
 	public Vector getDimensions() {

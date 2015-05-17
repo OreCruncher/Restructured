@@ -48,28 +48,40 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Schematic implements ISchematic {
-	private static final ItemStack DEFAULT_ICON = new ItemStack(Blocks.grass);
+
 	private static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData
 			.getBlockRegistry();
+	
+	private static final int META_MASK = 0xFF;
+	private static final int BLOCK_SHIFT = 8;
 
-	private ItemStack icon;
-	private final short[][][] blocks;
-	private final byte[][][] metadata;
+	private final int[] data;
+	
 	private final List<TileEntity> tileEntities = new ArrayList<TileEntity>();
 	private final List<Entity> entities = new ArrayList<Entity>();
 	private final int width;
 	private final int height;
 	private final int length;
+	
+	private final int widthOffset;
+	private final int heightOffset;
 
 	public Schematic(final ItemStack icon, final int width, final int height,
 			final int length) {
-		this.icon = icon;
-		this.blocks = new short[width][height][length];
-		this.metadata = new byte[width][height][length];
-
+		
+		this.data = new int[width * height * length];
+		
 		this.width = width;
 		this.height = height;
 		this.length = length;
+
+		// int[dimX][dimY][dimZ] : 1-D array index [i * dimY*dimZ + j * dimZ + k]
+		this.widthOffset = height * length;
+		this.heightOffset = length;
+	}
+	
+	protected int getDataIndex(int x, int y, int z) {
+		return x * widthOffset + y * heightOffset + z;
 	}
 
 	@Override
@@ -77,8 +89,10 @@ public class Schematic implements ISchematic {
 		if (!isValid(x, y, z)) {
 			return Blocks.air;
 		}
+		
+		int d = data[getDataIndex(x,y,z)] >> BLOCK_SHIFT;
 
-		return BLOCK_REGISTRY.getObjectById(this.blocks[x][y][z]);
+		return BLOCK_REGISTRY.getObjectById(d);
 	}
 
 	public boolean setBlock(final int x, final int y, final int z,
@@ -97,8 +111,7 @@ public class Schematic implements ISchematic {
 			return false;
 		}
 
-		this.blocks[x][y][z] = (short) id;
-		setBlockMetadata(x, y, z, metadata);
+		data[getDataIndex(x,y,z)] = id << BLOCK_SHIFT | (metadata & META_MASK);
 		return true;
 	}
 
@@ -150,7 +163,7 @@ public class Schematic implements ISchematic {
 			return 0;
 		}
 
-		return this.metadata[x][y][z];
+		return data[getDataIndex(x,y,z)] & META_MASK;
 	}
 
 	public boolean setBlockMetadata(final int x, final int y, final int z,
@@ -159,7 +172,8 @@ public class Schematic implements ISchematic {
 			return false;
 		}
 
-		this.metadata[x][y][z] = (byte) (metadata & 0x0F);
+		int sub = getDataIndex(x,y,z);
+		data[sub] = (data[sub] & ~META_MASK) | (metadata & META_MASK);
 		return true;
 	}
 
@@ -194,18 +208,6 @@ public class Schematic implements ISchematic {
 			if (entity.getUniqueID().equals(e.getUniqueID())) {
 				iterator.remove();
 			}
-		}
-	}
-
-	public ItemStack getIcon() {
-		return this.icon;
-	}
-
-	public void setIcon(final ItemStack icon) {
-		if (icon != null) {
-			this.icon = icon;
-		} else {
-			this.icon = DEFAULT_ICON.copy();
 		}
 	}
 

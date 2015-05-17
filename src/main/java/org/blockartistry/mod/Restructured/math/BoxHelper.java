@@ -1,8 +1,6 @@
 package org.blockartistry.mod.Restructured.math;
 
 import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
@@ -11,61 +9,47 @@ public final class BoxHelper {
 	public static class RegionStats {
 
 		public int area;
-		public int mean;
-		public int variance;
-		public int deviation;
+		public double mean;
+		public double variance;
 
 		@Override
 		public String toString() {
 			return String.format(
-					"[area: %d; mean: %d; variance: %d; deviation: %d]", area,
-					mean, variance, deviation);
+					"[area: %d; mean: %-1.2f; variance: %-1.2f]", area,
+					mean, variance);
 		}
 	};
 
 	public static RegionStats getRegionStats(World world,
 			StructureBoundingBox worldBB, StructureBoundingBox structBB) {
 		ArrayList<Integer> data = new ArrayList<Integer>();
-		int avgGroundLevel = world.provider.getAverageGroundLevel();
+		int avgGroundLevel = world.provider.getAverageGroundLevel() - 1;
+		
+		int total = 0;
+		int count = 0;
 
 		// Collect the data points
 		for (int z = structBB.minZ; z <= structBB.maxZ; ++z)
 			for (int x = structBB.minX; x <= structBB.maxX; ++x)
-				if (worldBB.isVecInside(x, structBB.minY, z))
-					data.add(Math.max(world.getTopSolidOrLiquidBlock(x, z),
-							avgGroundLevel));
+				if ((structBB == worldBB) || worldBB.isVecInside(x, structBB.minY, z)) {
+					int val = Math.max(world.getTopSolidOrLiquidBlock(x, z), avgGroundLevel); 
+					total += val;
+					count++;
+					data.add(val);
+				}
 
 		RegionStats result = new RegionStats();
-		result.area = data.size();
-		doMean(data, result);
-		doVariance(data, result);
-		doDeviation(data, result);
+		result.area = count;
+		result.mean = (double) total / (double) count;
 
-		return result;
-	}
-
-	static void doMean(List<Integer> list, RegionStats stats) {
-		stats.mean = sum(list) / list.size();
-	}
-
-	static int sum(List<Integer> list) {
-		int accum = 0;
-		for (int i : list)
-			accum += i;
-		return accum;
-	}
-
-	static void doVariance(List<Integer> list, RegionStats stats) {
 		double accum = 0;
-
-		for (int i : list) {
-			accum += Math.pow(i - stats.mean, 2);
+		for (int i : data) {
+			double t = ((double)i - result.mean);
+			accum += (t * t);
 		}
 
-		stats.variance = (int) (accum / list.size());
-	}
+		result.variance = accum / (double) count;
 
-	static void doDeviation(List<Integer> list, RegionStats stats) {
-		stats.deviation = (int) Math.sqrt(stats.variance);
+		return result;
 	}
 }

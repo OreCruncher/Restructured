@@ -30,7 +30,6 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -72,8 +71,6 @@ public class CopyStructureBuilder {
 	}
 
 	public void place(Block block, int meta, int x, int y, int z) {
-		if (block == null)
-			block = Blocks.air;
 		structure.placeBlock(world, block, translateMeta(block, meta), x, y, z,
 				box);
 	}
@@ -88,8 +85,8 @@ public class CopyStructureBuilder {
 
 		Vector size = structure.getDimensions();
 		for (int x = 0; x < size.x; x++)
-			for (int z = 0; z < size.z; z++)
-				for (int y = 0; y < size.y; y++) {
+			for (int y = 0; y < size.y; y++)
+				for (int z = 0; z < size.z; z++) {
 
 					if (isVecInside(x, y, z, box)) {
 

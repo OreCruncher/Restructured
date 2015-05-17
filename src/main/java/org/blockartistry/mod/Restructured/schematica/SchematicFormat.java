@@ -34,46 +34,20 @@
 
 package org.blockartistry.mod.Restructured.schematica;
 
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
-
 import org.blockartistry.mod.Restructured.ModLog;
 
 public abstract class SchematicFormat {
-
-	static Method func_150298_a = null;
-
-	static {
-
-		try {
-			func_150298_a = NBTTagCompound.class.getDeclaredMethod(
-					"func_150298_a", String.class, NBTBase.class,
-					DataOutput.class);
-			func_150298_a.setAccessible(true);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
-	}
 
 	public static final Map<String, SchematicFormat> FORMATS = new HashMap<String, SchematicFormat>();
 	public static String FORMAT_DEFAULT;
 
 	public abstract ISchematic readFromNBT(NBTTagCompound tagCompound);
-
-	public abstract boolean writeToNBT(NBTTagCompound tagCompound,
-			ISchematic schematic);
 
 	public static ISchematic readFromStream(InputStream stream) {
 		try {
@@ -115,37 +89,6 @@ public abstract class SchematicFormat {
 
 	public static ISchematic readFromFile(File directory, String filename) {
 		return readFromFile(new File(directory, filename));
-	}
-
-	public static boolean writeToFile(File file, ISchematic schematic) {
-		try {
-			NBTTagCompound tagCompound = new NBTTagCompound();
-
-			FORMATS.get(FORMAT_DEFAULT).writeToNBT(tagCompound, schematic);
-
-			DataOutputStream dataOutputStream = new DataOutputStream(
-					new GZIPOutputStream(new FileOutputStream(file)));
-
-			try {
-				// NBTTagCompound.func_150298_a(Names.NBT.ROOT, tagCompound,
-				// dataOutputStream);
-				func_150298_a.invoke(null, Names.NBT.ROOT, tagCompound,
-						dataOutputStream);
-			} finally {
-				dataOutputStream.close();
-			}
-
-			return true;
-		} catch (Exception ex) {
-			ModLog.error("Failed to write schematic!", ex);
-		}
-
-		return false;
-	}
-
-	public static boolean writeToFile(File directory, String filename,
-			ISchematic schematic) {
-		return writeToFile(new File(directory, filename), schematic);
 	}
 
 	static {

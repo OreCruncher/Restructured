@@ -24,6 +24,13 @@
 
 package org.blockartistry.mod.Restructured.proxy;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.gen.structure.MapGenVillage;
+
+import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
 
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -45,7 +52,25 @@ public class Proxy {
 	public void postInit(FMLPostInitializationEvent event) {
 
 		Assets.initialize();
-
+		
+		// Patch up the village biome list with the configured
+		// settings.  We need to create a new map because
+		// the one that is there is immutable.
+		int[] additional = ModOptions.getAdditionalVillageBiomes();
+		if(additional.length > 0) {
+			List<BiomeGenBase> newList = new ArrayList<BiomeGenBase>();
+			for(Object o: MapGenVillage.villageSpawnBiomes) {
+				BiomeGenBase b = (BiomeGenBase)o;
+				newList.add(b);
+			}
+			
+			for(int biomeId: ModOptions.getAdditionalVillageBiomes()) {
+				BiomeGenBase biome = BiomeGenBase.getBiome(biomeId);
+				if(biome != null)
+					newList.add(biome);
+			}
+			MapGenVillage.villageSpawnBiomes = newList;
+		}
 	}
 
 	@EventHandler

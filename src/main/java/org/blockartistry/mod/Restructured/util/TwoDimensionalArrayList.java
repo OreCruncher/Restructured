@@ -1,5 +1,4 @@
-/*
- * This file is part of Restructured, licensed under the MIT License (MIT).
+/* This file is part of Restructured, licensed under the MIT License (MIT).
  *
  * Copyright (c) OreCruncher
  *
@@ -24,59 +23,46 @@
 
 package org.blockartistry.mod.Restructured.util;
 
-import org.blockartistry.mod.Restructured.schematica.ISchematic;
+import java.util.ArrayList;
 
-public final class Vector {
-
-	public final double x;
-	public final double y;
-	public final double z;
-
-	public Vector(ISchematic s) {
-		this.x = s.getWidth();
-		this.y = s.getHeight();
-		this.z = s.getLength();
-	}
-
-	public Vector(int x, int y, int z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	public Vector(double x, double y, double z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	public double distanceSquared(Vector v) {
-		double deltaX = this.x - v.x;
-		double deltaY = this.y - v.y;
-		double deltaZ = this.z - v.z;
-		return deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
-	}
+@SuppressWarnings("serial")
+public class TwoDimensionalArrayList<T> extends ArrayList<ArrayList<T>> {
 	
-	public double distance(Vector v) {
-		return Math.sqrt(distanceSquared(v));
-	}
-
-	@Override
-	public String toString() {
-		return String.format("(%f, %f, %f)", x, y, z);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-
-		if (obj == this)
-			return true;
-
-		if (obj instanceof Vector) {
-			Vector v = (Vector) obj;
-			return this.x == v.x && this.y == v.y && this.z == v.z;
+	public void setElement(int index1, int index2, T element) {
+		while (index1 >= this.size()) {
+			this.add(new ArrayList<T>());
 		}
 
-		return false;
+		ArrayList<T> inner = this.get(index1);
+		while (index2 >= inner.size()) {
+			inner.add(null);
+		}
+
+		inner.set(index2, element);
+	}
+	
+	public T get(int index1, int index2) {
+		return this.get(index1).get(index2);
+	}
+	
+	public void setElementSegment(int index, ArrayList<T> newSegment) {
+		while (index >= this.size()) {
+			this.add(new ArrayList<T>());
+		}
+		this.set(index, newSegment);
+	}
+	
+	public ArrayList<T> getElementSegment(int index) {
+		while (index >= this.size()) {
+			this.add(new ArrayList<T>());
+		}
+		return this.get(index);
+	}
+	
+	public void appendElement(int index, T element) {
+		while (index >= this.size()) {
+			this.add(new ArrayList<T>());
+		}
+		this.get(index).add(element);
 	}
 }

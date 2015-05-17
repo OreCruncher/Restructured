@@ -42,12 +42,12 @@ public abstract class VillageStructureBase extends
 
 	protected static final Random rand = new Random();
 
-	public VillageStructureBase(StructureVillagePieces.Start p_i2102_1_,
-			int p_i2102_2_, Random p_i2102_3_, StructureBoundingBox p_i2102_4_,
-			int p_i2102_5_) {
-		super(p_i2102_1_, p_i2102_2_);
-		this.coordBaseMode = p_i2102_5_;
-		this.boundingBox = p_i2102_4_;
+	public VillageStructureBase(StructureVillagePieces.Start start,
+			int componentType, Random random, StructureBoundingBox myBox,
+			int direction) {
+		super(start, componentType);
+		this.coordBaseMode = direction;
+		this.boundingBox = myBox;
 	}
 
 	public abstract Vector getDimensions();
@@ -79,27 +79,30 @@ public abstract class VillageStructureBase extends
 	public boolean addComponentParts(World world, Random rand,
 			StructureBoundingBox box) {
 
+		Vector size = getDimensions();
+
 		if (this.field_143015_k < 0) {
-			RegionStats stats = BoxHelper.getRegionStats(world, box,
+			// Ignore the region clipping - want to get a true picture of the
+			// region.
+			RegionStats stats = BoxHelper.getRegionStats(world, boundingBox,
 					boundingBox);
-			ModLog.info(stats.toString());
-			this.field_143015_k = stats.mean;
+			// RegionStats stats = BoxHelper.getRegionStats(world, box,
+			// boundingBox);
+			ModLog.debug(stats.toString());
+			this.field_143015_k = (int) Math.round(stats.mean);
 
 			if (stats.mean < 0)
 				return true;
+
+			boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
+					+ (int) size.y - getGroundOffset() - 1, 0);
 		}
-
-		Vector size = getDimensions();
-		int offset = getGroundOffset();
-
-		boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
-				+ (int) size.y - offset - 1, 0);
 
 		// Ensure a platform for the structure
 		for (int xx = 0; xx < size.x; xx++) {
 			for (int zz = 0; zz < size.z; zz++) {
 				clearCurrentPositionBlocksUpwards(world, xx, 0, zz, box);
-				func_151554_b(world, Blocks.grass, 0, xx, -1, zz, box);
+				func_151554_b(world, Blocks.dirt, 0, xx, -1, zz, box);
 			}
 		}
 

@@ -24,6 +24,8 @@
 
 package org.blockartistry.mod.Restructured;
 
+import org.blockartistry.mod.Restructured.util.MyUtils;
+
 import net.minecraftforge.common.config.Configuration;
 
 public final class ModOptions {
@@ -33,10 +35,16 @@ public final class ModOptions {
 	protected static final String CATEGORY_LOGGING_CONTROL = "logging";
 	protected static final String CONFIG_ENABLE_DEBUG_LOGGING = "Enable Debug Logging";
 	protected static final String CONFIG_ENABLE_WAILA = "Enable Waila Display";
+	
+	protected static final String CATEGORY_GENERATION = "generation";
+	
+	protected static final String CONFIG_ADDITIONAL_VILLAGE_BIOMES = "additionalVillageBiomes";
 
 	protected static boolean enableDebugLogging = false;
 	protected static boolean enableWailaDisplay = true;
 
+	protected static int[] additionalVillageBiomes = new int[] { };
+	
 	public static void load(Configuration config) {
 
 		enableDebugLogging = config.getBoolean(CONFIG_ENABLE_DEBUG_LOGGING,
@@ -46,6 +54,13 @@ public final class ModOptions {
 		enableWailaDisplay = config.getBoolean(CONFIG_ENABLE_WAILA,
 				CATEGORY_MODS, enableWailaDisplay,
 				"Enables/disables display of scrap information via Waila");
+		
+		String list = config.getString(CONFIG_ADDITIONAL_VILLAGE_BIOMES, CATEGORY_GENERATION, "", "Additional biomes to enable village generation");
+		try {
+			additionalVillageBiomes = MyUtils.split(";", list);
+		} catch (Exception e) {
+			ModLog.warn("Bad biome information for additional biome village generation");
+		}
 	}
 
 	public static boolean getEnableDebugLogging() {
@@ -54,5 +69,9 @@ public final class ModOptions {
 
 	public static boolean getEnableWaila() {
 		return enableWailaDisplay;
+	}
+	
+	public static int[] getAdditionalVillageBiomes() {
+		return additionalVillageBiomes;
 	}
 }
