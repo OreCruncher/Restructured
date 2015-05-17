@@ -55,7 +55,7 @@ public class SchematicPieceWeight extends PieceWeight {
 
 	public SchematicPieceWeight() {
 		super(SchematicStructure.class, Assets.villageStructureTotalWeight(),
-				10);
+				Assets.villageStructureTotalLimit());
 
 		this.properties = null;
 	}

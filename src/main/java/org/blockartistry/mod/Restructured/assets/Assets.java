@@ -338,6 +338,15 @@ public final class Assets {
 	public static int villageStructureTotalWeight() {
 		return villageSchematics.getTotalWeight();
 	}
+	
+	public static int villageStructureTotalLimit() {
+		int limit = 0;
+		
+		for(SchematicWeightItem e: villageSchematics.getEntries())
+			limit += e.properties.limit;
+		
+		return limit;
+	}
 
 	public static int worldStructureCount() {
 		return worldSchematics.size();

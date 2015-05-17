@@ -24,6 +24,8 @@
 
 package org.blockartistry.mod.Restructured.world;
 
+import java.util.HashMap;
+
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
@@ -32,6 +34,7 @@ import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.BiomeEvent;
 
+import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
 import org.blockartistry.mod.Restructured.component.IStructureBuilder;
@@ -45,6 +48,36 @@ import cpw.mods.fml.common.eventhandler.Event.Result;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
+	protected static final HashMap<Block, Tuple<Block,Integer>> desertReplacement = new HashMap<Block,Tuple<Block,Integer>>();
+
+	static {
+		desertReplacement.put(Blocks.log, new Tuple<Block,Integer>(Blocks.sandstone, 0));
+		desertReplacement.put(Blocks.log2, new Tuple<Block,Integer>(Blocks.sandstone, 0));
+		desertReplacement.put(Blocks.cobblestone, new Tuple<Block,Integer>(Blocks.sandstone, 0));
+		desertReplacement.put(Blocks.planks, new Tuple<Block,Integer>(Blocks.sandstone, 2));
+		desertReplacement.put(Blocks.oak_stairs, new Tuple<Block,Integer>(Blocks.sandstone, -1));
+		desertReplacement.put(Blocks.stone_stairs, new Tuple<Block,Integer>(Blocks.sandstone, -1));
+		desertReplacement.put(Blocks.gravel, new Tuple<Block,Integer>(Blocks.sandstone, -1));
+	}
+
+	protected static Block findReplacementBlock(BiomeGenBase biome, Block block, int meta) {
+		Tuple<Block, Integer> replace = null;
+		
+		if(biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills)
+			replace = desertReplacement.get(block);
+
+		return (replace == null) ? block : replace.val1;
+	}
+	
+	protected static int findReplacementMeta(BiomeGenBase biome, Block block, int meta) {
+		Tuple<Block, Integer> replace = null;
+		
+		if(biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills)
+			replace = desertReplacement.get(block);
+		
+		return (replace == null) ? meta : (replace.val2 == -1 ? meta : replace.val2); 
+	}
+	
 	protected final World world;
 	protected final int direction;
 	protected final SchematicProperties properties;
@@ -152,33 +185,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		if (event.getResult() == Result.DENY)
 			return event.replacement;
 		
-		if (biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills) {
-			if (block == Blocks.log || block == Blocks.log2) {
-				return Blocks.sandstone;
-			}
-
-			if (block == Blocks.cobblestone) {
-				return Blocks.sandstone;
-			}
-
-			if (block == Blocks.planks) {
-				return Blocks.sandstone;
-			}
-
-			if (block == Blocks.oak_stairs) {
-				return Blocks.sandstone_stairs;
-			}
-
-			if (block == Blocks.stone_stairs) {
-				return Blocks.sandstone_stairs;
-			}
-
-			if (block == Blocks.gravel) {
-				return Blocks.sandstone;
-			}
-		}
-
-		return block;
+		return findReplacementBlock(biome, block, meta);
 	}
 
 	protected int convertBlockMetadata(Block block, int meta) {
@@ -196,21 +203,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		if (event.getResult() == Result.DENY)
 			return event.replacement;
 
-		if (biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills) {
-			if (block == Blocks.log || block == Blocks.log2) {
-				return 0;
-			}
-
-			if (block == Blocks.cobblestone) {
-				return 0;
-			}
-
-			if (block == Blocks.planks) {
-				return 2;
-			}
-		}
-
-		return meta;
+		return findReplacementMeta(biome, block, meta);
 	}
 
 	/**
@@ -271,8 +264,11 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	}
 
 	public void build() {
+		
 		StructureBoundingBox box = new StructureBoundingBox(boundingBox.minX,
 				1, boundingBox.minZ, boundingBox.maxX, 512, boundingBox.maxZ);
+		ModLog.debug("WorldGen structure [%s] @(%s); mode %d", properties.name, boundingBox, direction);
+
 		prep(box);
 		CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
 				direction, properties, this);

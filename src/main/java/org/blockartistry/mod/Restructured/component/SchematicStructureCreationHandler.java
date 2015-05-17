@@ -42,7 +42,7 @@ public class SchematicStructureCreationHandler implements
 		VillagerRegistry.IVillageCreationHandler {
 
 	static {
-		MapGenStructureIO.registerStructure(SchematicStructure.class, "reSS");
+		//MapGenStructureIO.registerStructure(SchematicStructure.class, "reSS");
 		MapGenStructureIO.func_143031_a(SchematicStructure.class, "reSS");
 	}
 
@@ -91,7 +91,7 @@ public class SchematicStructureCreationHandler implements
 		if (canVillageGoDeeper(_boundingBox)) {
 			if (StructureComponent.findIntersecting(pieces, _boundingBox) == null) {
 				try {
-					ModLog.info("Structure [%s] @(%s); mode %d", props.name,
+					ModLog.debug("Village structure [%s] @(%s); mode %d", props.name,
 							_boundingBox, direction);
 					SchematicStructure struct = new SchematicStructure(
 							startPiece, type, random, _boundingBox, direction);
