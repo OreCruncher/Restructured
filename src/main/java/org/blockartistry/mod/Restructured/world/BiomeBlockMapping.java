@@ -26,12 +26,13 @@ package org.blockartistry.mod.Restructured.world;
 
 import java.util.HashMap;
 
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
+
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.BiomeEvent;
-
 import cpw.mods.fml.common.eventhandler.Event.Result;
 import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
 import cpw.mods.fml.common.registry.GameData;
@@ -100,10 +101,42 @@ public final class BiomeBlockMapping {
 		temp.put(Blocks.tallgrass, encode(Blocks.air, 0));
 		replacements.put(BiomeGenBase.iceMountains, temp);
 		replacements.put(BiomeGenBase.icePlains, temp);
-}
+	}
 
-	public static Block findReplacementBlock(BiomeGenBase biome, Block block, int meta) {
-		
+	protected static SelectedBlock scrubEggs(Block block, int meta) {
+		// If it is a monster egg scrub it
+		if (block == Blocks.monster_egg)
+			switch (meta) {
+			case 0:
+				block = Blocks.stone;
+				meta = 0;
+				break;
+			case 1:
+				block = Blocks.cobblestone;
+				meta = 0;
+				break;
+			case 2:
+				block = Blocks.stonebrick;
+				meta = 0;
+				break;
+			case 3:
+				block = Blocks.stonebrick;
+				meta = 1;
+				break;
+			case 4:
+				block = Blocks.stonebrick;
+				meta = 2;
+			case 5:
+				block = Blocks.stonebrick;
+				meta = 3;
+				break;
+			default:
+				;
+			}
+		return new SelectedBlock(block, meta);
+	}
+	
+	protected static Block _findReplacementBlock(BiomeGenBase biome, Block block, int meta) {
 		// Biome hooks always get first crack
 		BiomeEvent.GetVillageBlockID event = new BiomeEvent.GetVillageBlockID(
 				biome, block, meta);
@@ -122,7 +155,7 @@ public final class BiomeBlockMapping {
 		return (replace == null) ? block : replace;
 	}
 	
-	public static int findReplacementMeta(BiomeGenBase biome, Block block, int meta) {
+	public static int _findReplacementMeta(BiomeGenBase biome, Block block, int meta) {
 		
 		// Biome hooks always get first crack
 		BiomeEvent.GetVillageBlockMeta event = new BiomeEvent.GetVillageBlockMeta(
@@ -148,5 +181,22 @@ public final class BiomeBlockMapping {
 		}
 		
 		return meta; 
+	}
+
+	public static SelectedBlock findReplacement(BiomeGenBase biome, Block block, int meta) {
+		SelectedBlock b = scrubEggs(block, meta);
+		Block bx = _findReplacementBlock(biome, b.getBlock(), b.getMeta());
+		int mx = _findReplacementMeta(biome, b.getBlock(), b.getMeta());
+		return new SelectedBlock(bx, mx);
+	}
+	
+	public static Block findReplacementBlock(BiomeGenBase biome, Block block, int meta) {
+		SelectedBlock b = scrubEggs(block, meta);
+		return _findReplacementBlock(biome, b.getBlock(), b.getMeta());
+	}
+	
+	public static int findReplacementMeta(BiomeGenBase biome, Block block, int meta) {
+		SelectedBlock b = scrubEggs(block, meta);
+		return _findReplacementMeta(biome, b.getBlock(), b.getMeta());
 	}
 }

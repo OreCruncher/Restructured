@@ -41,6 +41,8 @@ public abstract class VillageStructureBase extends
 		StructureVillagePieces.Village {
 
 	protected static final Random rand = new Random();
+	
+	protected RegionStats stats = null;
 
 	public VillageStructureBase(StructureVillagePieces.Start start,
 			int componentType, Random random, StructureBoundingBox myBox,
@@ -74,28 +76,51 @@ public abstract class VillageStructureBase extends
 	public int getMetaWithOffset(Block block, int meta) {
 		return getMetadataWithOffset(block, meta);
 	}
-
+	
 	@Override
 	public boolean addComponentParts(World world, Random rand,
 			StructureBoundingBox box) {
 
 		Vector size = getDimensions();
 
+		// The region stat gathering below differs than
+		// the logic vanilla uses.  We need a clear picture of
+		// the entire region, not just a narrow chunk.  Because
+		// of this the getRegionStats() routine could trigger
+		// additional chunk generations, which in turn will
+		// trigger this routine to be called *again*.  It will
+		// funnel through and do another getRegionStats() call.
+		// To guard against polluting boundingBox we store
+		// the region stats in a temp and check the instance
+		// stats variable to see if it was set by a recursive
+		// invocation.  If it has already be set we discard
+		// the results and soldier on.
 		if (this.field_143015_k < 0) {
-			// Ignore the region clipping - want to get a true picture of the
-			// region.
-			RegionStats stats = BoxHelper.getRegionStats(world, boundingBox,
-					boundingBox);
-			// RegionStats stats = BoxHelper.getRegionStats(world, box,
-			// boundingBox);
-			ModLog.debug(stats.toString());
-			this.field_143015_k = (int) Math.round(stats.mean);
-
-			if (stats.mean < 0)
+			
+			if(stats == null) {
+				// Ignore the region clipping - want to get a true picture of the
+				// region.
+				RegionStats temp = BoxHelper.getRegionStats(world, boundingBox, boundingBox);
+				if(stats == null) {
+					stats = temp;
+					// RegionStats stats = BoxHelper.getRegionStats(world, box,
+					// boundingBox);
+					ModLog.debug(stats.toString());
+		
+					this.field_143015_k = (int) Math.round(stats.mean);
+					
+					if (field_143015_k < 0)
+						return true;
+		
+					boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
+							+ (int) size.y - getGroundOffset() - 1, 0);
+				}
+			}
+			else
+				this.field_143015_k = (int) Math.round(stats.mean);
+			
+			if(this.field_143015_k < 0)
 				return true;
-
-			boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
-					+ (int) size.y - getGroundOffset() - 1, 0);
 		}
 
 		// Ensure a platform for the structure

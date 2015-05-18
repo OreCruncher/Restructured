@@ -31,7 +31,6 @@ import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
-import org.blockartistry.mod.Restructured.util.Tuple;
 import org.blockartistry.mod.Restructured.util.Vector;
 import org.blockartistry.mod.Restructured.world.BiomeBlockMapping;
 
@@ -84,27 +83,13 @@ public class SchematicStructure extends VillageStructureBase implements
 	
 	@Override
 	protected Block func_151558_b(Block block, int meta) {
-		
-		if(properties.suppressMonsterEgg) {
-			BlockHelper helper = new BlockHelper(block);
-			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
-			block = result.val1;
-			meta = result.val2;
-		}
-
+		// Completely override vanilla processing
 		return BiomeBlockMapping.findReplacementBlock(biome, block, meta);
 	}
 
 	@Override
     protected int func_151557_c(Block block, int meta) {
-
-		if(properties.suppressMonsterEgg) {
-			BlockHelper helper = new BlockHelper(block);
-			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
-			block = result.val1;
-			meta = result.val2;
-		}
-		
+		// Completely override vanilla processing
 		return BiomeBlockMapping.findReplacementMeta(biome, block, meta);
 	}
 

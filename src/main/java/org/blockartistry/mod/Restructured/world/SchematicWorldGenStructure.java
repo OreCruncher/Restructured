@@ -29,6 +29,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
+
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
@@ -36,7 +37,7 @@ import org.blockartistry.mod.Restructured.component.IStructureBuilder;
 import org.blockartistry.mod.Restructured.math.BoxHelper;
 import org.blockartistry.mod.Restructured.math.BoxHelper.RegionStats;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
-import org.blockartistry.mod.Restructured.util.Tuple;
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
@@ -97,9 +98,8 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			Block blockToPlace = convertBlockForBiome(block, meta);
-			int newMeta = convertBlockMetadata(block, meta);
-			world.setBlock(i1, j1, k1, blockToPlace, newMeta, 2);
+			SelectedBlock blockToPlace = BiomeBlockMapping.findReplacement(biome, block, meta);
+			world.setBlock(i1, j1, k1, blockToPlace.getBlock(), blockToPlace.getMeta(), 2);
 		}
 	}
 
@@ -134,31 +134,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 			return z;
 		}
 	}
-
-	protected Block convertBlockForBiome(Block block, int meta) {
-
-		if(properties.suppressMonsterEgg) {
-			BlockHelper helper = new BlockHelper(block);
-			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
-			block = result.val1;
-			meta = result.val2;
-		}
-
-		return BiomeBlockMapping.findReplacementBlock(biome, block, meta);
-	}
-
-	protected int convertBlockMetadata(Block block, int meta) {
-
-		if(properties.suppressMonsterEgg) {
-			BlockHelper helper = new BlockHelper(block);
-			Tuple<Block, Integer> result = helper.getNonMonsterEgg(meta);
-			block = result.val1;
-			meta = result.val2;
-		}
-
-		return BiomeBlockMapping.findReplacementMeta(biome, block, meta);
-	}
-
+	
 	/**
 	 * Deletes all continuous blocks from selected position upwards. Stops at
 	 * hitting air.
@@ -170,29 +146,27 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 		if (box.isVecInside(l, i1, j1)) {
 			while (!world.isAirBlock(l, i1, j1) && i1 < 255) {
-				world.setBlock(l, i1, j1, Blocks.air, 0, 2);
-				++i1;
+				world.setBlock(l, i1++, j1, Blocks.air, 0, 2);
 			}
 		}
 	}
 
 	protected void clearDownwards(Block block, int meta, int x, int y, int z,
 			StructureBoundingBox box) {
-		
-		Block blockToPlace = convertBlockForBiome(block, meta);
-		int newMeta = convertBlockMetadata(block, meta);
 
 		int i1 = getXWithOffset(x, z);
 		int j1 = getYWithOffset(y);
 		int k1 = getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			BlockHelper helper = new BlockHelper(world.getBlock(x, y, z));
-			while ((helper.isAir() || helper.isLiquid() || !helper.isSolid())
-					&& j1 > 1) {
-				world.setBlock(i1, j1, k1, blockToPlace, newMeta, 2);
-				--j1;
-			}
+
+			do {
+				BlockHelper helper = new BlockHelper(world.getBlock(i1, j1, k1));
+				if(helper.isAir() || helper.isLiquid() || !helper.isSolid())
+					world.setBlock(i1, j1--, k1, block, meta, 2);
+				else
+					break;
+			} while( j1 > 1);
 		}
 	}
 
@@ -214,11 +188,12 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
+		SelectedBlock blockToPlace = BiomeBlockMapping.findReplacement(biome, Blocks.dirt, 0);
 		Vector size = getDimensions();
 		for (int xx = 0; xx < size.x; xx++) {
 			for (int zz = 0; zz < size.z; zz++) {
 				clearUpwards(xx, 0, zz, box);
-				clearDownwards(Blocks.dirt, 0, xx, -1, zz, box);
+				clearDownwards(blockToPlace.getBlock(), blockToPlace.getMeta(), xx, -1, zz, box);
 			}
 		}
 		

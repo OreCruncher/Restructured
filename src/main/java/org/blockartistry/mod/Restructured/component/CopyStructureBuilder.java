@@ -106,7 +106,7 @@ public class CopyStructureBuilder {
 						else {
 
 							int meta = schematic.getBlockMetadata(x, y, z);
-							place(block.theBlock(), meta, x, y, z);
+							place(block.getBlock(), meta, x, y, z);
 						}
 					}
 				}
