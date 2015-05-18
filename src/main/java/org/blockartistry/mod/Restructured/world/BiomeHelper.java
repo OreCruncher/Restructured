@@ -30,14 +30,19 @@ import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.BiomeEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
 import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
 import cpw.mods.fml.common.registry.GameData;
 
-public final class BiomeBlockMapping {
+public final class BiomeHelper {
+	
+	public static final int CONTROL_BIT_NONE = 0;
+	public static final int CONTROL_BIT_SCRUB_MONSTER = 1;
 
 	private static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData.getBlockRegistry();
 	private static final int META_MASK = 0xFF;
@@ -183,20 +188,78 @@ public final class BiomeBlockMapping {
 		return meta; 
 	}
 
-	public static SelectedBlock findReplacement(BiomeGenBase biome, Block block, int meta) {
-		SelectedBlock b = scrubEggs(block, meta);
+	public static SelectedBlock findReplacement(int control, BiomeGenBase biome, Block block, int meta) {
+		SelectedBlock b = null;
+		
+		if((control & CONTROL_BIT_SCRUB_MONSTER) !=0 )
+			b = scrubEggs(block, meta);
+		else
+			b = new SelectedBlock(block, meta);
+		
 		Block bx = _findReplacementBlock(biome, b.getBlock(), b.getMeta());
 		int mx = _findReplacementMeta(biome, b.getBlock(), b.getMeta());
 		return new SelectedBlock(bx, mx);
 	}
 	
-	public static Block findReplacementBlock(BiomeGenBase biome, Block block, int meta) {
-		SelectedBlock b = scrubEggs(block, meta);
+	public static Block findReplacementBlock(int control, BiomeGenBase biome, Block block, int meta) {
+		SelectedBlock b = null;
+		
+		if((control & CONTROL_BIT_SCRUB_MONSTER) !=0 )
+			b = scrubEggs(block, meta);
+		else
+			b = new SelectedBlock(block, meta);
+
 		return _findReplacementBlock(biome, b.getBlock(), b.getMeta());
 	}
 	
-	public static int findReplacementMeta(BiomeGenBase biome, Block block, int meta) {
-		SelectedBlock b = scrubEggs(block, meta);
+	public static int findReplacementMeta(int control, BiomeGenBase biome, Block block, int meta) {
+		SelectedBlock b = null;
+		
+		if((control & CONTROL_BIT_SCRUB_MONSTER) !=0 )
+			b = scrubEggs(block, meta);
+		else
+			b = new SelectedBlock(block, meta);
+
 		return _findReplacementMeta(biome, b.getBlock(), b.getMeta());
+	}
+	
+	/**
+	 * Analyze the chunk to determine the predominant biome that is present. The
+	 * predominant biome will be used to filter the weight list and make further
+	 * decisions.
+	 * 
+	 * Check ChunkProviderGenerate for some detail as to the chunk biome array.
+	 * 
+	 * @param world Current world
+	 * @param chunk The chunk to analyze
+	 * @return Predominant biome in the indicated chunk
+	 */
+	public static BiomeGenBase chunkBiomeSurvey(World world, Chunk chunk) {
+
+		byte[] biomes = chunk.getBiomeArray();
+		int[] counts = new int[biomes.length];
+
+		int highIndex = BiomeGenBase.plains.biomeID;
+		int highCount = -1;
+
+		for (int i = 0; i < biomes.length; i++) {
+			int id = biomes[i] & 255;
+			
+			if( id == 255) {
+				continue;
+			}
+			
+			if (++counts[id] > highCount) {
+				highIndex = id;
+				highCount = counts[id];
+				// If the high count is >= 128 it means that biome
+				// exists in at least half the chunk.  It's gonna
+				// win so terminate early.
+				if (highCount >= 128)
+					return BiomeGenBase.getBiome(highIndex);
+			}
+		}
+
+		return BiomeGenBase.getBiome(highIndex);
 	}
 }

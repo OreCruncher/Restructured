@@ -32,7 +32,7 @@ import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
-import org.blockartistry.mod.Restructured.world.BiomeBlockMapping;
+import org.blockartistry.mod.Restructured.world.BiomeHelper;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -49,6 +49,7 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	SchematicProperties properties;
 	BiomeGenBase biome;
+	int blockReplaceControl = BiomeHelper.CONTROL_BIT_NONE;
 
 	public SchematicStructure() {
 		super(null, 0, null, null, 0);
@@ -59,10 +60,14 @@ public class SchematicStructure extends VillageStructureBase implements
 		super(start, type, rand, box, direction);
 		
 		this.biome = start.biome;
+		
 	}
 
 	public void setProperties(SchematicProperties props) {
 		this.properties = props;
+		
+		if(props.suppressMonsterEgg)
+			blockReplaceControl |= BiomeHelper.CONTROL_BIT_SCRUB_MONSTER;
 	}
 
 	@Override
@@ -84,13 +89,13 @@ public class SchematicStructure extends VillageStructureBase implements
 	@Override
 	protected Block func_151558_b(Block block, int meta) {
 		// Completely override vanilla processing
-		return BiomeBlockMapping.findReplacementBlock(biome, block, meta);
+		return BiomeHelper.findReplacementBlock(blockReplaceControl, biome, block, meta);
 	}
 
 	@Override
     protected int func_151557_c(Block block, int meta) {
 		// Completely override vanilla processing
-		return BiomeBlockMapping.findReplacementMeta(biome, block, meta);
+		return BiomeHelper.findReplacementMeta(blockReplaceControl, biome, block, meta);
 	}
 
 	@Override
@@ -119,20 +124,20 @@ public class SchematicStructure extends VillageStructureBase implements
 
 		// Initialize starting point
 		Vector size = new Vector(properties.schematic);
-		double x = size.x / 2;
-		double z = size.z / 2;
-		double y = properties.groundOffset;
+		int x = size.x >> 1;
+		int z = size.z >> 1;
+		int y = properties.groundOffset;
 
 		// Try several times finding a suitable spot
 		ISchematic s = properties.schematic;
 		for (int i = 0; i < 4; i++) {
 			BlockHelper block = new BlockHelper(s.getBlock(
-					(int) x, (int) y + 1, (int) z));
+					x, y + 1, z));
 			if (block.canBreath()) {
 				
 				// Bump up one in case he is standing in wood
 				// or something.
-				if(s.getBlock((int)x, (int)y, (int)z) != Blocks.air)
+				if(s.getBlock(x, y, z) != Blocks.air)
 					y += 1;
 				
 				break;
@@ -156,7 +161,7 @@ public class SchematicStructure extends VillageStructureBase implements
 			return;
 
 		Vector loc = getSafeVillagerLocation();
-		this.spawnVillagers(world, box, (int) loc.x, (int) loc.y, (int) loc.z,
+		this.spawnVillagers(world, box, loc.x, loc.y, loc.z,
 				count);
 	}
 
@@ -171,18 +176,13 @@ public class SchematicStructure extends VillageStructureBase implements
 	@Override
 	public boolean isVecInside(int x, int y, int z, StructureBoundingBox box) {
 		Vector v = getWorldCoordinates(x, y, z);
-		return box.isVecInside((int) v.x, (int) v.y, (int) v.z);
+		return box.isVecInside(v.x, v.y, v.z);
 	}
 
 	@Override
 	public Vector getWorldCoordinates(int x, int y, int z) {
 		return new Vector(this.getXWithOffset(x, z), this.getYWithOffset(y),
 				this.getZWithOffset(x, z));
-	}
-
-	@Override
-	public Vector getWorldCoordinates(double x, double y, double z) {
-		return getWorldCoordinates((int) x, (int) y, (int) z);
 	}
 
 	@Override

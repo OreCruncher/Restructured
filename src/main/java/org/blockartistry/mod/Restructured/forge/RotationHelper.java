@@ -114,74 +114,91 @@ public class RotationHelper {
 	}
 
 	public static int rotateVanillaBlock(Block block, int meta,
-			ForgeDirection axis) {
-		if (axis == UP || axis == DOWN) {
-			if (block instanceof BlockBed || block instanceof BlockPumpkin
-					|| block instanceof BlockFenceGate
-					|| block instanceof BlockEndPortalFrame
-					|| block instanceof BlockTripWireHook
-					|| block instanceof BlockCocoa) {
-				return rotateBlock(meta, axis, 0x3, BlockType.BED);
-			}
-			if (block instanceof BlockRail) {
-				return rotateBlock(meta, axis, 0xF, BlockType.RAIL);
-			}
-			if (block instanceof BlockRailPowered
-					|| block instanceof BlockRailDetector) {
-				return rotateBlock(meta, axis, 0x7, BlockType.RAIL_POWERED);
-			}
-			if (block instanceof BlockStairs) {
-				return rotateBlock(meta, axis, 0x3, BlockType.STAIR);
-			}
-			if (block instanceof BlockChest || block instanceof BlockEnderChest
-					|| block instanceof BlockFurnace
-					|| block instanceof BlockLadder
-					|| block == Blocks.wall_sign) {
-				return rotateBlock(meta, axis, 0x7, BlockType.CHEST);
-			}
-			if (block == Blocks.standing_sign) {
-				return rotateBlock(meta, axis, 0xF, BlockType.SIGNPOST);
-			}
-			if (block instanceof BlockDoor) {
-				return rotateBlock(meta, axis, 0x3, BlockType.DOOR);
-			}
-			if (block instanceof BlockButton) {
-				return rotateBlock(meta, axis, 0x7, BlockType.BUTTON);
-			}
-			if (block instanceof BlockRedstoneRepeater
-					|| block instanceof BlockRedstoneComparator) {
-				return rotateBlock(meta, axis, 0x3, BlockType.REDSTONE_REPEATER);
-			}
-			if (block instanceof BlockTrapDoor) {
-				return rotateBlock(meta, axis, 0x3, BlockType.TRAPDOOR);
-			}
-			if (block instanceof BlockHugeMushroom) {
-				return rotateBlock(meta, axis, 0xF, BlockType.MUSHROOM_CAP);
-			}
-			if (block instanceof BlockVine) {
-				return rotateBlock(meta, axis, 0xF, BlockType.VINE);
-			}
-			if (block instanceof BlockSkull) {
-				return rotateBlock(meta, axis, 0x7, BlockType.SKULL);
-			}
-			if (block instanceof BlockAnvil) {
-				return rotateBlock(meta, axis, 0x1, BlockType.ANVIL);
-			}
-		}
+			ForgeDirection axis, int count) {
 
-		if (block instanceof BlockLog) {
-			return rotateBlock(meta, axis, 0xC, BlockType.LOG);
-		}
-		if (block instanceof BlockDispenser || block instanceof BlockPistonBase
-				|| block instanceof BlockPistonExtension
-				|| block instanceof BlockHopper) {
-			return rotateBlock(meta, axis, 0x7, BlockType.DISPENSER);
-		}
-		if (block instanceof BlockTorch) {
-			return rotateBlock(meta, axis, 0xF, BlockType.TORCH);
-		}
-		if (block instanceof BlockLever) {
-			return rotateBlock(meta, axis, 0x7, BlockType.LEVER);
+		int metaPrime = meta;
+
+		for (int i = 0; i < count; i++) {
+			if (axis == UP || axis == DOWN) {
+				if (block instanceof BlockBed || block instanceof BlockPumpkin
+						|| block instanceof BlockFenceGate
+						|| block instanceof BlockEndPortalFrame
+						|| block instanceof BlockTripWireHook
+						|| block instanceof BlockCocoa) {
+					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.BED);
+				}
+				if (block instanceof BlockRail) {
+					metaPrime = rotateBlock(meta, axis, 0xF, BlockType.RAIL);
+				}
+				if (block instanceof BlockRailPowered
+						|| block instanceof BlockRailDetector) {
+					metaPrime = rotateBlock(meta, axis, 0x7,
+							BlockType.RAIL_POWERED);
+				}
+				if (block instanceof BlockStairs) {
+					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.STAIR);
+				}
+				if (block instanceof BlockChest
+						|| block instanceof BlockEnderChest
+						|| block instanceof BlockFurnace
+						|| block instanceof BlockLadder
+						|| block == Blocks.wall_sign) {
+					metaPrime = rotateBlock(meta, axis, 0x7, BlockType.CHEST);
+				}
+				if (block == Blocks.standing_sign) {
+					metaPrime = rotateBlock(meta, axis, 0xF, BlockType.SIGNPOST);
+				}
+				if (block instanceof BlockDoor) {
+					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.DOOR);
+				}
+				if (block instanceof BlockButton) {
+					metaPrime = rotateBlock(meta, axis, 0x7, BlockType.BUTTON);
+				}
+				if (block instanceof BlockRedstoneRepeater
+						|| block instanceof BlockRedstoneComparator) {
+					metaPrime = rotateBlock(meta, axis, 0x3,
+							BlockType.REDSTONE_REPEATER);
+				}
+				if (block instanceof BlockTrapDoor) {
+					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.TRAPDOOR);
+				}
+				if (block instanceof BlockHugeMushroom) {
+					metaPrime = rotateBlock(meta, axis, 0xF,
+							BlockType.MUSHROOM_CAP);
+				}
+				if (block instanceof BlockVine) {
+					metaPrime = rotateBlock(meta, axis, 0xF, BlockType.VINE);
+				}
+				if (block instanceof BlockSkull) {
+					metaPrime = rotateBlock(meta, axis, 0x7, BlockType.SKULL);
+				}
+				if (block instanceof BlockAnvil) {
+					metaPrime = rotateBlock(meta, axis, 0x1, BlockType.ANVIL);
+				}
+			}
+
+			if (block instanceof BlockLog) {
+				metaPrime = rotateBlock(meta, axis, 0xC, BlockType.LOG);
+			}
+			if (block instanceof BlockDispenser
+					|| block instanceof BlockPistonBase
+					|| block instanceof BlockPistonExtension
+					|| block instanceof BlockHopper) {
+				metaPrime = rotateBlock(meta, axis, 0x7, BlockType.DISPENSER);
+			}
+			if (block instanceof BlockTorch) {
+				metaPrime = rotateBlock(meta, axis, 0xF, BlockType.TORCH);
+			}
+			if (block instanceof BlockLever) {
+				metaPrime = rotateBlock(meta, axis, 0x7, BlockType.LEVER);
+			}
+
+			// If it didn't change just return the existing meta. Else,
+			// reset the meta for the next pass.
+			if (metaPrime == meta)
+				return meta;
+			else
+				meta = metaPrime;
 		}
 
 		return meta;
@@ -325,8 +342,8 @@ public class RotationHelper {
 				meta = 0x7;
 			}
 		}
-		
-		if(blockType == BlockType.BED)
+
+		if (blockType == BlockType.BED)
 			meta = meta & 3;
 
 		if (MAPPINGS.containsKey(blockType)) {
@@ -365,7 +382,7 @@ public class RotationHelper {
 			return SOUTH;
 
 		}
-		
+
 		return ForgeDirection.UNKNOWN;
 	}
 

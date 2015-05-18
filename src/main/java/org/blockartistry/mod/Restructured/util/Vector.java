@@ -28,9 +28,9 @@ import org.blockartistry.mod.Restructured.schematica.ISchematic;
 
 public final class Vector {
 
-	public final double x;
-	public final double y;
-	public final double z;
+	public final int x;
+	public final int y;
+	public final int z;
 
 	public Vector(ISchematic s) {
 		this.x = s.getWidth();
@@ -44,16 +44,10 @@ public final class Vector {
 		this.z = z;
 	}
 
-	public Vector(double x, double y, double z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	public double distanceSquared(Vector v) {
-		double deltaX = this.x - v.x;
-		double deltaY = this.y - v.y;
-		double deltaZ = this.z - v.z;
+	public int distanceSquared(Vector v) {
+		int deltaX = this.x - v.x;
+		int deltaY = this.y - v.y;
+		int deltaZ = this.z - v.z;
 		return deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
 	}
 	

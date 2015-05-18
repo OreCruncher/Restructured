@@ -81,11 +81,11 @@ public class CopyStructureBuilder {
 
 	public void generate() {
 
-		ISchematic schematic = properties.schematic;
+		final ISchematic schematic = properties.schematic;
+		final Vector size = structure.getDimensions();
 
-		Vector size = structure.getDimensions();
-		for (int x = 0; x < size.x; x++)
-			for (int y = 0; y < size.y; y++)
+		for (int y = 0; y < size.y; y++)
+			for (int x = 0; x < size.x; x++)
 				for (int z = 0; z < size.z; z++) {
 
 					if (isVecInside(x, y, z, box)) {
@@ -210,13 +210,33 @@ public class CopyStructureBuilder {
 	}
 
 	int translateMeta(Block block, int meta) {
+		
+		// If the block is in natural position
+		// just return.
+		if(orientation == 0)
+			return meta;
 
+		// Get it's current facing.  If it is unknown
+		// just return - it is not handled or it's a 
+		// basic block like dirt.
 		ForgeDirection direction = RotationHelper.metadataToDirection(block,
 				meta);
 		if (direction == ForgeDirection.UNKNOWN) {
 			return meta;
 		}
+		
+		int rotationCount = 0;
+		if(orientation == 1 || orientation == 3)
+			rotationCount++;
+		
+		if((orientation == 2 || orientation == 3) && (direction == ForgeDirection.NORTH
+					|| direction == ForgeDirection.SOUTH))
+			rotationCount += 2;
+		
+		meta = RotationHelper.rotateVanillaBlock(block, meta,
+				ForgeDirection.UP, rotationCount);
 
+		/*
 		switch (orientation) {
 		case 0:
 			break;
@@ -243,7 +263,7 @@ public class CopyStructureBuilder {
 		default:
 			return meta;
 		}
-
+*/
 		return meta;
 	}
 

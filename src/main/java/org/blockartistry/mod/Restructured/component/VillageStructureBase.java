@@ -26,9 +26,7 @@ package org.blockartistry.mod.Restructured.component;
 
 import java.util.Random;
 
-import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.math.BoxHelper;
-import org.blockartistry.mod.Restructured.math.BoxHelper.RegionStats;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 import net.minecraft.block.Block;
@@ -42,7 +40,7 @@ public abstract class VillageStructureBase extends
 
 	protected static final Random rand = new Random();
 	
-	protected RegionStats stats = null;
+	protected int averageGroundLevel = -1;
 
 	public VillageStructureBase(StructureVillagePieces.Start start,
 			int componentType, Random random, StructureBoundingBox myBox,
@@ -97,27 +95,23 @@ public abstract class VillageStructureBase extends
 		// the results and soldier on.
 		if (this.field_143015_k < 0) {
 			
-			if(stats == null) {
+			if(averageGroundLevel == -1) {
 				// Ignore the region clipping - want to get a true picture of the
 				// region.
-				RegionStats temp = BoxHelper.getRegionStats(world, boundingBox, boundingBox);
-				if(stats == null) {
-					stats = temp;
-					// RegionStats stats = BoxHelper.getRegionStats(world, box,
-					// boundingBox);
-					ModLog.debug(stats.toString());
+				int temp = BoxHelper.getRegionAverageGroundLevel(world, boundingBox);
+				if(averageGroundLevel == -1) {
+					averageGroundLevel = temp;
 		
-					this.field_143015_k = (int) Math.round(stats.mean);
+					this.field_143015_k = averageGroundLevel;
 					
-					if (field_143015_k < 0)
-						return true;
-		
-					boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
+					boundingBox.offset(0, averageGroundLevel - boundingBox.maxY
 							+ (int) size.y - getGroundOffset() - 1, 0);
 				}
+				else
+					this.field_143015_k = averageGroundLevel;
 			}
 			else
-				this.field_143015_k = (int) Math.round(stats.mean);
+				this.field_143015_k = averageGroundLevel;
 			
 			if(this.field_143015_k < 0)
 				return true;

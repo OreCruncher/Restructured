@@ -42,13 +42,15 @@ import org.blockartistry.mod.Restructured.util.Vector;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
-	protected static final double VARIANCE_THRESHOLD = 6F;
+	protected static final int VARIANCE_THRESHOLD = 4;
 	
 	protected final World world;
 	protected final int direction;
 	protected final SchematicProperties properties;
 	protected StructureBoundingBox boundingBox;
 	protected final BiomeGenBase biome;
+	protected final int blockReplaceControl;
+
 
 	public SchematicWorldGenStructure(World world, BiomeGenBase biome,
 			int direction, int x, int z, SchematicProperties properties) {
@@ -58,8 +60,14 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		this.properties = properties;
 		this.biome = biome;
 		this.boundingBox = StructureBoundingBox.getComponentToAddBoundingBox(x,
-				1, z, 0, 0, 0, (int) size.x, (int) size.y, (int) size.z,
+				1, z, 0, 0, 0, size.x, size.y, size.z,
 				direction);
+
+		if(properties.suppressMonsterEgg)
+			blockReplaceControl = BiomeHelper.CONTROL_BIT_SCRUB_MONSTER;
+		else
+			blockReplaceControl = BiomeHelper.CONTROL_BIT_NONE;
+
 	}
 
 	@Override
@@ -70,18 +78,13 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	@Override
 	public boolean isVecInside(int x, int y, int z, StructureBoundingBox box) {
 		Vector v = getWorldCoordinates(x, y, z);
-		return box.isVecInside((int) v.x, (int) v.y, (int) v.z);
+		return box.isVecInside(v.x, v.y, v.z);
 	}
 
 	@Override
 	public Vector getWorldCoordinates(int x, int y, int z) {
 		return new Vector(this.getXWithOffset(x, z), this.getYWithOffset(y),
 				this.getZWithOffset(x, z));
-	}
-
-	@Override
-	public Vector getWorldCoordinates(double x, double y, double z) {
-		return getWorldCoordinates((int) x, (int) y, (int) z);
 	}
 
 	@Override
@@ -98,7 +101,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			SelectedBlock blockToPlace = BiomeBlockMapping.findReplacement(biome, block, meta);
+			SelectedBlock blockToPlace = BiomeHelper.findReplacement(blockReplaceControl, biome, block, meta);
 			world.setBlock(i1, j1, k1, blockToPlace.getBlock(), blockToPlace.getMeta(), 2);
 		}
 	}
@@ -172,8 +175,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 	protected boolean prepare(StructureBoundingBox box) {
 
-		RegionStats stats = BoxHelper.getRegionStats(world, boundingBox,
-				boundingBox);
+		RegionStats stats = BoxHelper.getRegionStatsWithVariance(world, boundingBox);
 		
 		// If there is too much variance return false.  Can't stand
 		// structures on dirt pillars.
@@ -183,12 +185,12 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		// Based on the terrain in the region adjust
 		// the Y to an appropriate level
 		int offset = properties.groundOffset;
-		boundingBox.offset(0, (int)Math.round(stats.mean) - boundingBox.minY - offset, 0);
+		boundingBox.offset(0, stats.mean - boundingBox.minY - offset, 0);
 		ModLog.debug("WorldGen structure [%s] @(%s); mode %d", properties.name, boundingBox, direction);
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
-		SelectedBlock blockToPlace = BiomeBlockMapping.findReplacement(biome, Blocks.dirt, 0);
+		SelectedBlock blockToPlace = BiomeHelper.findReplacement(blockReplaceControl, biome, Blocks.dirt, 0);
 		Vector size = getDimensions();
 		for (int xx = 0; xx < size.x; xx++) {
 			for (int zz = 0; zz < size.z; zz++) {

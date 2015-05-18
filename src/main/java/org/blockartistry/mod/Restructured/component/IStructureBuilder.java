@@ -60,9 +60,6 @@ public interface IStructureBuilder {
 	 * @return
 	 */
 	Vector getWorldCoordinates(int x, int y, int z);
-
-	Vector getWorldCoordinates(double x, double y, double z);
-
 	Vector getWorldCoordinates(Vector v);
 
 	/**

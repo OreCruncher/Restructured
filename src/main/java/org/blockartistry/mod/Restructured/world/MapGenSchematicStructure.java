@@ -106,7 +106,7 @@ public class MapGenSchematicStructure extends MapGenStructure {
 
 	@Override
 	protected boolean canSpawnStructureAtCoords(int chunkX, int chunkZ) {
-
+		
 		ChunkCoordinates currentGen = new ChunkCoordinates(chunkX, 0, chunkZ);
 		
 		Random random = this.worldObj.setRandomSeed(chunkX, chunkZ, 0xdeadbeef);
