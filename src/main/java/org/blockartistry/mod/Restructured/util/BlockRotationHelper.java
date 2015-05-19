@@ -27,7 +27,7 @@
  * this mod.
  */
 
-package org.blockartistry.mod.Restructured.forge;
+package org.blockartistry.mod.Restructured.util;
 
 import static net.minecraftforge.common.util.ForgeDirection.DOWN;
 import static net.minecraftforge.common.util.ForgeDirection.EAST;
@@ -57,6 +57,8 @@ import net.minecraft.block.BlockHugeMushroom;
 import net.minecraft.block.BlockLadder;
 import net.minecraft.block.BlockLever;
 import net.minecraft.block.BlockLog;
+import net.minecraft.block.BlockNewLog;
+import net.minecraft.block.BlockOldLog;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.BlockPistonExtension;
 import net.minecraft.block.BlockPumpkin;
@@ -77,7 +79,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-public class RotationHelper {
+public class BlockRotationHelper {
 
 	private static final Map<BlockType, BiMap<Integer, ForgeDirection>> MAPPINGS = new HashMap<BlockType, BiMap<Integer, ForgeDirection>>();
 
@@ -100,6 +102,9 @@ public class RotationHelper {
 
 		static {
 			blockToType.put(BlockLog.class, BlockType.LOG);
+			blockToType.put(BlockOldLog.class,BlockType.LOG);
+			blockToType.put(BlockNewLog.class, BlockType.LOG);
+			
 			blockToType.put(BlockTorch.class, BlockType.TORCH);
 			blockToType.put(BlockStairs.class, BlockType.STAIR);
 
@@ -164,7 +169,7 @@ public class RotationHelper {
 		 * @return
 		 */
 		private static boolean isKnownUnknown(Block block) {
-			return block.getClass() == Block.class;
+			return block.getClass() == Block.class || block == Blocks.air;
 		}
 
 		/**
@@ -176,6 +181,9 @@ public class RotationHelper {
 		 */
 		public static BlockType myType(Block block) {
 
+			if(block instanceof BlockNewLog) {
+				int x = 0;
+			}
 			// Eliminate the common UNKNOWNS
 			if (isKnownUnknown(block))
 				return UNKNOWN;
@@ -299,7 +307,7 @@ public class RotationHelper {
 
 		ForgeDirection orientation = metadataToDirection(blockType, meta);
 		ForgeDirection rotated = orientation.getRotation(axis);
-		return directionToMetadata(blockType, rotated);
+		return directionToMetadata(blockType, rotated, meta);
 	}
 
 	public static ForgeDirection metadataToDirection(Block block, int meta) {
@@ -360,12 +368,52 @@ public class RotationHelper {
 			return SOUTH;
 
 		}
+		
+		if(blockType == BlockType.LOG) {
+			if(meta < 4)
+				return UP;
+			if(meta < 8)
+				return EAST;
+			if(meta < 0xC)
+				return SOUTH;
+		}
 
 		return ForgeDirection.UNKNOWN;
 	}
+	
+	/*
+	 
+	 
+0	Oak wood facing up/down
+1	Spruce wood facing up/down
+2	Birch wood facing up/down
+3	Jungle wood facing up/down
+4	Oak wood facing East/West
+5	Spruce wood facing East/West
+6	Birch wood facing East/West
+7	Jungle wood facing East/West
+8	Oak wood facing North/South
+9	Spruce wood facing North/South
+10	Birch wood facing North/South
+11	Jungle wood facing North/South
+12	Oak wood with only bark
+13	Spruce wood with only bark
+14	Birch wood with only bark
+15	Jungle wood with only bark
+ 
+	 */
+	
+	static int[][] logMetaDir = {
+		{ 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},
+		{ 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},
+		{ 8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11},
+		{ 8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11},
+		{ 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7},
+		{ 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7},
+	};
 
 	private static int directionToMetadata(BlockType blockType,
-			ForgeDirection direction) {
+			ForgeDirection direction, int meta) {
 		if ((blockType == BlockType.LOG || blockType == BlockType.ANVIL)
 				&& (direction.offsetX + direction.offsetY + direction.offsetZ) < 0) {
 			direction = direction.getOpposite();
@@ -387,6 +435,11 @@ public class RotationHelper {
 		if (blockType == BlockType.STAIR) {
 			return 5 - direction.ordinal();
 		}
+
+		if(blockType == BlockType.LOG) {
+			return logMetaDir[direction.ordinal()][meta & 0xC];
+		}
+
 		if (blockType == BlockType.CHEST || blockType == BlockType.DISPENSER
 				|| blockType == BlockType.SKULL) {
 			return direction.ordinal();
@@ -405,13 +458,22 @@ public class RotationHelper {
 
 	static {
 		BiMap<Integer, ForgeDirection> biMap;
-
-		biMap = HashBiMap.create(3);
+/*
+		biMap = HashBiMap.create(12);
 		biMap.put(0x0, UP);
+		biMap.put(0x1, UP);
+		biMap.put(0x2, UP);
+		biMap.put(0x3, UP);
 		biMap.put(0x4, EAST);
+		biMap.put(0x5, EAST);
+		biMap.put(0x6, EAST);
+		biMap.put(0x7, EAST);
 		biMap.put(0x8, SOUTH);
+		biMap.put(0x9, SOUTH);
+		biMap.put(0xA, SOUTH);
+		biMap.put(0xB, SOUTH);
 		MAPPINGS.put(BlockType.LOG, biMap);
-
+*/
 		biMap = HashBiMap.create(4);
 		biMap.put(0x0, SOUTH);
 		biMap.put(0x1, WEST);

@@ -34,18 +34,17 @@ import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
 import org.blockartistry.mod.Restructured.component.IStructureBuilder;
-import org.blockartistry.mod.Restructured.math.BoxHelper;
-import org.blockartistry.mod.Restructured.math.BoxHelper.RegionStats;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.util.Vector;
+import org.blockartistry.mod.Restructured.world.BoxHelper.RegionStats;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
 	protected static final int VARIANCE_THRESHOLD = 4;
 	
 	protected final World world;
-	protected final int direction;
+	protected int direction;
 	protected final SchematicProperties properties;
 	protected StructureBoundingBox boundingBox;
 	protected final BiomeGenBase biome;

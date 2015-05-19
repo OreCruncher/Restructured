@@ -26,8 +26,8 @@ package org.blockartistry.mod.Restructured.component;
 
 import java.util.Random;
 
-import org.blockartistry.mod.Restructured.math.BoxHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
+import org.blockartistry.mod.Restructured.world.BoxHelper;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;

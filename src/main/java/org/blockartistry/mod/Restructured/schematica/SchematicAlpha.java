@@ -38,8 +38,8 @@ import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
@@ -148,14 +148,19 @@ public class SchematicAlpha extends SchematicFormat {
 				try {
 					NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
 					Entity entity = EntityList.createEntityFromNBT(cp, FantasyIsland.instance);
-					if (entity != null && !(entity instanceof EntityItemFrame)) {
-
-						entity.posX = entity.posX - originX;
-						entity.posY = entity.posY - originY;
-						entity.posZ = entity.posZ - originZ;
-
-						schematic.addEntity(entity);
+					
+					entity.posX = entity.posX - originX;
+					entity.posY = entity.posY - originY;
+					entity.posZ = entity.posZ - originZ;
+					
+					if(entity instanceof EntityHanging) {
+						EntityHanging howsIt = (EntityHanging) entity;
+						howsIt.field_146063_b -= originX;
+						howsIt.field_146064_c -= originY;
+						howsIt.field_146062_d -= originZ;
 					}
+
+					schematic.addEntity(entity);
 				} catch (Exception e) {
 					ModLog.error("Entity failed to load properly!", e);
 				}

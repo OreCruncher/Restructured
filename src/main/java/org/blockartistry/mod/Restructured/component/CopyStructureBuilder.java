@@ -29,10 +29,12 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityList;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -41,9 +43,9 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
-import org.blockartistry.mod.Restructured.forge.RotationHelper;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
+import org.blockartistry.mod.Restructured.util.BlockRotationHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 public class CopyStructureBuilder {
@@ -160,18 +162,29 @@ public class CopyStructureBuilder {
 		}
 
 		for (Entity e : schematic.getEntities()) {
-			int x = (int) e.posX;
-			int y = (int) e.posY;
-			int z = (int) e.posZ;
+			int x = (int) Math.floor(e.posX);
+			int y = (int) Math.floor(e.posY);
+			int z = (int) Math.floor(e.posZ);
 
 			if (!isVecInside(x, y, z, box))
 				continue;
 
 			try {
 				// Place it into the world
-				Vector coord = structure.getWorldCoordinates(x, y, z);
 				Entity entity = cloneEntity(e);
-				entity.setPosition(coord.x + 0.5F, coord.y + 0.5F, coord.z + 0.5F);
+
+				if(entity instanceof EntityHanging) {
+					EntityHanging howsIt = (EntityHanging) entity;
+					Vector coord = structure.getWorldCoordinates(howsIt.field_146063_b, howsIt.field_146064_c, howsIt.field_146062_d);
+					howsIt.field_146063_b = coord.x;
+					howsIt.field_146064_c = coord.y;
+					howsIt.field_146062_d = coord.z;
+					// Calls setPosition() internally
+					howsIt.setDirection(translateDirection(howsIt.hangingDirection));
+				} else {
+					Vector coord = structure.getWorldCoordinates(x, y, z);
+					entity.setPosition(coord.x, coord.y, coord.z);
+				}
 
 				world.spawnEntityInWorld(entity);
 			} catch (Throwable t) {
@@ -209,6 +222,43 @@ public class CopyStructureBuilder {
 		return block.isTorch();
 	}
 
+	int translateDirection(int dir) {
+	
+		int count = getRotationCount(dir);
+		if(count == 1)
+			return Direction.rotateRight[dir];
+		if(count == 2)
+			return Direction.rotateOpposite[dir];
+		if(count == 3)
+			return Direction.rotateLeft[dir];
+		
+		return dir;
+	}
+	
+	int getRotationCount(int dir) {
+		switch(dir) {
+		case 0: return getRotationCount(ForgeDirection.SOUTH);
+		case 1: return getRotationCount(ForgeDirection.WEST);
+		case 2: return getRotationCount(ForgeDirection.NORTH);
+		case 4: return getRotationCount(ForgeDirection.EAST);
+		default:
+			;
+		}
+		return -1;
+	}
+	
+	int getRotationCount(ForgeDirection dir) {
+		int rotationCount = 0;
+		if(orientation == 1 || orientation == 3)
+			rotationCount++;
+		
+		if((orientation == 2 || orientation == 3) && (dir == ForgeDirection.NORTH
+					|| dir == ForgeDirection.SOUTH))
+			rotationCount += 2;
+		
+		return rotationCount;
+	}
+	
 	int translateMeta(Block block, int meta) {
 		
 		// If the block is in natural position
@@ -219,51 +269,17 @@ public class CopyStructureBuilder {
 		// Get it's current facing.  If it is unknown
 		// just return - it is not handled or it's a 
 		// basic block like dirt.
-		ForgeDirection direction = RotationHelper.metadataToDirection(block,
+		ForgeDirection direction = BlockRotationHelper.metadataToDirection(block,
 				meta);
-		if (direction == ForgeDirection.UNKNOWN) {
+		if (direction == ForgeDirection.UNKNOWN || direction == ForgeDirection.UP || direction == ForgeDirection.DOWN) {
 			return meta;
 		}
 		
-		int rotationCount = 0;
-		if(orientation == 1 || orientation == 3)
-			rotationCount++;
+		int rotationCount = getRotationCount(direction);
 		
-		if((orientation == 2 || orientation == 3) && (direction == ForgeDirection.NORTH
-					|| direction == ForgeDirection.SOUTH))
-			rotationCount += 2;
-		
-		meta = RotationHelper.rotateVanillaBlock(block, meta,
+		meta = BlockRotationHelper.rotateVanillaBlock(block, meta,
 				ForgeDirection.UP, rotationCount);
 
-		/*
-		switch (orientation) {
-		case 0:
-			break;
-
-		case 1:
-			meta = RotationHelper.rotateVanillaBlock(block, meta,
-					ForgeDirection.UP);
-			break;
-
-		case 3:
-			meta = RotationHelper.rotateVanillaBlock(block, meta,
-					ForgeDirection.UP);
-			// fall through...
-		case 2:
-			if (direction == ForgeDirection.NORTH
-					|| direction == ForgeDirection.SOUTH) {
-				meta = RotationHelper.rotateVanillaBlock(block, meta,
-						ForgeDirection.UP);
-				meta = RotationHelper.rotateVanillaBlock(block, meta,
-						ForgeDirection.UP);
-			}
-			break;
-
-		default:
-			return meta;
-		}
-*/
 		return meta;
 	}
 
