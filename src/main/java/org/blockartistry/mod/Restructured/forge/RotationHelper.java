@@ -164,9 +164,7 @@ public class RotationHelper {
 		 * @return
 		 */
 		private static boolean isKnownUnknown(Block block) {
-			return block == Blocks.cobblestone || block == Blocks.planks
-					|| block == Blocks.dirt || block == Blocks.gravel
-					|| block == Blocks.grass || block == Blocks.stone;
+			return block.getClass() == Block.class;
 		}
 
 		/**
@@ -182,19 +180,38 @@ public class RotationHelper {
 			if (isKnownUnknown(block))
 				return UNKNOWN;
 
+			// Handle signs...
 			if (block == Blocks.wall_sign)
 				return CHEST;
 
 			if (block == Blocks.standing_sign)
 				return SIGNPOST;
+			
+			// The rest are (or will be) in the map
+			BlockType bt = blockToType.get(block.getClass());
+			if(bt == null) {
+				// Can't find a direct lookup in the cache.  Do a slow trawl
+				// looking for superclass matches.
+				Class<? extends Block> searchFor = block.getClass();
+				for (Entry<Class<? extends Block>, BlockType> e : blockToType
+						.entrySet())
+					if (e.getKey().isAssignableFrom(searchFor)) {
+						bt = e.getValue();
+						break;
+					}
+				
+				// If we didn't find a superclass match then it's
+				// an UNKNOWN.
+				if(bt == null)
+					bt = UNKNOWN;
+				
+				// At this point update the cache for the next block to
+				// come in so we don't have to do the trawl.
+				blockToType.put(searchFor, bt);
+				
+			}
 
-			Class<?> searchFor = block.getClass();
-			for (Entry<Class<? extends Block>, BlockType> e : blockToType
-					.entrySet())
-				if (e.getKey().isAssignableFrom(searchFor))
-					return e.getValue();
-
-			return UNKNOWN;
+			return bt;
 		}
 	}
 
