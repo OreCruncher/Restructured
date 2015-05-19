@@ -34,11 +34,11 @@ import static net.minecraftforge.common.util.ForgeDirection.EAST;
 import static net.minecraftforge.common.util.ForgeDirection.NORTH;
 import static net.minecraftforge.common.util.ForgeDirection.SOUTH;
 import static net.minecraftforge.common.util.ForgeDirection.UP;
-import static net.minecraftforge.common.util.ForgeDirection.VALID_DIRECTIONS;
 import static net.minecraftforge.common.util.ForgeDirection.WEST;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAnvil;
@@ -78,120 +78,142 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 public class RotationHelper {
+
+	private static final Map<BlockType, BiMap<Integer, ForgeDirection>> MAPPINGS = new HashMap<BlockType, BiMap<Integer, ForgeDirection>>();
+
 	/**
 	 * Some blocks have the same rotation. The first of these blocks (sorted by
 	 * itemID) should be listed as a type. Some of the types aren't actual
 	 * blocks (helper types).
 	 */
 	private static enum BlockType {
-		LOG, DISPENSER, BED, RAIL, RAIL_POWERED, RAIL_ASCENDING, RAIL_CORNER, TORCH, STAIR, CHEST, SIGNPOST, DOOR, LEVER, BUTTON, REDSTONE_REPEATER, TRAPDOOR, MUSHROOM_CAP, MUSHROOM_CAP_CORNER, MUSHROOM_CAP_SIDE, VINE, SKULL, ANVIL
-	}
+		UNKNOWN(0, false), LOG(0xC, false), DISPENSER(0x7, false), BED(0x3,
+				true), RAIL(0xF, true), RAIL_POWERED(0x7, true), RAIL_ASCENDING(
+				-1, true), RAIL_CORNER(-1, true), TORCH(0xF, false), STAIR(0x3,
+				true), CHEST(0x7, true), SIGNPOST(0xF, true), DOOR(0x3, true), LEVER(
+				0x7, false), BUTTON(0x7, true), REDSTONE_REPEATER(0x3, true), TRAPDOOR(
+				0x3, true), MUSHROOM_CAP(0xF, true), MUSHROOM_CAP_CORNER(-1,
+				true), MUSHROOM_CAP_SIDE(-1, true), VINE(0xF, true), SKULL(0x7,
+				true), ANVIL(0x1, true);
 
-	private static final ForgeDirection[] UP_DOWN_AXES = new ForgeDirection[] {
-			UP, DOWN };
-	private static final Map<BlockType, BiMap<Integer, ForgeDirection>> MAPPINGS = new HashMap<BlockType, BiMap<Integer, ForgeDirection>>();
+		private static final HashMap<Class<? extends Block>, BlockType> blockToType = new HashMap<Class<? extends Block>, BlockType>();
 
-	public static ForgeDirection[] getValidVanillaBlockRotations(Block block) {
-		return (block instanceof BlockBed || block instanceof BlockPumpkin
-				|| block instanceof BlockFenceGate
-				|| block instanceof BlockEndPortalFrame
-				|| block instanceof BlockTripWireHook
-				|| block instanceof BlockCocoa
-				|| block instanceof BlockRailPowered
-				|| block instanceof BlockRailDetector
-				|| block instanceof BlockStairs || block instanceof BlockChest
-				|| block instanceof BlockEnderChest
-				|| block instanceof BlockFurnace
-				|| block instanceof BlockLadder || block == Blocks.wall_sign
-				|| block == Blocks.standing_sign || block instanceof BlockDoor
-				|| block instanceof BlockRail || block instanceof BlockButton
-				|| block instanceof BlockRedstoneRepeater
-				|| block instanceof BlockRedstoneComparator
-				|| block instanceof BlockTrapDoor
-				|| block instanceof BlockHugeMushroom
-				|| block instanceof BlockVine || block instanceof BlockSkull || block instanceof BlockAnvil) ? UP_DOWN_AXES
-				: VALID_DIRECTIONS;
+		static {
+			blockToType.put(BlockLog.class, BlockType.LOG);
+			blockToType.put(BlockTorch.class, BlockType.TORCH);
+			blockToType.put(BlockStairs.class, BlockType.STAIR);
+
+			blockToType.put(BlockBed.class, BlockType.BED);
+			blockToType.put(BlockPumpkin.class, BlockType.BED);
+			blockToType.put(BlockFenceGate.class, BlockType.BED);
+			blockToType.put(BlockEndPortalFrame.class, BlockType.BED);
+			blockToType.put(BlockTripWireHook.class, BlockType.BED);
+			blockToType.put(BlockCocoa.class, BlockType.BED);
+
+			blockToType.put(BlockRail.class, BlockType.RAIL);
+
+			blockToType.put(BlockRailPowered.class, BlockType.RAIL_POWERED);
+			blockToType.put(BlockRailDetector.class, BlockType.RAIL_POWERED);
+
+			blockToType.put(BlockChest.class, BlockType.CHEST);
+			blockToType.put(BlockEnderChest.class, BlockType.CHEST);
+			blockToType.put(BlockFurnace.class, BlockType.CHEST);
+			blockToType.put(BlockLadder.class, BlockType.CHEST);
+
+			blockToType.put(BlockDoor.class, BlockType.DOOR);
+
+			blockToType.put(BlockButton.class, BlockType.BUTTON);
+
+			blockToType.put(BlockRedstoneRepeater.class,
+					BlockType.REDSTONE_REPEATER);
+			blockToType.put(BlockRedstoneComparator.class,
+					BlockType.REDSTONE_REPEATER);
+
+			blockToType.put(BlockTrapDoor.class, BlockType.TRAPDOOR);
+
+			blockToType.put(BlockHugeMushroom.class, BlockType.MUSHROOM_CAP);
+
+			blockToType.put(BlockVine.class, BlockType.VINE);
+
+			blockToType.put(BlockSkull.class, BlockType.SKULL);
+
+			blockToType.put(BlockAnvil.class, BlockType.ANVIL);
+
+			blockToType.put(BlockDispenser.class, BlockType.DISPENSER);
+			blockToType.put(BlockPistonBase.class, BlockType.DISPENSER);
+			blockToType.put(BlockPistonExtension.class, BlockType.DISPENSER);
+			blockToType.put(BlockHopper.class, BlockType.DISPENSER);
+
+			blockToType.put(BlockLever.class, BlockType.LEVER);
+		}
+
+		public final int mask;
+		public final boolean upDown;
+
+		private BlockType(int mask, boolean upDown) {
+			this.mask = mask;
+			this.upDown = upDown;
+		}
+
+		/**
+		 * This method looks for known UNKNOWN blocks.  Goal isn't to
+		 * have *every* UNKNOWN, but to have the most common ones in order
+		 * to shave off some compute cycles.
+		 * 
+		 * @param block
+		 * @return
+		 */
+		private static boolean isKnownUnknown(Block block) {
+			return block == Blocks.cobblestone || block == Blocks.planks
+					|| block == Blocks.dirt || block == Blocks.gravel
+					|| block == Blocks.grass || block == Blocks.stone;
+		}
+
+		/**
+		 * Based on the block instance type the method figures out the
+		 * appropriate BlockType.
+		 * 
+		 * @param block The block to analyze
+		 * @return BlockType associated with the block instance type
+		 */
+		public static BlockType myType(Block block) {
+
+			// Eliminate the common UNKNOWNS
+			if (isKnownUnknown(block))
+				return UNKNOWN;
+
+			if (block == Blocks.wall_sign)
+				return CHEST;
+
+			if (block == Blocks.standing_sign)
+				return SIGNPOST;
+
+			Class<?> searchFor = block.getClass();
+			for (Entry<Class<? extends Block>, BlockType> e : blockToType
+					.entrySet())
+				if (e.getKey().isAssignableFrom(searchFor))
+					return e.getValue();
+
+			return UNKNOWN;
+		}
 	}
 
 	public static int rotateVanillaBlock(Block block, int meta,
 			ForgeDirection axis, int count) {
 
+		BlockType type = BlockType.myType(block);
+		if (type == BlockType.UNKNOWN)
+			return meta;
+
 		int metaPrime = meta;
 
 		for (int i = 0; i < count; i++) {
-			if (axis == UP || axis == DOWN) {
-				if (block instanceof BlockBed || block instanceof BlockPumpkin
-						|| block instanceof BlockFenceGate
-						|| block instanceof BlockEndPortalFrame
-						|| block instanceof BlockTripWireHook
-						|| block instanceof BlockCocoa) {
-					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.BED);
-				}
-				if (block instanceof BlockRail) {
-					metaPrime = rotateBlock(meta, axis, 0xF, BlockType.RAIL);
-				}
-				if (block instanceof BlockRailPowered
-						|| block instanceof BlockRailDetector) {
-					metaPrime = rotateBlock(meta, axis, 0x7,
-							BlockType.RAIL_POWERED);
-				}
-				if (block instanceof BlockStairs) {
-					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.STAIR);
-				}
-				if (block instanceof BlockChest
-						|| block instanceof BlockEnderChest
-						|| block instanceof BlockFurnace
-						|| block instanceof BlockLadder
-						|| block == Blocks.wall_sign) {
-					metaPrime = rotateBlock(meta, axis, 0x7, BlockType.CHEST);
-				}
-				if (block == Blocks.standing_sign) {
-					metaPrime = rotateBlock(meta, axis, 0xF, BlockType.SIGNPOST);
-				}
-				if (block instanceof BlockDoor) {
-					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.DOOR);
-				}
-				if (block instanceof BlockButton) {
-					metaPrime = rotateBlock(meta, axis, 0x7, BlockType.BUTTON);
-				}
-				if (block instanceof BlockRedstoneRepeater
-						|| block instanceof BlockRedstoneComparator) {
-					metaPrime = rotateBlock(meta, axis, 0x3,
-							BlockType.REDSTONE_REPEATER);
-				}
-				if (block instanceof BlockTrapDoor) {
-					metaPrime = rotateBlock(meta, axis, 0x3, BlockType.TRAPDOOR);
-				}
-				if (block instanceof BlockHugeMushroom) {
-					metaPrime = rotateBlock(meta, axis, 0xF,
-							BlockType.MUSHROOM_CAP);
-				}
-				if (block instanceof BlockVine) {
-					metaPrime = rotateBlock(meta, axis, 0xF, BlockType.VINE);
-				}
-				if (block instanceof BlockSkull) {
-					metaPrime = rotateBlock(meta, axis, 0x7, BlockType.SKULL);
-				}
-				if (block instanceof BlockAnvil) {
-					metaPrime = rotateBlock(meta, axis, 0x1, BlockType.ANVIL);
-				}
+			if ((axis == UP || axis == DOWN) && type.upDown) {
+				metaPrime = rotateBlock(meta, axis, type.mask, type);
 			}
 
-			if (block instanceof BlockLog) {
-				metaPrime = rotateBlock(meta, axis, 0xC, BlockType.LOG);
-			}
-			if (block instanceof BlockDispenser
-					|| block instanceof BlockPistonBase
-					|| block instanceof BlockPistonExtension
-					|| block instanceof BlockHopper) {
-				metaPrime = rotateBlock(meta, axis, 0x7, BlockType.DISPENSER);
-			}
-			if (block instanceof BlockTorch) {
-				metaPrime = rotateBlock(meta, axis, 0xF, BlockType.TORCH);
-			}
-			if (block instanceof BlockLever) {
-				metaPrime = rotateBlock(meta, axis, 0x7, BlockType.LEVER);
-			}
+			if (!type.upDown)
+				metaPrime = rotateBlock(meta, axis, type.mask, type);
 
 			// If it didn't change just return the existing meta. Else,
 			// reset the meta for the next pass.
@@ -264,73 +286,12 @@ public class RotationHelper {
 	}
 
 	public static ForgeDirection metadataToDirection(Block block, int meta) {
-		if (block instanceof BlockBed || block instanceof BlockPumpkin
-				|| block instanceof BlockFenceGate
-				|| block instanceof BlockEndPortalFrame
-				|| block instanceof BlockTripWireHook
-				|| block instanceof BlockCocoa) {
-			return metadataToDirection(BlockType.BED, meta);
-		}
-		if (block instanceof BlockRail) {
-			return metadataToDirection(BlockType.RAIL, meta);
-		}
-		if (block instanceof BlockRailPowered
-				|| block instanceof BlockRailDetector) {
-			return metadataToDirection(BlockType.RAIL_POWERED, meta);
-		}
-		if (block instanceof BlockStairs) {
-			return metadataToDirection(BlockType.STAIR, meta);
-		}
-		if (block instanceof BlockChest || block instanceof BlockEnderChest
-				|| block instanceof BlockFurnace
-				|| block instanceof BlockLadder || block == Blocks.wall_sign) {
-			return metadataToDirection(BlockType.CHEST, meta);
-		}
-		if (block == Blocks.standing_sign) {
-			return metadataToDirection(BlockType.SIGNPOST, meta);
-		}
-		if (block instanceof BlockDoor) {
-			return metadataToDirection(BlockType.DOOR, meta);
-		}
-		if (block instanceof BlockButton) {
-			return metadataToDirection(BlockType.BUTTON, meta);
-		}
-		if (block instanceof BlockRedstoneRepeater
-				|| block instanceof BlockRedstoneComparator) {
-			return metadataToDirection(BlockType.REDSTONE_REPEATER, meta);
-		}
-		if (block instanceof BlockTrapDoor) {
-			return metadataToDirection(BlockType.TRAPDOOR, meta);
-		}
-		if (block instanceof BlockHugeMushroom) {
-			return metadataToDirection(BlockType.MUSHROOM_CAP, meta);
-		}
-		if (block instanceof BlockVine) {
-			return metadataToDirection(BlockType.VINE, meta);
-		}
-		if (block instanceof BlockSkull) {
-			return metadataToDirection(BlockType.SKULL, meta);
-		}
-		if (block instanceof BlockAnvil) {
-			return metadataToDirection(BlockType.ANVIL, meta);
-		}
 
-		if (block instanceof BlockLog) {
-			return metadataToDirection(BlockType.LOG, meta);
-		}
-		if (block instanceof BlockDispenser || block instanceof BlockPistonBase
-				|| block instanceof BlockPistonExtension
-				|| block instanceof BlockHopper) {
-			return metadataToDirection(BlockType.DISPENSER, meta);
-		}
-		if (block instanceof BlockTorch) {
-			return metadataToDirection(BlockType.TORCH, meta);
-		}
-		if (block instanceof BlockLever) {
-			return metadataToDirection(BlockType.LEVER, meta);
-		}
+		BlockType type = BlockType.myType(block);
+		if (type == BlockType.UNKNOWN)
+			return ForgeDirection.UNKNOWN;
 
-		return ForgeDirection.UNKNOWN;
+		return metadataToDirection(type, meta);
 	}
 
 	public static ForgeDirection metadataToDirection(BlockType blockType,
