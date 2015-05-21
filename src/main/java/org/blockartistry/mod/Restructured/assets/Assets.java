@@ -36,6 +36,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.minecraft.block.Block;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemSeeds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -60,18 +63,21 @@ import org.blockartistry.mod.Restructured.world.SchematicWorldGenHandler;
 
 import com.google.common.base.Preconditions;
 
+import cpw.mods.fml.common.registry.GameData;
+
 public final class Assets {
 
 	static List<SchematicProperties> schematicList = null;
 	static List<ChestGenHooks> chestHooks = null;
+	static List<ItemSeeds> seeds = null;
 
 	static WeightTable<SchematicWeightItem> villageSchematics = new WeightTable<SchematicWeightItem>();
 	static WeightTable<SchematicWeightItem> worldSchematics = new WeightTable<SchematicWeightItem>();
 
 	static final boolean DEFAULT_IS_WORLD = false;
 	static final boolean DEFAULT_IS_VILLAGE = true;
-	static final boolean DEFAULT_SUPPRESS_FIRE = true;
-	static final boolean DEFAULT_SUPPRESS_MONSTER_EGG = true;
+	static final String DEFAULT_OPTIONS = "suppressFire;suppressEggs";
+	
 	static final int DEFAULT_VILLAGE_WEIGHT = 10;
 	static final int DEFAULT_WORLD_WEIGHT = 0;
 	static final int DEFAULT_LIMIT = 1;
@@ -95,8 +101,11 @@ public final class Assets {
 	static final String CONFIG_STRUCTURES = "structures";
 	static final String OPTION_IS_WORLD = "includeInWorldGen";
 	static final String OPTION_IS_VILLAGE = "includeInVillageGen";
-	static final String OPTION_SUPPRESS_FIRE = "suppressFire";
-	static final String OPTION_SUPPRESS_MONSTER_EGG = "suppressMonsterEgg";
+	static final String OPTION_OPTIONS = "generationOptions";
+	static final String OPTION_OPTIONS_SUPPRESS_FIRE = "suppressFire";
+	static final String OPTION_OPTIONS_SUPPRESS_EGGS = "suppressEggs";
+	static final String OPTION_OPTIONS_RANDOM_CROPS = "randomCrops";
+	
 	static final String OPTION_VILLAGE_WEIGHT = "villageWeight";
 	static final String OPTION_WORLD_WEIGHT = "worldWeight";
 	static final String OPTION_LIMIT = "limit";
@@ -156,14 +165,6 @@ public final class Assets {
 				props.worldWeight = config.getInt(OPTION_WORLD_WEIGHT,
 						category, DEFAULT_WORLD_WEIGHT, 0, Integer.MAX_VALUE,
 						"Relative selection weight for world generation");
-
-				props.suppressFire = config.getBoolean(OPTION_SUPPRESS_FIRE,
-						category, DEFAULT_SUPPRESS_FIRE,
-						"Suppress fire sources when generating");
-
-				props.suppressMonsterEgg = config.getBoolean(OPTION_SUPPRESS_MONSTER_EGG,
-						category, DEFAULT_SUPPRESS_MONSTER_EGG,
-						"Suppress monster egg blocks when generating");
 
 				props.villagerCount = config
 						.getInt(OPTION_VILLAGER_COUNT, category,
@@ -227,6 +228,11 @@ public final class Assets {
 				list = config.getString(OPTION_DIMENSION_LIST, category, def,
 						"List of dimension IDs");
 
+				String options = config.getString(OPTION_OPTIONS, category, DEFAULT_OPTIONS, "Options for generation");
+				props.suppressFire = options.contains(OPTION_OPTIONS_SUPPRESS_FIRE);
+				props.suppressMonsterEgg = options.contains(OPTION_OPTIONS_SUPPRESS_EGGS);
+				props.randomizeCrops = options.contains(OPTION_OPTIONS_RANDOM_CROPS);
+				
 				try {
 					props.dimensions = new ElementRule(
 							asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
@@ -391,7 +397,20 @@ public final class Assets {
 
 		return table;
 	}
-
+	
+	public static List<ItemSeeds> getSeeds() {
+		
+		if(seeds != null)
+			return seeds;
+		
+		seeds = new ArrayList<ItemSeeds>();
+		for(Item i: GameData.getItemRegistry().typeSafeIterable())
+			if((i instanceof ItemSeeds) && i != Items.pumpkin_seeds && i != Items.melon_seeds)
+				seeds.add((ItemSeeds)i);
+		
+		return seeds;
+	}
+	
 	protected static void dumpBiomeList() {
 
 		ModLog.info("Detected biomes:");

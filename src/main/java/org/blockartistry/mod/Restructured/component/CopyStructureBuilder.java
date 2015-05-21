@@ -24,7 +24,9 @@
 
 package org.blockartistry.mod.Restructured.component;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.Block;
@@ -32,6 +34,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityList;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemSeeds;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -42,16 +45,36 @@ import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import org.blockartistry.mod.Restructured.ModLog;
+import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.BlockRotationHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
 
+import cpw.mods.fml.relauncher.ReflectionHelper;
+
 public class CopyStructureBuilder {
 
 	static final Random rand = new Random();
-
+	
+	static Field soilBlockID = null;
+	static Field cropBlock = null;
+	
+	static {
+		
+		try {
+			
+			soilBlockID = ReflectionHelper.findField(ItemSeeds.class, "soilBlockID", "field_77838_b");
+			cropBlock = ReflectionHelper.findField(ItemSeeds.class, "field_150925_a");
+			
+		} catch(Throwable t) {
+			
+			ModLog.warn("Unable to hook ItemSeeds.soilBlockId");
+			
+			;
+		}
+	}
 	final IStructureBuilder structure;
 	final World world;
 	final StructureBoundingBox box;
@@ -85,7 +108,9 @@ public class CopyStructureBuilder {
 
 		final ISchematic schematic = properties.schematic;
 		final Vector size = structure.getDimensions();
-
+		
+		// Scan from the ground up.  This is important when
+		// replacing crops.
 		for (int y = 0; y < size.y; y++)
 			for (int x = 0; x < size.x; x++)
 				for (int z = 0; z < size.z; z++) {
@@ -103,13 +128,24 @@ public class CopyStructureBuilder {
 
 						// Delay placing things that don't like being
 						// rotated or attached to blocks that change
-						if (waitToPlace(block))
+						if (waitToPlace(block)) {
 							waitToPlace.add(v);
-						else {
-
-							int meta = schematic.getBlockMetadata(x, y, z);
-							place(block.getBlock(), meta, x, y, z);
+							continue;
 						}
+
+						// If this is a crop, and we are randomizing crops,
+						// need to do the appropriate replacement.
+						int meta = 0;
+						Block replacement = replaceCrop(block, x, y, z);
+						if( replacement != null) {
+							block = new BlockHelper(replacement);
+							meta = rand.nextInt(7);
+						} else {
+							meta = schematic.getBlockMetadata(x, y, z);
+						}
+						
+						// Fall through case - just place the block
+						place(block.getBlock(), meta, x, y, z);
 					}
 				}
 
@@ -146,8 +182,8 @@ public class CopyStructureBuilder {
 				// Place it into the world
 				Vector coord = structure.getWorldCoordinates(entity.xCoord,
 						entity.yCoord, entity.zCoord);
-				world.setTileEntity((int) coord.x, (int) coord.y,
-						(int) coord.z, entity);
+				world.setTileEntity(coord.x, coord.y,
+						coord.z, entity);
 
 				if (doFillChestContents(helper)) {
 					generateChestContents((IInventory) entity,
@@ -183,7 +219,7 @@ public class CopyStructureBuilder {
 					howsIt.setDirection(translateDirection(howsIt.hangingDirection));
 				} else {
 					Vector coord = structure.getWorldCoordinates(x, y, z);
-					entity.setPosition(coord.x, coord.y, coord.z);
+					entity.setPosition(coord.x + 0.5D, coord.y + 0.5D, coord.z + 0.5D);
 				}
 
 				world.spawnEntityInWorld(entity);
@@ -191,6 +227,32 @@ public class CopyStructureBuilder {
 				ModLog.warn("Unable to place entity");
 			}
 		}
+	}
+	
+	Block replaceCrop(BlockHelper block, int x, int y, int z) {
+		if(!properties.randomizeCrops || !block.isCrop())
+			return null;
+		
+		List<ItemSeeds> seeds = Assets.getSeeds();
+		if(seeds == null || seeds.size() == 0)
+			return null;
+		
+		Block result = null;
+		try {
+			// Get our new seed and what it can be planted on
+			ItemSeeds s = seeds.get(rand.nextInt(seeds.size()));
+			Block newHostBlock = (Block) soilBlockID.get(s);
+			
+			// If the block at y-1 can support, yay!  If not
+			// return null.
+			if(properties.schematic.getBlock(x, y - 1, z) == newHostBlock)
+				result = (Block)cropBlock.get(s);
+			
+		} catch(Throwable t) {
+			;
+		}
+		
+		return result;
 	}
 
 	void generateChestContents(IInventory inventory, String category, int count) {

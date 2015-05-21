@@ -42,7 +42,8 @@ import cpw.mods.fml.common.registry.GameData;
 public final class BiomeHelper {
 	
 	public static final int CONTROL_BIT_NONE = 0;
-	public static final int CONTROL_BIT_SCRUB_MONSTER = 1;
+	public static final int CONTROL_BIT_SCRUB_MONSTER = 0x1;
+	public static final int CONTROL_RANDOMIZE_CROP = 0x2;
 
 	private static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData.getBlockRegistry();
 	private static final int META_MASK = 0xFF;

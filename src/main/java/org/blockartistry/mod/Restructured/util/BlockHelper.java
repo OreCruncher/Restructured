@@ -25,7 +25,10 @@
 package org.blockartistry.mod.Restructured.util;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockCrops;
+import net.minecraft.block.IGrowable;
 import net.minecraft.init.Blocks;
+import net.minecraftforge.common.IPlantable;
 
 public class BlockHelper {
 
@@ -85,5 +88,17 @@ public class BlockHelper {
 	
 	public boolean isSolid() {
 		return block.getMaterial().isSolid();
+	}
+	
+	public boolean isPlantable() {
+		return block instanceof IPlantable;
+	}
+	
+	public boolean isGrowable() {
+		return block instanceof IGrowable;
+	}
+	
+	public boolean isCrop() {
+		return block instanceof BlockCrops;
 	}
 }

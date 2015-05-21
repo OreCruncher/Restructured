@@ -29,7 +29,6 @@ import java.util.List;
 
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.MapGenVillage;
-
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
@@ -43,14 +42,14 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 public class Proxy {
 
 	public void preInit(FMLPreInitializationEvent event) {
-		//new TerrainEventBusHandler();
+		new TerrainEventBusHandler();
 	}
 
 	public void init(FMLInitializationEvent event) {
 	}
 
 	public void postInit(FMLPostInitializationEvent event) {
-
+		
 		Assets.initialize();
 		
 		// Patch up the village biome list with the configured

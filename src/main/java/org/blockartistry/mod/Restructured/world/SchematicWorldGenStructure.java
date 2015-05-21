@@ -29,7 +29,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
-
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
@@ -62,11 +61,14 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 				1, z, 0, 0, 0, size.x, size.y, size.z,
 				direction);
 
+		int control = 0;
 		if(properties.suppressMonsterEgg)
-			blockReplaceControl = BiomeHelper.CONTROL_BIT_SCRUB_MONSTER;
-		else
-			blockReplaceControl = BiomeHelper.CONTROL_BIT_NONE;
+			control |= BiomeHelper.CONTROL_BIT_SCRUB_MONSTER;
+		
+		if(properties.randomizeCrops)
+			control |= BiomeHelper.CONTROL_RANDOMIZE_CROP;
 
+		this.blockReplaceControl = control;
 	}
 
 	@Override
