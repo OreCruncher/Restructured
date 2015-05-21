@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.blockartistry.mod.Restructured.ModLog;
+import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.util.Vector;
 
@@ -53,7 +54,7 @@ public class SchematicStructureCreationHandler implements
 
 	@Override
 	public PieceWeight getVillagePieceWeight(Random random, int i) {
-		return new SchematicPieceWeight();
+		return new SchematicPieceWeight(Assets.getTableForVillageGen());
 	}
 
 	@Override

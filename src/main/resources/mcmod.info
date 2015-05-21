@@ -5,10 +5,10 @@
   "description": "Modify your world by adding structures",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://github.com/OreCruncher/Restructured/wiki",
   "updateUrl": "",
-  "authorList": ["ExampleDude"],
-  "credits": "The Forge and FML guys, for making this example",
+  "authorList": ["OreCruncher"],
+  "credits": "",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []

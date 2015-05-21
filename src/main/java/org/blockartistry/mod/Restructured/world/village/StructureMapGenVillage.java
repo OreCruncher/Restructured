@@ -2,7 +2,6 @@
  * This file is part of Restructured, licensed under the MIT License (MIT).
  *
  * Copyright (c) OreCruncher
- * Copyright (c) contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +22,26 @@
  * THE SOFTWARE.
  */
 
-package org.blockartistry.mod.Restructured.assets;
+package org.blockartistry.mod.Restructured.world.village;
 
-import org.blockartistry.mod.Restructured.assets.SchematicProperties;
-import org.blockartistry.mod.Restructured.util.WeightTable;
+import net.minecraft.world.gen.structure.MapGenStructureIO;
+import net.minecraft.world.gen.structure.MapGenVillage;
+import net.minecraft.world.gen.structure.StructureStart;
 
-public class SchematicWeightItem extends WeightTable.Item {
+public class StructureMapGenVillage extends MapGenVillage {
 
-	public SchematicProperties properties;
-
-	public SchematicWeightItem(SchematicProperties properties, boolean asVillage) {
-		super(asVillage ? properties.villageWeight : properties.worldWeight);
-
-		this.properties = properties;
+	static {
+		MapGenStructureIO.registerStructure(MyMapGenVillageStart.class, "reMyStart");
 	}
-	
+
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		SchematicWeightItem item = (SchematicWeightItem) super.clone();
-		item.properties = (SchematicProperties) this.properties.clone();
-		return item;
+    protected boolean canSpawnStructureAtCoords(int chunkX, int chunkZ) {
+		return super.canSpawnStructureAtCoords(chunkX, chunkZ);
 	}
 
+	@Override
+    protected StructureStart getStructureStart(int chunkX, int chunkZ) {
+		//ModLog.info("getStructureStart(): chunkX %d, chunkZ %d", chunkX, chunkZ);
+		return new MyMapGenVillageStart(this.worldObj, this.rand, chunkX, chunkZ, 0);
+	}
 }

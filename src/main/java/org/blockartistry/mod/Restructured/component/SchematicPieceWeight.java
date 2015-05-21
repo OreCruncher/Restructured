@@ -27,8 +27,9 @@ package org.blockartistry.mod.Restructured.component;
 
 import java.util.HashMap;
 
-import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
+import org.blockartistry.mod.Restructured.assets.SchematicWeightItem;
+import org.blockartistry.mod.Restructured.util.WeightTable;
 
 import net.minecraft.world.gen.structure.StructureVillagePieces.PieceWeight;
 
@@ -49,19 +50,19 @@ public class SchematicPieceWeight extends PieceWeight {
 	// through this factory. Still have to apply weights
 	// and limits based on configuration.
 	protected HashMap<SchematicProperties, Integer> history = new HashMap<SchematicProperties, Integer>();
+	
+	protected WeightTable<SchematicWeightItem> potentials = null;
 
-	// Cached set of properties that have been generated
-	protected SchematicProperties properties;
-
-	public SchematicPieceWeight() {
-		super(SchematicStructure.class, Assets.villageStructureTotalWeight(),
-				Assets.villageStructureTotalLimit());
-
-		this.properties = null;
-	}
-
-	public SchematicProperties getProperties() {
-		return this.properties;
+	public SchematicPieceWeight(WeightTable<SchematicWeightItem> potentials) {
+		super(SchematicStructure.class, potentials.getTotalWeight(),
+				0);
+		
+		this.potentials = potentials;
+        this.villagePiecesLimit = 0;
+        
+        for(SchematicWeightItem e: this.potentials.getEntries()) {
+        	this.villagePiecesLimit += e.properties.limit;
+        }
 	}
 
 	/**
@@ -71,22 +72,17 @@ public class SchematicPieceWeight extends PieceWeight {
 	 * @return Properties to use. Will return null if there is nothing else.
 	 */
 	public SchematicProperties getNextStructure() {
-		SchematicProperties props = null;
+		
+		if(potentials.size() == 0)
+			return null;
+		
+		SchematicWeightItem item = potentials.next();
+		SchematicProperties props = item.properties;
+		
+		item.properties.limit--;
+		if(item.properties.limit == 0)
+			potentials.remove(item);
 
-		do {
-			props = Assets.getNextVillageStructure();
-			if (history.containsKey(props)) {
-				int runCount = history.get(props);
-				if (runCount >= props.limit)
-					props = null;
-				else
-					history.put(props, ++runCount);
-			} else
-				history.put(props, 1);
-		} while (props == null
-				&& history.size() < Assets.villageStructureCount());
-
-		this.properties = props;
 		return props;
 	}
 }

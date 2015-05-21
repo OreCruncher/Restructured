@@ -28,7 +28,6 @@ import java.io.File;
 
 import org.apache.logging.log4j.LogManager;
 import org.blockartistry.mod.Restructured.proxy.Proxy;
-
 import net.minecraftforge.common.config.Configuration;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;

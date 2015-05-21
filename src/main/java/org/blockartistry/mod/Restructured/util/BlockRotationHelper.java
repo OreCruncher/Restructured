@@ -181,9 +181,6 @@ public class BlockRotationHelper {
 		 */
 		public static BlockType myType(Block block) {
 
-			if(block instanceof BlockNewLog) {
-				int x = 0;
-			}
 			// Eliminate the common UNKNOWNS
 			if (isKnownUnknown(block))
 				return UNKNOWN;

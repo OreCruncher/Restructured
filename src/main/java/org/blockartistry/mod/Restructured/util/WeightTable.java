@@ -38,7 +38,7 @@ public class WeightTable<T extends WeightTable.Item> {
 	private Random rand = random;
 	private int totalWeight = 0;
 
-	public static abstract class Item {
+	public static abstract class Item implements Cloneable {
 
 		public final int itemWeight;
 		protected final Random rnd;
@@ -46,6 +46,11 @@ public class WeightTable<T extends WeightTable.Item> {
 		public Item(int weight) {
 			this.itemWeight = weight;
 			this.rnd = random;
+		}
+
+		@Override
+		public Object clone() throws CloneNotSupportedException {
+			return super.clone();
 		}
 	}
 
@@ -61,6 +66,11 @@ public class WeightTable<T extends WeightTable.Item> {
 	public void add(T entry) {
 		totalWeight += entry.itemWeight;
 		items.add(entry);
+	}
+	
+	public void remove(T entry) {
+		if(items.remove(entry))
+			totalWeight -= entry.itemWeight;
 	}
 
 	public T next() {

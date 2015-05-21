@@ -2,7 +2,6 @@
  * This file is part of Restructured, licensed under the MIT License (MIT).
  *
  * Copyright (c) OreCruncher
- * Copyright (c) contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +22,28 @@
  * THE SOFTWARE.
  */
 
-package org.blockartistry.mod.Restructured.assets;
+package org.blockartistry.mod.Restructured.world;
 
-import org.blockartistry.mod.Restructured.assets.SchematicProperties;
-import org.blockartistry.mod.Restructured.util.WeightTable;
+import org.blockartistry.mod.Restructured.world.village.StructureMapGenVillage;
 
-public class SchematicWeightItem extends WeightTable.Item {
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.terraingen.InitMapGenEvent;
+import net.minecraftforge.event.terraingen.InitMapGenEvent.EventType;
 
-	public SchematicProperties properties;
+public class TerrainEventBusHandler {
 
-	public SchematicWeightItem(SchematicProperties properties, boolean asVillage) {
-		super(asVillage ? properties.villageWeight : properties.worldWeight);
+	public TerrainEventBusHandler() {
 
-		this.properties = properties;
-	}
-	
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		SchematicWeightItem item = (SchematicWeightItem) super.clone();
-		item.properties = (SchematicProperties) this.properties.clone();
-		return item;
+		MinecraftForge.TERRAIN_GEN_BUS.register(this);
 	}
 
+	@SubscribeEvent
+	public void onInitMapGenEvent(InitMapGenEvent event) {
+		
+		// Hook village generation
+		if(event.type == EventType.VILLAGE) {
+			event.newGen = new StructureMapGenVillage();
+		}
+	}
 }

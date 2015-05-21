@@ -32,6 +32,7 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
+import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
 
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -42,11 +43,10 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 public class Proxy {
 
 	public void preInit(FMLPreInitializationEvent event) {
-
+		//new TerrainEventBusHandler();
 	}
 
 	public void init(FMLInitializationEvent event) {
-
 	}
 
 	public void postInit(FMLPostInitializationEvent event) {

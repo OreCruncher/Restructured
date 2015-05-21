@@ -360,6 +360,20 @@ public final class Assets {
 	public static SchematicProperties getNextWorldStructure() {
 		return worldSchematics.next().properties;
 	}
+	
+	public static WeightTable<SchematicWeightItem> getTableForVillageGen()
+	{
+		WeightTable<SchematicWeightItem> table = new WeightTable<SchematicWeightItem>();
+		for (SchematicWeightItem e : villageSchematics.getEntries()) {
+			try {
+				table.add((SchematicWeightItem)e.clone());
+			} catch (CloneNotSupportedException e1) {
+				e1.printStackTrace();
+			}
+		}
+
+		return table;
+	}
 
 	public static WeightTable<SchematicWeightItem> getTableForWorldGen(
 			int dimId, BiomeGenBase biome) {
@@ -368,7 +382,11 @@ public final class Assets {
 		for (SchematicWeightItem e : worldSchematics.getEntries()) {
 			SchematicProperties p = e.properties;
 			if (p.dimensions.isOk(dimId) && p.biomes.isOk(biome.biomeID))
-				table.add(e);
+				try {
+					table.add((SchematicWeightItem)e.clone());
+				} catch (CloneNotSupportedException e1) {
+					e1.printStackTrace();
+				}
 		}
 
 		return table;
