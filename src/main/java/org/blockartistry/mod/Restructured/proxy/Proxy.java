@@ -29,9 +29,11 @@ import java.util.List;
 
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.MapGenVillage;
+
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
+import org.blockartistry.mod.Restructured.world.village.themes.DesertVillageTheme;
 
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -42,7 +44,7 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 public class Proxy {
 
 	public void preInit(FMLPreInitializationEvent event) {
-		new TerrainEventBusHandler();
+		//new TerrainEventBusHandler();
 	}
 
 	public void init(FMLInitializationEvent event) {
@@ -70,6 +72,9 @@ public class Proxy {
 			}
 			MapGenVillage.villageSpawnBiomes = newList;
 		}
+		
+		// Initialize themes
+		DesertVillageTheme.initialize();
 	}
 
 	@EventHandler

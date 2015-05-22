@@ -29,6 +29,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
+
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
@@ -37,6 +38,7 @@ import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.util.Vector;
 import org.blockartistry.mod.Restructured.world.BoxHelper.RegionStats;
+import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
@@ -47,7 +49,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	protected final SchematicProperties properties;
 	protected StructureBoundingBox boundingBox;
 	protected final BiomeGenBase biome;
-	protected final int blockReplaceControl;
+	protected final VillageTheme theme;
 
 
 	public SchematicWorldGenStructure(World world, BiomeGenBase biome,
@@ -60,15 +62,8 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		this.boundingBox = StructureBoundingBox.getComponentToAddBoundingBox(x,
 				1, z, 0, 0, 0, size.x, size.y, size.z,
 				direction);
-
-		int control = 0;
-		if(properties.suppressMonsterEgg)
-			control |= BiomeHelper.CONTROL_BIT_SCRUB_MONSTER;
 		
-		if(properties.randomizeCrops)
-			control |= BiomeHelper.CONTROL_RANDOMIZE_CROP;
-
-		this.blockReplaceControl = control;
+		this.theme = VillageTheme.find(this.biome);
 	}
 
 	@Override
@@ -102,7 +97,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			SelectedBlock blockToPlace = BiomeHelper.findReplacement(blockReplaceControl, biome, block, meta);
+			SelectedBlock blockToPlace = theme.findReplacement(block, meta, properties.suppressMonsterEgg);
 			world.setBlock(i1, j1, k1, blockToPlace.getBlock(), blockToPlace.getMeta(), 2);
 		}
 	}
@@ -191,7 +186,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
-		SelectedBlock blockToPlace = BiomeHelper.findReplacement(blockReplaceControl, biome, Blocks.dirt, 0);
+		SelectedBlock blockToPlace = theme.findReplacement(Blocks.dirt, 0, properties.suppressMonsterEgg);
 		Vector size = getDimensions();
 		for (int xx = 0; xx < size.x; xx++) {
 			for (int zz = 0; zz < size.z; zz++) {

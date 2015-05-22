@@ -33,6 +33,7 @@ import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
 import org.blockartistry.mod.Restructured.world.BiomeHelper;
+import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -49,7 +50,7 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	SchematicProperties properties;
 	BiomeGenBase biome;
-	int blockReplaceControl = BiomeHelper.CONTROL_BIT_NONE;
+	VillageTheme theme;
 
 	public SchematicStructure() {
 		super(null, 0, null, null, 0);
@@ -60,14 +61,11 @@ public class SchematicStructure extends VillageStructureBase implements
 		super(start, type, rand, box, direction);
 		
 		this.biome = start.biome;
-		
+		this.theme = VillageTheme.find(biome);
 	}
 
 	public void setProperties(SchematicProperties props) {
 		this.properties = props;
-		
-		if(props.suppressMonsterEgg)
-			blockReplaceControl |= BiomeHelper.CONTROL_BIT_SCRUB_MONSTER;
 	}
 
 	@Override
@@ -89,13 +87,13 @@ public class SchematicStructure extends VillageStructureBase implements
 	@Override
 	protected Block func_151558_b(Block block, int meta) {
 		// Completely override vanilla processing
-		return BiomeHelper.findReplacementBlock(blockReplaceControl, biome, block, meta);
+		return theme.findReplacementBlock(block, meta, properties.suppressMonsterEgg);
 	}
 
 	@Override
     protected int func_151557_c(Block block, int meta) {
 		// Completely override vanilla processing
-		return BiomeHelper.findReplacementMeta(blockReplaceControl, biome, block, meta);
+		return theme.findReplacementMeta(block, meta, properties.suppressMonsterEgg);
 	}
 
 	@Override

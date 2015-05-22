@@ -24,7 +24,6 @@
 
 package org.blockartistry.mod.Restructured.world.village;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -34,7 +33,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureComponent;
 import net.minecraft.world.gen.structure.StructureStart;
 import net.minecraft.world.gen.structure.StructureVillagePieces;
-import cpw.mods.fml.common.registry.VillagerRegistry;
+import net.minecraft.world.gen.structure.StructureVillagePieces.PieceWeight;
 
 public class MyMapGenVillageStart extends StructureStart {
 
@@ -43,31 +42,12 @@ public class MyMapGenVillageStart extends StructureStart {
 
     public MyMapGenVillageStart() {}
     
-    protected List<?> getWeightedPieceList(Random random, int terrainType) {
-    	@SuppressWarnings("rawtypes")
-		ArrayList<?> arrayList = new ArrayList();
-    	
-        VillagerRegistry.addExtraVillageComponents(arrayList, random, terrainType);
-
-        Iterator<?> iterator = arrayList.iterator();
-
-        while (iterator.hasNext())
-        {
-            if (((StructureVillagePieces.PieceWeight)iterator.next()).villagePiecesLimit == 0)
-            {
-                iterator.remove();
-            }
-        }
-
-        return arrayList;
-    }
-
     @SuppressWarnings("unchecked")
 	public MyMapGenVillageStart(World world, Random random, int chunkX, int chunkZ, int terrainType)
     {
         super(chunkX, chunkZ);
-        List<?> list = getWeightedPieceList(random, terrainType);
-        StructureVillagePieces.Start start = new StructureVillagePieces.Start(world.getWorldChunkManager(), 0, random, (chunkX << 4) + 2, (chunkZ << 4) + 2, list, terrainType);
+        List<PieceWeight> list = VillagePieces.getStructureVillageWeightedPieceList(random, terrainType);
+        VillagePieces.MyStart start = new VillagePieces.MyStart(world.getWorldChunkManager(), 0, random, (chunkX << 4) + 2, (chunkZ << 4) + 2, list, terrainType);
         this.components.add(start);
         start.buildComponent(start, this.components, random);
         List<?> list1 = start.field_74930_j;

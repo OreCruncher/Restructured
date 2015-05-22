@@ -101,4 +101,8 @@ public class BlockHelper {
 	public boolean isCrop() {
 		return block instanceof BlockCrops;
 	}
+	
+	public boolean isSlab() {
+		return block == Blocks.wooden_slab || block == Blocks.stone_slab;
+	}
 }
