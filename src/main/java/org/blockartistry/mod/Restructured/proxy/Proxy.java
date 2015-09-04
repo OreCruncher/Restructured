@@ -33,6 +33,7 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.world.village.themes.DesertVillageTheme;
+import org.blockartistry.mod.Restructured.VersionCheck;
 
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -44,6 +45,10 @@ public class Proxy {
 
 	public void preInit(FMLPreInitializationEvent event) {
 		//new TerrainEventBusHandler();
+		
+		// Register early to give the background process a good amount
+		// of time to get the mod version data
+		VersionCheck.register();
 	}
 
 	public void init(FMLInitializationEvent event) {

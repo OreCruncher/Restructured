@@ -74,4 +74,8 @@ public final class ModOptions {
 	public static int[] getAdditionalVillageBiomes() {
 		return additionalVillageBiomes;
 	}
+
+	public static boolean getOnlineVersionChecking() {
+		return true;
+	}
 }

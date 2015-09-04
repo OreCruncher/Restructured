@@ -1,0 +1,3 @@
+# US English Translations
+# Version checking strings
+msg.NewVersionAvailable=["§6Update Available: §9[",{"text":"§2Restructured §ev%s§f","color":"gold","hoverEvent":{"action":"show_text","value":{"text":"Click for CurseForge Project Page","color":"aqua"}},"clickEvent":{"action":"open_url","value":"http://minecraft.curseforge.com/mc-mods/230570-restructured"}},"§9]"]
