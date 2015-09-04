@@ -132,8 +132,6 @@ public final class MyUtils {
 		int[] result = new int[tokens.length];
 		for(int i = 0; i < tokens.length; i++) {
 			Integer v = Integer.parseInt(tokens[i]);
-			if(v == null)
-				throw new Exception("Invalid integer in string");
 			result[i] = v;
 		}
 		

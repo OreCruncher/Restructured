@@ -32,7 +32,6 @@ import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Vector;
-import org.blockartistry.mod.Restructured.world.BiomeHelper;
 import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
 import net.minecraft.block.Block;

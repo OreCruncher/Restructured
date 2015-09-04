@@ -32,7 +32,6 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
-import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
 import org.blockartistry.mod.Restructured.world.village.themes.DesertVillageTheme;
 
 import cpw.mods.fml.common.Mod.EventHandler;
