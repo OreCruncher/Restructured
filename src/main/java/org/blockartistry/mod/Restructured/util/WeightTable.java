@@ -75,10 +75,12 @@ public class WeightTable<T extends WeightTable.Item> {
 
 	public T next() {
 
+		assert totalWeight > 0;
+		
 		int targetWeight = rand.nextInt(totalWeight);
 
 		int i = 0;
-		for (i = items.size(); (targetWeight -= items.get(i - 1).itemWeight) > 0; i--)
+		for (i = items.size(); (targetWeight -= items.get(i - 1).itemWeight) >= 0; i--)
 			;
 
 		return items.get(i - 1);
