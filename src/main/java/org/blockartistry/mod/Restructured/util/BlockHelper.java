@@ -105,4 +105,12 @@ public class BlockHelper {
 	public boolean isSlab() {
 		return block == Blocks.wooden_slab || block == Blocks.stone_slab;
 	}
+	
+	public boolean isLog() {
+		return block == Blocks.log || block == Blocks.log2;
+	}
+	
+	public boolean isPlank() {
+		return block == Blocks.planks;
+	}
 }

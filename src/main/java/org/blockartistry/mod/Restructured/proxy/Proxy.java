@@ -32,7 +32,13 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
+import org.blockartistry.mod.Restructured.world.village.themes.BirchForestVillageTheme;
 import org.blockartistry.mod.Restructured.world.village.themes.DesertVillageTheme;
+import org.blockartistry.mod.Restructured.world.village.themes.ForestVillageTheme;
+import org.blockartistry.mod.Restructured.world.village.themes.JungleVillageTheme;
+import org.blockartistry.mod.Restructured.world.village.themes.RoofedForestVillageTheme;
+import org.blockartistry.mod.Restructured.world.village.themes.SavannaVillageTheme;
+import org.blockartistry.mod.Restructured.world.village.themes.TaigaForestVillageTheme;
 import org.blockartistry.mod.Restructured.VersionCheck;
 
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -79,6 +85,12 @@ public class Proxy {
 		
 		// Initialize themes
 		DesertVillageTheme.initialize();
+		BirchForestVillageTheme.initialize();
+		ForestVillageTheme.initialize();
+		TaigaForestVillageTheme.initialize();
+		JungleVillageTheme.initialize();
+		RoofedForestVillageTheme.initialize();
+		SavannaVillageTheme.initialize();
 	}
 
 	@EventHandler

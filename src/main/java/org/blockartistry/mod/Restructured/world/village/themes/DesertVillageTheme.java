@@ -47,6 +47,7 @@ public class DesertVillageTheme extends VillageTheme {
 		mappings.put(Blocks.spruce_stairs, encode(Blocks.sandstone_stairs, -1));
 		mappings.put(Blocks.birch_stairs, encode(Blocks.sandstone_stairs, -1));
 		mappings.put(Blocks.dark_oak_stairs, encode(Blocks.sandstone_stairs, -1));
+		mappings.put(Blocks.acacia_stairs, encode(Blocks.sandstone_stairs, -1));
 		mappings.put(Blocks.gravel, encode(Blocks.sandstone, -1));
 		mappings.put(Blocks.wooden_slab, encode(Blocks.stone_slab, 1));
 		mappings.put(Blocks.stone_slab, encode(Blocks.stone_slab, 1));
@@ -66,7 +67,7 @@ public class DesertVillageTheme extends VillageTheme {
 	
 	}
 	
-	public DesertVillageTheme(BiomeGenBase biome, Map<Block, Integer> mapping) {
+	protected DesertVillageTheme(BiomeGenBase biome, Map<Block, Integer> mapping) {
 		super(biome, mapping);
 	}
 }

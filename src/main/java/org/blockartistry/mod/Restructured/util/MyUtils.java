@@ -125,6 +125,9 @@ public final class MyUtils {
 
 	public static int[] split(String split, String list) throws Exception {
 	
+		if(list == null || list.isEmpty())
+			return new int[] {};
+		
 		String[] tokens = list.split(split);
 		if(tokens == null || tokens.length == 0)
 			return new int[] { };
