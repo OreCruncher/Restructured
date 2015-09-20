@@ -28,7 +28,7 @@ import net.minecraft.block.Block;
 
 public class SelectedBlock  extends BlockHelper {
 	
-	private final int meta;
+	protected final int meta;
 	
 	public SelectedBlock(Block block, int meta) {
 		super(block);

@@ -27,7 +27,7 @@ package org.blockartistry.mod.Restructured.util;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ElementRule {
+public final class ElementRule {
 
 	public static enum Rule {
 		MUST_BE_IN, MUST_NOT_BE_IN
@@ -48,7 +48,7 @@ public class ElementRule {
 	}
 
 	public boolean isOk(Integer e) {
-		boolean isContained = elements.contains(e);
+		final boolean isContained = elements.contains(e);
 		return contains && isContained || !contains && !isContained;
 	}
 }

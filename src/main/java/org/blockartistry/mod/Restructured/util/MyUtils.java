@@ -23,116 +23,18 @@
 
 package org.blockartistry.mod.Restructured.util;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 public final class MyUtils {
 
-	/**
-	 * Concatinates two arrays together returning the result in a new array.
-	 * 
-	 * @param first
-	 * @param second
-	 * @return
-	 */
-	public static <T> T[] concat(T[] first, T[] second) {
-		T[] result = Arrays.copyOf(first, first.length + second.length);
-		System.arraycopy(second, 0, result, first.length, second.length);
-		return result;
-	}
-
-	/**
-	 * Compresses the array by removing intervening nulls by arranging array
-	 * elements. It then truncates the array returning a new array with just
-	 * those elements.
-	 * 
-	 * @param list
-	 * @return
-	 */
-	public static <T> T[] compress(T[] list) {
-
-		if (list.length < 2)
-			return list;
-
-		// Null slot is a trailing index that points
-		// to a null slot. Once i finds a null slot
-		// there will always be a gap so it just
-		// a matter of continuing to increment
-		// nullSlot.
-		int nullSlot = -1;
-		for (int i = 0; i < list.length; i++) {
-			if (nullSlot == -1 && list[i] == null) {
-				nullSlot = i;
-			} else if (nullSlot != -1 & list[i] != null) {
-				list[nullSlot++] = list[i];
-			}
-		}
-
-		// If nullSlot is still -1 it means there are
-		// no nulls.
-		if (nullSlot == -1)
-			return list;
-
-		// If it is not -1 then it contains the index of
-		// the last null slot, or the length of the array
-		// up to the null.
-		return Arrays.copyOf(list, nullSlot);
-	}
-
-	public static <T> List<T> compress(List<T> list) {
-		list.removeAll(Collections.singleton(null));
-		return list;
-	}
-
-	/**
-	 * Appends a standard array to a List of the given type.
-	 * 
-	 * @param list
-	 * @param array
-	 */
-	public static <T> void concat(List<T> list, T[] array) {
-		for (T t : array)
-			list.add(t);
-	}
-
-	public static <T> boolean contains(T[] list, T entity) {
-		if (list == null || list.length == 0)
-			return false;
-
-		for (T e : list)
-			if (e == entity)
-				return true;
-		return false;
-	}
-
-	public static <T> T[] cast(Object[] list, Class<? extends T[]> clazz) {
-		return Arrays.copyOf(list, list.length, clazz);
-	}
-
-	public static <T> String join(String joiner, T[] list) {
-		StringBuilder builder = new StringBuilder();
-		boolean seenOne = false;
-		for (T e : list) {
-			if (seenOne)
-				builder.append(joiner);
-			else
-				seenOne = true;
-			builder.append(e);
-		}
-		return builder.toString();
-	}
-
-	public static int[] split(String split, String list) throws Exception {
+	public static int[] split(final String split, final String list) throws Exception {
 	
 		if(list == null || list.isEmpty())
 			return new int[] {};
 		
-		String[] tokens = list.split(split);
+		final String[] tokens = list.split(split);
 		if(tokens == null || tokens.length == 0)
 			return new int[] { };
 		
-		int[] result = new int[tokens.length];
+		final int[] result = new int[tokens.length];
 		for(int i = 0; i < tokens.length; i++) {
 			Integer v = Integer.parseInt(tokens[i]);
 			result[i] = v;
@@ -141,18 +43,8 @@ public final class MyUtils {
 		return result;
 	}
 	
-	public static boolean contains(int[] list, int entity) {
-		if (list == null || list.length == 0)
-			return false;
-
-		for (int e : list)
-			if (e == entity)
-				return true;
-		return false;
-	}
-
 	public static String join(String joiner, int[] list) {
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		boolean seenOne = false;
 		for (int e : list) {
 			if (seenOne)

@@ -32,15 +32,15 @@ public class SchematicWeightItem extends WeightTable.Item {
 
 	public SchematicProperties properties;
 
-	public SchematicWeightItem(SchematicProperties properties, boolean asVillage) {
+	public SchematicWeightItem(final SchematicProperties properties, final boolean asVillage) {
 		super(asVillage ? properties.villageWeight : properties.worldWeight);
 
 		this.properties = properties;
 	}
-	
+
 	@Override
 	public Object clone() throws CloneNotSupportedException {
-		SchematicWeightItem item = (SchematicWeightItem) super.clone();
+		final SchematicWeightItem item = (SchematicWeightItem) super.clone();
 		item.properties = (SchematicProperties) this.properties.clone();
 		return item;
 	}

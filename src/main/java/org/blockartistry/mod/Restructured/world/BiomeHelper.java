@@ -29,6 +29,9 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 
 public final class BiomeHelper {
+	
+	private BiomeHelper() {}
+	
 	/**
 	 * Analyze the chunk to determine the predominant biome that is present. The
 	 * predominant biome will be used to filter the weight list and make further
@@ -42,8 +45,8 @@ public final class BiomeHelper {
 	 */
 	public static BiomeGenBase chunkBiomeSurvey(World world, Chunk chunk) {
 
-		byte[] biomes = chunk.getBiomeArray();
-		int[] counts = new int[biomes.length];
+		final byte[] biomes = chunk.getBiomeArray();
+		final int[] counts = new int[biomes.length];
 
 		int highIndex = BiomeGenBase.plains.biomeID;
 		int highCount = -1;

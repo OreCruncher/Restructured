@@ -28,6 +28,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
 public final class BoxHelper {
+	
+	private BoxHelper() {}
 
 	public static class RegionStats {
 

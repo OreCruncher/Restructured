@@ -79,7 +79,9 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-public class BlockRotationHelper {
+public final class BlockRotationHelper {
+	
+	private BlockRotationHelper() {}
 
 	private static final Map<BlockType, BiMap<Integer, ForgeDirection>> MAPPINGS = new HashMap<BlockType, BiMap<Integer, ForgeDirection>>();
 

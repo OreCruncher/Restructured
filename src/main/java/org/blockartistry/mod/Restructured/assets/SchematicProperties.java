@@ -59,16 +59,16 @@ public final class SchematicProperties implements Cloneable {
 
 	public Map<Block, Integer> analyze() {
 
-		HashMap<Block, Integer> result = new HashMap<Block, Integer>();
+		final HashMap<Block, Integer> result = new HashMap<Block, Integer>();
 
-		int upperX = schematic.getWidth();
-		int upperY = schematic.getHeight();
-		int upperZ = schematic.getLength();
+		final int upperX = schematic.getWidth();
+		final int upperY = schematic.getHeight();
+		final int upperZ = schematic.getLength();
 
 		for (int x = 0; x < upperX; x++)
 			for (int y = 0; y < upperY; y++)
 				for (int z = 0; z < upperZ; z++) {
-					Block block = schematic.getBlock(x, y, z);
+					final Block block = schematic.getBlock(x, y, z);
 					if (block != Blocks.air) {
 						Integer v = result.get(block);
 						if (v == null)
@@ -90,7 +90,7 @@ public final class SchematicProperties implements Cloneable {
 	@Override
 	public String toString() {
 
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		builder.append(String.format("[%s] (village: %d; world: %d)", name,
 				villageWeight, worldWeight));
 		builder.append(String.format(" (offset: %d; noFire: %s; noEgg: %s, randCrops: %s)", groundOffset,

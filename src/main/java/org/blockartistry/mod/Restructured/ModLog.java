@@ -27,6 +27,8 @@ package org.blockartistry.mod.Restructured;
 import org.apache.logging.log4j.Logger;
 
 public final class ModLog {
+	
+	private ModLog() {}
 
 	private static Logger logger;
 

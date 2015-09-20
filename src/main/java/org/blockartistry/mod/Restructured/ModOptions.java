@@ -29,6 +29,8 @@ import org.blockartistry.mod.Restructured.util.MyUtils;
 import net.minecraftforge.common.config.Configuration;
 
 public final class ModOptions {
+	
+	private ModOptions() {}
 
 	protected static final String CATEGORY_MODS = "mods";
 
