@@ -59,15 +59,14 @@ public class SchematicAlpha extends SchematicFormat {
 	@Override
 	public ISchematic readFromNBT(NBTTagCompound tagCompound) {
 
-		byte localBlocks[] = tagCompound.getByteArray(Names.NBT.BLOCKS);
-		byte localMetadata[] = tagCompound.getByteArray(Names.NBT.DATA);
+		final byte localBlocks[] = tagCompound.getByteArray(Names.NBT.BLOCKS);
+		final byte localMetadata[] = tagCompound.getByteArray(Names.NBT.DATA);
 
 		boolean extra = false;
 		byte extraBlocks[] = null;
-		byte extraBlocksNibble[] = null;
 		if (tagCompound.hasKey(Names.NBT.ADD_BLOCKS)) {
 			extra = true;
-			extraBlocksNibble = tagCompound.getByteArray(Names.NBT.ADD_BLOCKS);
+			final byte extraBlocksNibble[] = tagCompound.getByteArray(Names.NBT.ADD_BLOCKS);
 			extraBlocks = new byte[extraBlocksNibble.length * 2];
 			for (int i = 0; i < extraBlocksNibble.length; i++) {
 				extraBlocks[i * 2 + 0] = (byte) ((extraBlocksNibble[i] >> 4) & 0xF);
@@ -79,32 +78,32 @@ public class SchematicAlpha extends SchematicFormat {
 					.getByteArray(Names.NBT.ADD_BLOCKS_SCHEMATICA);
 		}
 
-		short width = tagCompound.getShort(Names.NBT.WIDTH);
-		short length = tagCompound.getShort(Names.NBT.LENGTH);
-		short height = tagCompound.getShort(Names.NBT.HEIGHT);
+		final short width = tagCompound.getShort(Names.NBT.WIDTH);
+		final short length = tagCompound.getShort(Names.NBT.LENGTH);
+		final short height = tagCompound.getShort(Names.NBT.HEIGHT);
 
-		Short id = null;
-		Map<Short, Short> oldToNew = new HashMap<Short, Short>();
+		final Map<Short, Short> oldToNew = new HashMap<Short, Short>();
 		if (tagCompound.hasKey(Names.NBT.MAPPING_SCHEMATICA)) {
-			NBTTagCompound mapping = tagCompound
+			final NBTTagCompound mapping = tagCompound
 					.getCompoundTag(Names.NBT.MAPPING_SCHEMATICA);
 			@SuppressWarnings("unchecked")
-			Set<String> names = mapping.func_150296_c();
-			for (String name : names) {
+			final Set<String> names = mapping.func_150296_c();
+			for (final String name : names) {
 				oldToNew.put(mapping.getShort(name),
 						(short) BLOCK_REGISTRY.getId(name));
 			}
 		}
 
-		Schematic schematic = new Schematic(null, width, height, length);
+		final Schematic schematic = new Schematic(null, width, height, length);
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				for (int z = 0; z < length; z++) {
-					int index = x + (y * length + z) * width;
+					final int index = x + (y * length + z) * width;
 					int blockID = (localBlocks[index] & 0xFF)
 							| (extra ? ((extraBlocks[index] & 0xFF) << 8) : 0);
-					int meta = localMetadata[index] & 0xFF;
+					final int meta = localMetadata[index] & 0xFF;
 
+					Short id = null;
 					if ((id = oldToNew.get((short) blockID)) != null) {
 						blockID = id;
 					}
@@ -115,20 +114,21 @@ public class SchematicAlpha extends SchematicFormat {
 			}
 		}
 
-		NBTTagList tileEntitiesList = tagCompound.getTagList(
-				Names.NBT.TILE_ENTITIES, Constants.NBT.TAG_COMPOUND);
-
-		for (int i = 0; i < tileEntitiesList.tagCount(); i++) {
-			try {
-				TileEntity tileEntity = TileEntity
-						.createAndLoadEntity(tileEntitiesList
-								.getCompoundTagAt(i));
-				if (tileEntity != null) {
-					schematic.setTileEntity(tileEntity.xCoord,
-							tileEntity.yCoord, tileEntity.zCoord, tileEntity);
+		if(tagCompound.hasKey(Names.NBT.TILE_ENTITIES)) {
+			final NBTTagList tileEntitiesList = tagCompound.getTagList(
+					Names.NBT.TILE_ENTITIES, Constants.NBT.TAG_COMPOUND);
+	
+			for (int i = 0; i < tileEntitiesList.tagCount(); i++) {
+				try {
+					final NBTTagCompound tc = tileEntitiesList.getCompoundTagAt(i);
+					final TileEntity tileEntity = TileEntity.createAndLoadEntity(tc);
+					if (tileEntity != null) {
+						schematic.setTileEntity(tileEntity.xCoord,
+								tileEntity.yCoord, tileEntity.zCoord, tileEntity);
+					}
+				} catch (Throwable e) {
+					ModLog.error("TileEntity failed to load properly!", e);
 				}
-			} catch (Exception e) {
-				ModLog.error("TileEntity failed to load properly!", e);
 			}
 		}
 
@@ -137,31 +137,31 @@ public class SchematicAlpha extends SchematicFormat {
 
 			// Get WorldEdit origin information so we can offset the entities
 			// properly.
-			int originX = tagCompound.getInteger("WEOriginX");
-			int originY = tagCompound.getInteger("WEOriginY");
-			int originZ = tagCompound.getInteger("WEOriginZ");
+			final int originX = tagCompound.getInteger("WEOriginX");
+			final int originY = tagCompound.getInteger("WEOriginY");
+			final int originZ = tagCompound.getInteger("WEOriginZ");
 
-			NBTTagList entitiesList = tagCompound.getTagList(
+			final NBTTagList entitiesList = tagCompound.getTagList(
 					Names.NBT.ENTITIES, Constants.NBT.TAG_COMPOUND);
 			
 			for (int i = 0; i < entitiesList.tagCount(); i++) {
 				try {
-					NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
-					Entity entity = EntityList.createEntityFromNBT(cp, FantasyIsland.instance);
+					final NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
+					final Entity entity = EntityList.createEntityFromNBT(cp, FantasyIsland.instance);
 					
 					entity.posX = entity.posX - originX;
 					entity.posY = entity.posY - originY;
 					entity.posZ = entity.posZ - originZ;
 					
 					if(entity instanceof EntityHanging) {
-						EntityHanging howsIt = (EntityHanging) entity;
+						final EntityHanging howsIt = (EntityHanging) entity;
 						howsIt.field_146063_b -= originX;
 						howsIt.field_146064_c -= originY;
 						howsIt.field_146062_d -= originZ;
 					}
 
 					schematic.addEntity(entity);
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					ModLog.error("Entity failed to load properly!", e);
 				}
 			}
