@@ -72,6 +72,7 @@ public class SchematicStructure extends VillageStructureBase implements
 		super.func_143012_a(nbt);
 
 		nbt.setString("key", properties.name);
+		nbt.setInteger("biome", biome.biomeID);
 	}
 
 	@Override
@@ -81,6 +82,16 @@ public class SchematicStructure extends VillageStructureBase implements
 		String temp = nbt.getString("key");
 		if (temp != null)
 			this.properties = Assets.getProperties(temp);
+		
+		// If the biome is Ocean it means it hasn't been set
+		// Force it to plains.
+		final int b = nbt.getInteger("biome");
+		if(b == 0)
+			biome = BiomeGenBase.plains;
+		else
+			biome = BiomeGenBase.getBiome(b);
+		
+		theme = VillageTheme.find(biome);
 	}
 	
 	@Override
