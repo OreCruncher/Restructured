@@ -82,8 +82,8 @@ public class CopyStructureBuilder {
 	protected final int orientation;
 	protected final SchematicProperties properties;
 
-	protected List<Vector> waitToPlace = new ArrayList<Vector>();
-	protected List<Vector> blockList = new ArrayList<Vector>();
+	protected final List<Vector> waitToPlace = new ArrayList<Vector>();
+	protected final List<Vector> blockList = new ArrayList<Vector>();
 
 	public CopyStructureBuilder(final World world, StructureBoundingBox box,
 			final int orientation, final SchematicProperties properties,
@@ -152,17 +152,14 @@ public class CopyStructureBuilder {
 				}
 
 		if (!waitToPlace.isEmpty()) {
-			for (Vector v : waitToPlace) {
-				int x = (int) v.x;
-				int y = (int) v.y;
-				int z = (int) v.z;
-				Block block = schematic.getBlock(x, y, z);
-				int meta = schematic.getBlockMetadata(x, y, z);
-				place(block, meta, x, y, z);
+			for (final Vector v : waitToPlace) {
+				final Block block = schematic.getBlock(v.x, v.y, v.z);
+				final int meta = schematic.getBlockMetadata(v.x, v.y, v.z);
+				place(block, meta, v.x, v.y, v.z);
 			}
 		}
 
-		for (TileEntity e : schematic.getTileEntities()) {
+		for (final TileEntity e : schematic.getTileEntities()) {
 			if (!isVecInside(e.xCoord, e.yCoord, e.zCoord, box))
 				continue;
 
@@ -174,15 +171,15 @@ public class CopyStructureBuilder {
 			try {
 				// Clone it - we don't want to use the master copy because
 				// it will be used for other buildings.
-				TileEntity entity = cloneTileEntity(e);
+				final TileEntity entity = cloneTileEntity(e);
 				entity.validate();
 
 				// Update the entity with the proper state.
-				BlockHelper helper = new BlockHelper(schematic.getBlock(
+				final BlockHelper helper = new BlockHelper(schematic.getBlock(
 						entity.xCoord, entity.yCoord, entity.zCoord));
-
+				
 				// Place it into the world
-				Vector coord = structure.getWorldCoordinates(entity.xCoord,
+				final Vector coord = structure.getWorldCoordinates(entity.xCoord,
 						entity.yCoord, entity.zCoord);
 				world.setTileEntity(coord.x, coord.y,
 						coord.z, entity);
@@ -199,28 +196,28 @@ public class CopyStructureBuilder {
 			}
 		}
 
-		for (Entity e : schematic.getEntities()) {
-			int x = (int) Math.floor(e.posX);
-			int y = (int) Math.floor(e.posY);
-			int z = (int) Math.floor(e.posZ);
+		for (final Entity e : schematic.getEntities()) {
+			final int x = (int) Math.floor(e.posX);
+			final int y = (int) Math.floor(e.posY);
+			final int z = (int) Math.floor(e.posZ);
 
 			if (!isVecInside(x, y, z, box))
 				continue;
 
 			try {
 				// Place it into the world
-				Entity entity = cloneEntity(e);
+				final Entity entity = cloneEntity(e);
 
 				if(entity instanceof EntityHanging) {
-					EntityHanging howsIt = (EntityHanging) entity;
-					Vector coord = structure.getWorldCoordinates(howsIt.field_146063_b, howsIt.field_146064_c, howsIt.field_146062_d);
+					final EntityHanging howsIt = (EntityHanging) entity;
+					final Vector coord = structure.getWorldCoordinates(howsIt.field_146063_b, howsIt.field_146064_c, howsIt.field_146062_d);
 					howsIt.field_146063_b = coord.x;
 					howsIt.field_146064_c = coord.y;
 					howsIt.field_146062_d = coord.z;
 					// Calls setPosition() internally
 					howsIt.setDirection(translateDirection(howsIt.hangingDirection));
 				} else {
-					Vector coord = structure.getWorldCoordinates(x, y, z);
+					final Vector coord = structure.getWorldCoordinates(x, y, z);
 					entity.setPosition(coord.x + 0.5D, coord.y + 0.5D, coord.z + 0.5D);
 				}
 
@@ -284,7 +281,7 @@ public class CopyStructureBuilder {
 	}
 
 	protected boolean waitToPlace(final BlockHelper block) {
-		return block.isTorch();
+		return block.isTorch() || block.isLever() || block.isButton() || block.isDoor();
 	}
 
 	protected int translateDirection(final int dir) {

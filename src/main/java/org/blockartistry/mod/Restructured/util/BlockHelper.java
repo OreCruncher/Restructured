@@ -51,7 +51,7 @@ public class BlockHelper {
 	}
 
 	public boolean isChest() {
-		return block == Blocks.chest;
+		return block == Blocks.chest || block == Blocks.ender_chest || block == Blocks.trapped_chest;
 	}
 
 	public boolean isLava() {
@@ -72,6 +72,18 @@ public class BlockHelper {
 
 	public boolean isTorch() {
 		return block == Blocks.torch || block == Blocks.redstone_torch;
+	}
+	
+	public boolean isLever() {
+		return block == Blocks.lever;
+	}
+	
+	public boolean isButton() {
+		return block == Blocks.stone_button || block == Blocks.wooden_button;
+	}
+	
+	public boolean isDoor() {
+		return block == Blocks.iron_door || block == Blocks.wooden_door || block == Blocks.trapdoor;
 	}
 
 	public boolean isSpawner() {

@@ -75,6 +75,6 @@ public class SelectedBlock extends BlockHelper {
 	}
 	
 	public ForgeDirection getOrientation() {
-		return OrientationRotationHelper.getOrientation(this);
+		return BlockType.getOrientation(this);
 	}
 }
