@@ -41,6 +41,9 @@ public class FantasyIsland extends World {
 	// Ordering is important...
     private static final WorldSettings WORLD_SETTINGS = new WorldSettings(0, WorldSettings.GameType.CREATIVE, false, false, WorldType.FLAT);
 	public static final FantasyIsland instance = new FantasyIsland();
+	
+	// Used for rotation algorithm to capture translated meta
+	public int meta = 0;
 
 	public FantasyIsland() {
         super(new SaveHandler(), "Restructured", WORLD_SETTINGS, null, null);
@@ -65,5 +68,15 @@ public class FantasyIsland extends World {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public int getBlockMetadata(final int x, final int y, final int z) {
+		return meta;
+	}
 
+	@Override
+	public boolean setBlockMetadataWithNotify(final int x, final int y, final int z, final int meta, final int flags) {
+		this.meta = meta;
+		return true;
+	}
 }

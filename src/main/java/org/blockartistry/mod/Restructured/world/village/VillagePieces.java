@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.blockartistry.mod.Restructured.ModLog;
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
 import net.minecraft.block.Block;
@@ -50,8 +51,8 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class VillagePieces {
 	
-	static Field boundingBox = null;
-	static Field averageGroundLevel = null;
+	private static Field boundingBox = null;
+	private static Field averageGroundLevel = null;
 	
 	static {
 	
@@ -67,13 +68,13 @@ public class VillagePieces {
 	}
 	
 	public static List<PieceWeight> getStructureVillageWeightedPieceList(
-			Random random, int terrainType) {
-		ArrayList<PieceWeight> arrayList = new ArrayList<PieceWeight>();
+			final Random random, final int terrainType) {
+		final ArrayList<PieceWeight> arrayList = new ArrayList<PieceWeight>();
 
 		VillagerRegistry.addExtraVillageComponents(arrayList, random,
 				terrainType);
 
-		Iterator<?> iterator = arrayList.iterator();
+		final Iterator<?> iterator = arrayList.iterator();
 
 		while (iterator.hasNext()) {
 			if (((StructureVillagePieces.PieceWeight) iterator.next()).villagePiecesLimit == 0) {
@@ -84,7 +85,7 @@ public class VillagePieces {
 		return arrayList;
 	}
 	
-    private static int func_75079_a(List<PieceWeight> weightList)
+    private static int func_75079_a(final List<PieceWeight> weightList)
     {
         boolean flag = false;
         int i = 0;
@@ -99,13 +100,13 @@ public class VillagePieces {
         return flag ? i : -1;
     }
 
-    private static StructureVillagePieces.Village func_75083_a(StructureVillagePieces.Start start, StructureVillagePieces.PieceWeight pieceWeight, List<StructureComponent> componentList, Random random, int x, int y, int z, int p_75083_7_, int p_75083_8_)
+    private static StructureVillagePieces.Village func_75083_a(final StructureVillagePieces.Start start, final StructureVillagePieces.PieceWeight pieceWeight, final List<StructureComponent> componentList, final Random random, final int x, final int y, final int z, final int p_75083_7_, final int p_75083_8_)
     {
         return (StructureVillagePieces.Village)VillagerRegistry.getVillageComponent(pieceWeight, start , componentList, random, x, y, z, p_75083_7_, p_75083_8_);
     }
 
     @SuppressWarnings("unchecked")
-	private static StructureVillagePieces.Village getNextVillageComponent(StructureVillagePieces.Start start, List<StructureComponent> componentList, Random random, int x, int y, int z, int p_75081_6_, int componentType)
+	private static StructureVillagePieces.Village getNextVillageComponent(final StructureVillagePieces.Start start, final List<StructureComponent> componentList, final Random random, final int x, final int y, final int z, final int p_75081_6_, final int componentType)
     {
         int j1 = func_75079_a(start.structureVillageWeightedPieceList);
 
@@ -152,22 +153,13 @@ public class VillagePieces {
                     }
                 }
             }
-
-            /*
-            StructureBoundingBox structureboundingbox = StructureVillagePieces.Torch.func_74904_a(start, componentList, random, x, y, z, p_75081_6_);
-
-            if (structureboundingbox != null)
-            {
-                return new StructureVillagePieces.Torch(start, componentType, random, structureboundingbox, p_75081_6_);
-            }
-            */
             
             return null;
         }
     }
 
     @SuppressWarnings("unchecked")
-	private static StructureComponent getNextVillageStructureComponent(StructureVillagePieces.Start start, List<StructureComponent> componentList, Random random, int x, int y, int z, int p_75077_6_, int p_75077_7_)
+	private static StructureComponent getNextVillageStructureComponent(final StructureVillagePieces.Start start, final List<StructureComponent> componentList, final Random random, final int x, final int y, final int z, final int p_75077_6_, final int p_75077_7_)
     {
         if (p_75077_7_ > 50)
         {
@@ -207,7 +199,7 @@ public class VillagePieces {
     }
 
     @SuppressWarnings("unchecked")
-	private static StructureComponent getNextComponentVillagePath(MyStart start, List<StructureComponent> componentList, Random random, int x, int y, int z, int orientation, int componentType)
+	private static StructureComponent getNextComponentVillagePath(final MyStart start, final List<StructureComponent> componentList, final Random random, final int x, final int y, final int z, final int orientation, final int componentType)
     {
         if (componentType > 3 + start.terrainType)
         {
@@ -247,27 +239,27 @@ public class VillagePieces {
 		
 		protected VillageTheme theme;
 		
-        public MyStart(WorldChunkManager chunkManager, int componentType, Random random, int x, int z, List<PieceWeight> weights, int terrainType) {
+        public MyStart(final WorldChunkManager chunkManager, final int componentType, final Random random, final int x, final int z, final List<PieceWeight> weights, final int terrainType) {
         	super(chunkManager, componentType, random, x, z, weights, terrainType);
         	
         	theme = VillageTheme.find(this.biome);
         }
 
     	@Override
-    	protected Block func_151558_b(Block block, int meta) {
+    	protected Block func_151558_b(final Block block, final int meta) {
     		// Completely override vanilla processing
-    		return theme.findReplacementBlock(block, meta, true);
+    		return theme.findReplacementBlock(SelectedBlock.fly(block, meta), true);
     	}
 
     	@Override
-        protected int func_151557_c(Block block, int meta) {
+        protected int func_151557_c(final Block block, final int meta) {
     		// Completely override vanilla processing
-    		return theme.findReplacementMeta(block, meta, true);
+    		return theme.findReplacementMeta(SelectedBlock.fly(block, meta), true);
     	}
 
         // This plots out the well at the Village start
         @Override
-        public boolean addComponentParts(World world, Random random, StructureBoundingBox box)
+        public boolean addComponentParts(final World world, final Random random, final StructureBoundingBox box)
         {
             if (this.field_143015_k < 0)
             {
@@ -312,7 +304,7 @@ public class VillagePieces {
         }
         
         @SuppressWarnings({ "unchecked", "rawtypes" })
-		public void buildComponent(StructureComponent start, List componentList, Random random)
+		public void buildComponent(final StructureComponent start, final List componentList, final Random random)
         {
             getNextComponentVillagePath((MyStart)start, componentList, random, this.boundingBox.minX - 1, this.boundingBox.maxY - 4, this.boundingBox.minZ + 1, 1, this.getComponentType());
             getNextComponentVillagePath((MyStart)start, componentList, random, this.boundingBox.maxX + 1, this.boundingBox.maxY - 4, this.boundingBox.minZ + 1, 3, this.getComponentType());
@@ -336,13 +328,13 @@ public class VillagePieces {
     	@Override
     	protected Block func_151558_b(Block block, int meta) {
     		// Completely override vanilla processing
-    		return theme.findReplacementBlock(block, meta, true);
+    		return theme.findReplacementBlock(SelectedBlock.fly(block, meta), true);
     	}
 
     	@Override
         protected int func_151557_c(Block block, int meta) {
     		// Completely override vanilla processing
-    		return theme.findReplacementMeta(block, meta, true);
+    		return theme.findReplacementMeta(SelectedBlock.fly(block, meta), true);
     	}
 
         /**

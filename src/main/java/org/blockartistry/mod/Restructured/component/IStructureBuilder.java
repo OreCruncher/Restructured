@@ -24,10 +24,10 @@
 
 package org.blockartistry.mod.Restructured.component;
 
-import net.minecraft.block.Block;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 public interface IStructureBuilder {
@@ -74,7 +74,7 @@ public interface IStructureBuilder {
 	 * @param z
 	 * @param boundingBox
 	 */
-	void placeBlock(World world, Block block, int meta, int x, int y, int z,
+	void placeBlock(World world, SelectedBlock block, int x, int y, int z,
 			StructureBoundingBox box);
 
 }

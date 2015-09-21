@@ -79,9 +79,9 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-public final class BlockRotationHelper {
+public final class OrientationRotationHelper {
 	
-	private BlockRotationHelper() {}
+	private OrientationRotationHelper() {}
 
 	private static final Map<BlockType, BiMap<Integer, ForgeDirection>> MAPPINGS = new HashMap<BlockType, BiMap<Integer, ForgeDirection>>();
 
@@ -91,14 +91,29 @@ public final class BlockRotationHelper {
 	 * blocks (helper types).
 	 */
 	private static enum BlockType {
-		UNKNOWN(0, false), LOG(0xC, false), DISPENSER(0x7, false), BED(0x3,
-				true), RAIL(0xF, true), RAIL_POWERED(0x7, true), RAIL_ASCENDING(
-				-1, true), RAIL_CORNER(-1, true), TORCH(0xF, false), STAIR(0x3,
-				true), CHEST(0x7, true), SIGNPOST(0xF, true), DOOR(0x3, true), LEVER(
-				0x7, false), BUTTON(0x7, true), REDSTONE_REPEATER(0x3, true), TRAPDOOR(
-				0x3, true), MUSHROOM_CAP(0xF, true), MUSHROOM_CAP_CORNER(-1,
-				true), MUSHROOM_CAP_SIDE(-1, true), VINE(0xF, true), SKULL(0x7,
-				true), ANVIL(0x1, true);
+		UNKNOWN,
+		LOG,
+		DISPENSER,
+		BED,
+		RAIL,
+		RAIL_POWERED,
+		RAIL_ASCENDING,
+		RAIL_CORNER,
+		TORCH,
+		STAIR,
+		CHEST,
+		SIGNPOST,
+		DOOR,
+		LEVER,
+		BUTTON,
+		REDSTONE_REPEATER,
+		TRAPDOOR,
+		MUSHROOM_CAP,
+		MUSHROOM_CAP_CORNER,
+		MUSHROOM_CAP_SIDE,
+		VINE,
+		SKULL,
+		ANVIL;
 
 		private static final HashMap<Class<? extends Block>, BlockType> blockToType = new HashMap<Class<? extends Block>, BlockType>();
 
@@ -154,14 +169,6 @@ public final class BlockRotationHelper {
 			blockToType.put(BlockLever.class, BlockType.LEVER);
 		}
 
-		public final int mask;
-		public final boolean upDown;
-
-		private BlockType(int mask, boolean upDown) {
-			this.mask = mask;
-			this.upDown = upDown;
-		}
-
 		/**
 		 * This method looks for known UNKNOWN blocks.  Goal isn't to
 		 * have *every* UNKNOWN, but to have the most common ones in order
@@ -170,7 +177,7 @@ public final class BlockRotationHelper {
 		 * @param block
 		 * @return
 		 */
-		private static boolean isKnownUnknown(Block block) {
+		private static boolean isKnownUnknown(final Block block) {
 			return block.getClass() == Block.class || block == Blocks.air;
 		}
 
@@ -181,7 +188,7 @@ public final class BlockRotationHelper {
 		 * @param block The block to analyze
 		 * @return BlockType associated with the block instance type
 		 */
-		public static BlockType myType(Block block) {
+		private static BlockType myType(final Block block) {
 
 			// Eliminate the common UNKNOWNS
 			if (isKnownUnknown(block))
@@ -222,103 +229,16 @@ public final class BlockRotationHelper {
 		}
 	}
 
-	public static int rotateVanillaBlock(Block block, int meta,
-			ForgeDirection axis, int count) {
+	public static ForgeDirection getOrientation(final SelectedBlock block) {
 
-		BlockType type = BlockType.myType(block);
-		if (type == BlockType.UNKNOWN)
-			return meta;
-
-		int metaPrime = meta;
-
-		for (int i = 0; i < count; i++) {
-			if ((axis == UP || axis == DOWN) && type.upDown) {
-				metaPrime = rotateBlock(meta, axis, type.mask, type);
-			}
-
-			if (!type.upDown)
-				metaPrime = rotateBlock(meta, axis, type.mask, type);
-
-			// If it didn't change just return the existing meta. Else,
-			// reset the meta for the next pass.
-			if (metaPrime == meta)
-				return meta;
-			else
-				meta = metaPrime;
-		}
-
-		return meta;
-	}
-
-	private static int rotateBlock(int metaIn, ForgeDirection axis, int mask,
-			BlockType blockType) {
-		int rotMeta = metaIn;
-		if (blockType == BlockType.DOOR && (rotMeta & 0x8) == 0x8) {
-			return metaIn;
-		}
-		int masked = rotMeta & ~mask;
-		int meta = rotateMetadata(axis, blockType, rotMeta & mask);
-		if (meta == -1) {
-			return metaIn;
-		}
-
-		return meta & mask | masked;
-	}
-
-	private static int rotateMetadata(ForgeDirection axis, BlockType blockType,
-			int meta) {
-		if (blockType == BlockType.RAIL || blockType == BlockType.RAIL_POWERED) {
-			if (meta == 0x0 || meta == 0x1) {
-				return ~meta & 0x1;
-			}
-			if (meta >= 0x2 && meta <= 0x5) {
-				blockType = BlockType.RAIL_ASCENDING;
-			}
-			if (meta >= 0x6 && meta <= 0x9 && blockType == BlockType.RAIL) {
-				blockType = BlockType.RAIL_CORNER;
-			}
-		}
-		if (blockType == BlockType.SIGNPOST) {
-			return (axis == UP) ? (meta + 0x4) % 0x10 : (meta + 0xC) % 0x10;
-		}
-		if (blockType == BlockType.LEVER && (axis == UP || axis == DOWN)) {
-			switch (meta) {
-			case 0x5:
-				return 0x6;
-			case 0x6:
-				return 0x5;
-			case 0x7:
-				return 0x0;
-			case 0x0:
-				return 0x7;
-			}
-		}
-		if (blockType == BlockType.MUSHROOM_CAP) {
-			if (meta % 0x2 == 0) {
-				blockType = BlockType.MUSHROOM_CAP_SIDE;
-			} else {
-				blockType = BlockType.MUSHROOM_CAP_CORNER;
-			}
-		}
-		if (blockType == BlockType.VINE) {
-			return ((meta << 1) | ((meta & 0x8) >> 3));
-		}
-
-		ForgeDirection orientation = metadataToDirection(blockType, meta);
-		ForgeDirection rotated = orientation.getRotation(axis);
-		return directionToMetadata(blockType, rotated, meta);
-	}
-
-	public static ForgeDirection metadataToDirection(Block block, int meta) {
-
-		BlockType type = BlockType.myType(block);
+		BlockType type = BlockType.myType(block.getBlock());
 		if (type == BlockType.UNKNOWN)
 			return ForgeDirection.UNKNOWN;
 
-		return metadataToDirection(type, meta);
+		return metadataToDirection(type, block.getMeta());
 	}
 
-	public static ForgeDirection metadataToDirection(BlockType blockType,
+	private static ForgeDirection metadataToDirection(final BlockType blockType,
 			int meta) {
 		if (blockType == BlockType.LEVER) {
 			if (meta == 0x6) {
@@ -378,81 +298,6 @@ public final class BlockRotationHelper {
 		}
 
 		return ForgeDirection.UNKNOWN;
-	}
-	
-	/*
-	 
-	 
-0	Oak wood facing up/down
-1	Spruce wood facing up/down
-2	Birch wood facing up/down
-3	Jungle wood facing up/down
-4	Oak wood facing East/West
-5	Spruce wood facing East/West
-6	Birch wood facing East/West
-7	Jungle wood facing East/West
-8	Oak wood facing North/South
-9	Spruce wood facing North/South
-10	Birch wood facing North/South
-11	Jungle wood facing North/South
-12	Oak wood with only bark
-13	Spruce wood with only bark
-14	Birch wood with only bark
-15	Jungle wood with only bark
- 
-	 */
-	
-	static int[][] logMetaDir = {
-		{ 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},
-		{ 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3},
-		{ 8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11},
-		{ 8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11},
-		{ 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7},
-		{ 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7},
-	};
-
-	private static int directionToMetadata(BlockType blockType,
-			ForgeDirection direction, int meta) {
-		if ((blockType == BlockType.LOG || blockType == BlockType.ANVIL)
-				&& (direction.offsetX + direction.offsetY + direction.offsetZ) < 0) {
-			direction = direction.getOpposite();
-		}
-
-		if (MAPPINGS.containsKey(blockType)) {
-			BiMap<ForgeDirection, Integer> biMap = MAPPINGS.get(blockType)
-					.inverse();
-			if (biMap.containsKey(direction)) {
-				return biMap.get(direction);
-			}
-		}
-
-		if (blockType == BlockType.TORCH) {
-			if (direction.ordinal() >= 1) {
-				return 6 - direction.ordinal();
-			}
-		}
-		if (blockType == BlockType.STAIR) {
-			return 5 - direction.ordinal();
-		}
-
-		if(blockType == BlockType.LOG) {
-			return logMetaDir[direction.ordinal()][meta & 0xC];
-		}
-
-		if (blockType == BlockType.CHEST || blockType == BlockType.DISPENSER
-				|| blockType == BlockType.SKULL) {
-			return direction.ordinal();
-		}
-		if (blockType == BlockType.BUTTON) {
-			if (direction.ordinal() >= 2) {
-				return 6 - direction.ordinal();
-			}
-		}
-		if (blockType == BlockType.TRAPDOOR) {
-			return direction.getOpposite().ordinal() - 2;
-		}
-
-		return -1;
 	}
 
 	static {

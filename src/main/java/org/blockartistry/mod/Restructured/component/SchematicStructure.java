@@ -31,6 +31,7 @@ import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.util.Vector;
 import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
@@ -45,30 +46,30 @@ import net.minecraft.world.gen.structure.StructureVillagePieces.Start;
 public class SchematicStructure extends VillageStructureBase implements
 		IStructureBuilder {
 
-	static final ArrayList<SchematicProperties> schematics = new ArrayList<SchematicProperties>();
+	protected static final ArrayList<SchematicProperties> schematics = new ArrayList<SchematicProperties>();
 
-	SchematicProperties properties;
-	BiomeGenBase biome;
-	VillageTheme theme;
+	protected SchematicProperties properties;
+	protected BiomeGenBase biome;
+	protected VillageTheme theme;
 
 	public SchematicStructure() {
 		super(null, 0, null, null, 0);
 	}
 
-	public SchematicStructure(Start start, int type, Random rand,
-			StructureBoundingBox box, int direction) {
+	public SchematicStructure(final Start start, final int type, final Random rand,
+			final StructureBoundingBox box, final int direction) {
 		super(start, type, rand, box, direction);
 		
 		this.biome = start.biome;
 		this.theme = VillageTheme.find(biome);
 	}
 
-	public void setProperties(SchematicProperties props) {
+	public void setProperties(final SchematicProperties props) {
 		this.properties = props;
 	}
 
 	@Override
-	protected void func_143012_a(NBTTagCompound nbt) {
+	protected void func_143012_a(final NBTTagCompound nbt) {
 		super.func_143012_a(nbt);
 
 		nbt.setString("key", properties.name);
@@ -76,10 +77,10 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 
 	@Override
-	protected void func_143011_b(NBTTagCompound nbt) {
+	protected void func_143011_b(final NBTTagCompound nbt) {
 		super.func_143011_b(nbt);
 
-		String temp = nbt.getString("key");
+		final String temp = nbt.getString("key");
 		if (temp != null)
 			this.properties = Assets.getProperties(temp);
 		
@@ -95,15 +96,15 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 	
 	@Override
-	protected Block func_151558_b(Block block, int meta) {
+	protected Block func_151558_b(final Block block, final int meta) {
 		// Completely override vanilla processing
-		return theme.findReplacementBlock(block, meta, properties.suppressMonsterEgg);
+		return theme.findReplacementBlock(SelectedBlock.fly(block, meta), properties.suppressMonsterEgg);
 	}
 
 	@Override
-    protected int func_151557_c(Block block, int meta) {
+    protected int func_151557_c(final Block block, final int meta) {
 		// Completely override vanilla processing
-		return theme.findReplacementMeta(block, meta, properties.suppressMonsterEgg);
+		return theme.findReplacementMeta(SelectedBlock.fly(block, meta), properties.suppressMonsterEgg);
 	}
 
 	@Override
@@ -121,25 +122,25 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 
 	@Override
-	public void build(World world, Random rand, StructureBoundingBox box) {
+	public void build(final World world, final Random rand, final StructureBoundingBox box) {
 
-		CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
+		final CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
 				coordBaseMode, properties, this);
 		builder.generate();
 	}
 
-	Vector getSafeVillagerLocation() {
+	protected Vector getSafeVillagerLocation() {
 
 		// Initialize starting point
-		Vector size = new Vector(properties.schematic);
+		final Vector size = new Vector(properties.schematic);
 		int x = size.x >> 1;
 		int z = size.z >> 1;
 		int y = properties.groundOffset;
 
 		// Try several times finding a suitable spot
-		ISchematic s = properties.schematic;
+		final ISchematic s = properties.schematic;
 		for (int i = 0; i < 4; i++) {
-			BlockHelper block = new BlockHelper(s.getBlock(
+			final BlockHelper block = new BlockHelper(s.getBlock(
 					x, y + 1, z));
 			if (block.canBreath()) {
 				
@@ -160,7 +161,7 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 
 	@Override
-	public void spawnPeople(World world, StructureBoundingBox box) {
+	public void spawnPeople(final World world, final StructureBoundingBox box) {
 
 		int count = properties.villagerCount;
 		if (count == -1)
@@ -168,13 +169,13 @@ public class SchematicStructure extends VillageStructureBase implements
 		if (count == 0)
 			return;
 
-		Vector loc = getSafeVillagerLocation();
+		final Vector loc = getSafeVillagerLocation();
 		this.spawnVillagers(world, box, loc.x, loc.y, loc.z,
 				count);
 	}
 
 	@Override
-	protected int getVillagerType(int p_74888_1_) {
+	protected int getVillagerType(final int p_74888_1_) {
 		int type = properties.villagerProfession;
 		if (type == -1)
 			type = rand.nextInt(5);
@@ -182,19 +183,19 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 
 	@Override
-	public boolean isVecInside(int x, int y, int z, StructureBoundingBox box) {
-		Vector v = getWorldCoordinates(x, y, z);
+	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
+		final Vector v = getWorldCoordinates(x, y, z);
 		return box.isVecInside(v.x, v.y, v.z);
 	}
 
 	@Override
-	public Vector getWorldCoordinates(int x, int y, int z) {
+	public Vector getWorldCoordinates(final int x, final int y, final int z) {
 		return new Vector(this.getXWithOffset(x, z), this.getYWithOffset(y),
 				this.getZWithOffset(x, z));
 	}
 
 	@Override
-	public Vector getWorldCoordinates(Vector v) {
+	public Vector getWorldCoordinates(final Vector v) {
 		return getWorldCoordinates(v.x, v.y, v.z);
 	}
 }

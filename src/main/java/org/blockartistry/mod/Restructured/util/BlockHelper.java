@@ -32,9 +32,9 @@ import net.minecraftforge.common.IPlantable;
 
 public class BlockHelper {
 
-	private final Block block;
+	protected Block block;
 
-	public BlockHelper(Block block) {
+	public BlockHelper(final Block block) {
 		this.block = (block != null) ? block : Blocks.air;
 	}
 

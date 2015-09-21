@@ -42,6 +42,8 @@ import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
+	protected static final SelectedBlock DIRT_BLOCK = new SelectedBlock(Blocks.dirt, 0);
+	
 	protected static final int VARIANCE_THRESHOLD = 4;
 	
 	protected final World world;
@@ -52,9 +54,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	protected final VillageTheme theme;
 
 
-	public SchematicWorldGenStructure(World world, BiomeGenBase biome,
-			int direction, int x, int z, SchematicProperties properties) {
-		Vector size = new Vector(properties.schematic);
+	public SchematicWorldGenStructure(final World world, final BiomeGenBase biome,
+			final int direction, final int x, final int z, final SchematicProperties properties) {
+		final Vector size = new Vector(properties.schematic);
 		this.world = world;
 		this.direction = direction;
 		this.properties = properties;
@@ -72,37 +74,37 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	}
 
 	@Override
-	public boolean isVecInside(int x, int y, int z, StructureBoundingBox box) {
-		Vector v = getWorldCoordinates(x, y, z);
+	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
+		final Vector v = getWorldCoordinates(x, y, z);
 		return box.isVecInside(v.x, v.y, v.z);
 	}
 
 	@Override
-	public Vector getWorldCoordinates(int x, int y, int z) {
+	public Vector getWorldCoordinates(final int x, final int y, final int z) {
 		return new Vector(this.getXWithOffset(x, z), this.getYWithOffset(y),
 				this.getZWithOffset(x, z));
 	}
 
 	@Override
-	public Vector getWorldCoordinates(Vector v) {
+	public Vector getWorldCoordinates(final Vector v) {
 		return getWorldCoordinates(v.x, v.y, v.z);
 	}
 
 	@Override
-	public void placeBlock(World world, Block block, int meta, int x, int y,
-			int z, StructureBoundingBox box) {
+	public void placeBlock(final World world, final SelectedBlock block, final int x, final int y,
+			final int z, final StructureBoundingBox box) {
 
 		int i1 = this.getXWithOffset(x, z);
 		int j1 = this.getYWithOffset(y);
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			SelectedBlock blockToPlace = theme.findReplacement(block, meta, properties.suppressMonsterEgg);
+			final SelectedBlock blockToPlace = theme.findReplacement(block, properties.suppressMonsterEgg);
 			world.setBlock(i1, j1, k1, blockToPlace.getBlock(), blockToPlace.getMeta(), 2);
 		}
 	}
 
-	protected int getXWithOffset(int x, int z) {
+	protected int getXWithOffset(final int x, final int z) {
 		switch (this.direction) {
 		case 0:
 		case 2:
@@ -116,11 +118,11 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		}
 	}
 
-	protected int getYWithOffset(int y) {
+	protected int getYWithOffset(final int y) {
 		return this.direction == -1 ? y : y + this.boundingBox.minY;
 	}
 
-	protected int getZWithOffset(int x, int z) {
+	protected int getZWithOffset(final int x, final int z) {
 		switch (this.direction) {
 		case 0:
 			return this.boundingBox.minZ + z;
@@ -138,10 +140,10 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	 * Deletes all continuous blocks from selected position upwards. Stops at
 	 * hitting air.
 	 */
-	protected void clearUpwards(int x, int y, int z, StructureBoundingBox box) {
-		int l = getXWithOffset(x, z);
+	protected void clearUpwards(final int x, final int y, final int z, final StructureBoundingBox box) {
+		final int l = getXWithOffset(x, z);
+		final int j1 = getZWithOffset(x, z);
 		int i1 = getYWithOffset(y);
-		int j1 = getZWithOffset(x, z);
 
 		if (box.isVecInside(l, i1, j1)) {
 			while (!world.isAirBlock(l, i1, j1) && i1 < 255) {
@@ -150,12 +152,12 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		}
 	}
 
-	protected void clearDownwards(Block block, int meta, int x, int y, int z,
-			StructureBoundingBox box) {
+	protected void clearDownwards(final Block block, final int meta, final int x, final int y, final int z,
+			final StructureBoundingBox box) {
 
-		int i1 = getXWithOffset(x, z);
+		final int i1 = getXWithOffset(x, z);
+		final int k1 = getZWithOffset(x, z);
 		int j1 = getYWithOffset(y);
-		int k1 = getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
 
@@ -169,9 +171,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		}
 	}
 
-	protected boolean prepare(StructureBoundingBox box) {
+	protected boolean prepare(final StructureBoundingBox box) {
 
-		RegionStats stats = BoxHelper.getRegionStatsWithVariance(world, boundingBox);
+		final RegionStats stats = BoxHelper.getRegionStatsWithVariance(world, boundingBox);
 		
 		// If there is too much variance return false.  Can't stand
 		// structures on dirt pillars.
@@ -180,14 +182,14 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		
 		// Based on the terrain in the region adjust
 		// the Y to an appropriate level
-		int offset = properties.groundOffset;
+		final int offset = properties.groundOffset;
 		boundingBox.offset(0, stats.mean - boundingBox.minY - offset, 0);
 		ModLog.debug("WorldGen structure [%s] @(%s); mode %d", properties.name, boundingBox, direction);
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
-		SelectedBlock blockToPlace = theme.findReplacement(Blocks.dirt, 0, properties.suppressMonsterEgg);
-		Vector size = getDimensions();
+		final SelectedBlock blockToPlace = theme.findReplacement(DIRT_BLOCK, properties.suppressMonsterEgg);
+		final Vector size = getDimensions();
 		for (int xx = 0; xx < size.x; xx++) {
 			for (int zz = 0; zz < size.z; zz++) {
 				clearUpwards(xx, 0, zz, box);
@@ -200,13 +202,13 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 	public void build() {
 		
-		StructureBoundingBox box = new StructureBoundingBox(boundingBox.minX,
+		final StructureBoundingBox box = new StructureBoundingBox(boundingBox.minX,
 				1, boundingBox.minZ, boundingBox.maxX, 512, boundingBox.maxZ);
 
 		if(!prepare(box))
 			return;
 		
-		CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
+		final CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
 				direction, properties, this);
 		builder.generate();
 	}

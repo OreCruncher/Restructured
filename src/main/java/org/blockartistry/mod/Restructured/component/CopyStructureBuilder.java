@@ -49,17 +49,17 @@ import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
-import org.blockartistry.mod.Restructured.util.BlockRotationHelper;
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.util.Vector;
 
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class CopyStructureBuilder {
 
-	static final Random rand = new Random();
+	protected static final Random rand = new Random();
 	
-	static Field soilBlockID = null;
-	static Field cropBlock = null;
+	private static Field soilBlockID = null;
+	private static Field cropBlock = null;
 	
 	static {
 		
@@ -75,18 +75,19 @@ public class CopyStructureBuilder {
 			;
 		}
 	}
-	final IStructureBuilder structure;
-	final World world;
-	final StructureBoundingBox box;
-	final int orientation;
-	final SchematicProperties properties;
+	
+	protected final IStructureBuilder structure;
+	protected final World world;
+	protected final StructureBoundingBox box;
+	protected final int orientation;
+	protected final SchematicProperties properties;
 
-	ArrayList<Vector> waitToPlace = new ArrayList<Vector>();
-	ArrayList<Vector> blockList = new ArrayList<Vector>();
+	protected List<Vector> waitToPlace = new ArrayList<Vector>();
+	protected List<Vector> blockList = new ArrayList<Vector>();
 
-	public CopyStructureBuilder(World world, StructureBoundingBox box,
-			int orientation, SchematicProperties properties,
-			IStructureBuilder structure) {
+	public CopyStructureBuilder(final World world, StructureBoundingBox box,
+			final int orientation, final SchematicProperties properties,
+			final IStructureBuilder structure) {
 
 		this.world = world;
 		this.box = box;
@@ -95,12 +96,13 @@ public class CopyStructureBuilder {
 		this.properties = properties;
 	}
 
-	public void place(Block block, int meta, int x, int y, int z) {
-		structure.placeBlock(world, block, translateMeta(block, meta), x, y, z,
-				box);
+	public void place(final Block block, final int meta, final int x, final int y, final int z) {
+		final SelectedBlock b = SelectedBlock.fly(block, meta);
+		handleRotation(b);
+		structure.placeBlock(world, b, x, y, z, box);
 	}
 
-	public boolean isVecInside(int x, int y, int z, StructureBoundingBox box) {
+	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
 		return structure.isVecInside(x, y, z, box);
 	}
 
@@ -119,7 +121,7 @@ public class CopyStructureBuilder {
 
 						BlockHelper block = new BlockHelper(schematic.getBlock(
 								x, y, z));
-						Vector v = new Vector(x, y, z);
+						final Vector v = new Vector(x, y, z);
 
 						// Do we skip placement?
 						if (doSkipFireSource(block)
@@ -229,19 +231,20 @@ public class CopyStructureBuilder {
 		}
 	}
 	
-	Block replaceCrop(BlockHelper block, int x, int y, int z) {
+	protected Block replaceCrop(final BlockHelper block, final int x, final int y, final int z) {
+		
 		if(!properties.randomizeCrops || !block.isCrop())
 			return null;
 		
-		List<ItemSeeds> seeds = Assets.getSeeds();
+		final List<ItemSeeds> seeds = Assets.getSeeds();
 		if(seeds == null || seeds.size() == 0)
 			return null;
 		
 		Block result = null;
 		try {
 			// Get our new seed and what it can be planted on
-			ItemSeeds s = seeds.get(rand.nextInt(seeds.size()));
-			Block newHostBlock = (Block) soilBlockID.get(s);
+			final ItemSeeds s = seeds.get(rand.nextInt(seeds.size()));
+			final Block newHostBlock = (Block) soilBlockID.get(s);
 			
 			// If the block at y-1 can support, yay!  If not
 			// return null.
@@ -255,23 +258,23 @@ public class CopyStructureBuilder {
 		return result;
 	}
 
-	void generateChestContents(IInventory inventory, String category, int count) {
-		WeightedRandomChestContent[] contents = ChestGenHooks.getItems(
+	protected void generateChestContents(final IInventory inventory, final String category, final int count) {
+		final WeightedRandomChestContent[] contents = ChestGenHooks.getItems(
 				category, rand);
 		WeightedRandomChestContent.generateChestContents(rand, contents,
 				inventory, count);
 	}
 
-	boolean doFillChestContents(BlockHelper helper) {
+	protected boolean doFillChestContents(final BlockHelper helper) {
 		return helper.isChest() && properties.chestContents != null
 				&& !properties.chestContents.isEmpty();
 	}
 
-	boolean doSkipFireSource(BlockHelper helper) {
+	protected boolean doSkipFireSource(final BlockHelper helper) {
 		return helper.isFireSource() && properties.suppressFire;
 	}
 
-	boolean doSkipSpawnerPlacement(BlockHelper helper, Vector v) {
+	protected boolean doSkipSpawnerPlacement(final BlockHelper helper, final Vector v) {
 		if (helper.isSpawner()
 				&& rand.nextInt(100) >= properties.spawnerEnableChance) {
 			blockList.add(v);
@@ -280,13 +283,13 @@ public class CopyStructureBuilder {
 		return false;
 	}
 
-	boolean waitToPlace(BlockHelper block) {
+	protected boolean waitToPlace(final BlockHelper block) {
 		return block.isTorch();
 	}
 
-	int translateDirection(int dir) {
+	protected int translateDirection(final int dir) {
 	
-		int count = getRotationCount(dir);
+		final int count = getRotationCount(dir);
 		if(count == 1)
 			return Direction.rotateRight[dir];
 		if(count == 2)
@@ -297,7 +300,7 @@ public class CopyStructureBuilder {
 		return dir;
 	}
 	
-	int getRotationCount(int dir) {
+	protected int getRotationCount(final int dir) {
 		switch(dir) {
 		case 0: return getRotationCount(ForgeDirection.SOUTH);
 		case 1: return getRotationCount(ForgeDirection.WEST);
@@ -309,7 +312,7 @@ public class CopyStructureBuilder {
 		return -1;
 	}
 	
-	int getRotationCount(ForgeDirection dir) {
+	protected int getRotationCount(final ForgeDirection dir) {
 		int rotationCount = 0;
 		if(orientation == 1 || orientation == 3)
 			rotationCount++;
@@ -321,38 +324,34 @@ public class CopyStructureBuilder {
 		return rotationCount;
 	}
 	
-	int translateMeta(Block block, int meta) {
+	protected void handleRotation(final SelectedBlock block) {
 		
 		// If the block is in natural position
 		// just return.
 		if(orientation == 0)
-			return meta;
+			return;
 
 		// Get it's current facing.  If it is unknown
 		// just return - it is not handled or it's a 
 		// basic block like dirt.
-		ForgeDirection direction = BlockRotationHelper.metadataToDirection(block,
-				meta);
+		final ForgeDirection direction = block.getOrientation();
 		if (direction == ForgeDirection.UNKNOWN || direction == ForgeDirection.UP || direction == ForgeDirection.DOWN) {
-			return meta;
+			return;
 		}
 		
-		int rotationCount = getRotationCount(direction);
-		
-		meta = BlockRotationHelper.rotateVanillaBlock(block, meta,
-				ForgeDirection.UP, rotationCount);
-
-		return meta;
+		final int rotationCount = getRotationCount(direction);
+		for(int i = 0; i < rotationCount; i++)
+			block.rotate(ForgeDirection.UP);
 	}
 
-	TileEntity cloneTileEntity(TileEntity source) {
-		NBTTagCompound nbt = new NBTTagCompound();
+	protected TileEntity cloneTileEntity(final TileEntity source) {
+		final NBTTagCompound nbt = new NBTTagCompound();
 		source.writeToNBT(nbt);
 		return TileEntity.createAndLoadEntity(nbt);
 	}
 
-	Entity cloneEntity(Entity entity) {
-		NBTTagCompound nbt = new NBTTagCompound();
+	protected Entity cloneEntity(final Entity entity) {
+		final NBTTagCompound nbt = new NBTTagCompound();
 		entity.writeToNBTOptional(nbt);
 		return EntityList.createEntityFromNBT(nbt, world);
 	}

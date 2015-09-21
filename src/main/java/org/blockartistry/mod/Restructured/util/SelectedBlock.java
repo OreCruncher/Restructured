@@ -24,19 +24,57 @@
 
 package org.blockartistry.mod.Restructured.util;
 
-import net.minecraft.block.Block;
+import org.blockartistry.mod.Restructured.world.FantasyIsland;
 
-public class SelectedBlock  extends BlockHelper {
+import net.minecraft.block.Block;
+import net.minecraftforge.common.util.ForgeDirection;
+
+public class SelectedBlock extends BlockHelper {
 	
-	protected final int meta;
+	// The cached key is used by the various framework routines where a temporary
+	// key is generated just to index an internal table.  It's thread local so
+	// there should be no collision.  They key should not be cached or used in
+	// an index - unpredictable results will occur.
+	private static final ThreadLocal<SelectedBlock> flyweight = new ThreadLocal<SelectedBlock>() {
+        @Override
+		protected SelectedBlock initialValue() {
+            return new SelectedBlock();
+        }
+	};
 	
-	public SelectedBlock(Block block, int meta) {
+	public static SelectedBlock fly(final Block block, final int meta) {
+		final SelectedBlock t = flyweight.get();
+		t.block = block;
+		t.meta = meta;
+		return t;
+	}
+
+	protected int meta;
+	
+	protected SelectedBlock() {
+		this(null, 0);
+	}
+	
+	public SelectedBlock(final Block block, final int meta) {
 		super(block);
 		
 		this.meta = meta;
 	}
 	
 	public int getMeta() {
-		return meta;
+		return this.meta;
+	}
+	
+	public void rotate(final ForgeDirection axis) {
+		// Use our Fantasy to satisfy Minecraft so we can rotate
+		// the block without having to place it into the world.
+		// Should expose methods that don't rely on a world instance. :\
+		FantasyIsland.instance.meta = this.meta;
+		this.block.rotateBlock(FantasyIsland.instance, 0, 0, 0, axis);
+		this.meta = FantasyIsland.instance.meta;
+	}
+	
+	public ForgeDirection getOrientation() {
+		return OrientationRotationHelper.getOrientation(this);
 	}
 }

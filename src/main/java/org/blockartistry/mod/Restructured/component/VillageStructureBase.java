@@ -26,6 +26,7 @@ package org.blockartistry.mod.Restructured.component;
 
 import java.util.Random;
 
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.util.Vector;
 import org.blockartistry.mod.Restructured.world.BoxHelper;
 
@@ -42,9 +43,9 @@ public abstract class VillageStructureBase extends
 	
 	protected int averageGroundLevel = -1;
 
-	public VillageStructureBase(StructureVillagePieces.Start start,
-			int componentType, Random random, StructureBoundingBox myBox,
-			int direction) {
+	public VillageStructureBase(final StructureVillagePieces.Start start,
+			final int componentType, final Random random, final StructureBoundingBox myBox,
+			final int direction) {
 		super(start, componentType);
 		this.coordBaseMode = direction;
 		this.boundingBox = myBox;
@@ -66,20 +67,20 @@ public abstract class VillageStructureBase extends
 	 * @param z
 	 * @param boundingBox
 	 */
-	public void placeBlock(World world, Block block, int meta, int x, int y,
-			int z, StructureBoundingBox box) {
-		placeBlockAtCurrentPosition(world, block, meta, x, y, z, box);
+	public void placeBlock(final World world, final SelectedBlock block, final int x, final int y,
+			final int z, final StructureBoundingBox box) {
+		placeBlockAtCurrentPosition(world, block.getBlock(), block.getMeta(), x, y, z, box);
 	}
 
-	public int getMetaWithOffset(Block block, int meta) {
+	public int getMetaWithOffset(final Block block, final int meta) {
 		return getMetadataWithOffset(block, meta);
 	}
 	
 	@Override
-	public boolean addComponentParts(World world, Random rand,
-			StructureBoundingBox box) {
+	public boolean addComponentParts(final World world, final Random rand,
+			final StructureBoundingBox box) {
 
-		Vector size = getDimensions();
+		final Vector size = getDimensions();
 
 		// The region stat gathering below differs than
 		// the logic vanilla uses.  We need a clear picture of
@@ -98,7 +99,7 @@ public abstract class VillageStructureBase extends
 			if(averageGroundLevel == -1) {
 				// Ignore the region clipping - want to get a true picture of the
 				// region.
-				int temp = BoxHelper.getRegionAverageGroundLevel(world, boundingBox);
+				final int temp = BoxHelper.getRegionAverageGroundLevel(world, boundingBox);
 				if(averageGroundLevel == -1) {
 					averageGroundLevel = temp;
 		
@@ -130,10 +131,10 @@ public abstract class VillageStructureBase extends
 		return true;
 	}
 
-	public abstract void build(World world, Random rand,
-			StructureBoundingBox box);
+	public abstract void build(final World world, final Random rand,
+			final StructureBoundingBox box);
 
-	public void spawnPeople(World world, StructureBoundingBox box) {
+	public void spawnPeople(final World world, final StructureBoundingBox box) {
 		// Base implementation does nothing - override to create
 		// villagers for the structure
 	}

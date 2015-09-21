@@ -125,74 +125,67 @@ public class VillageTheme {
 		return replace != META_MASK ? replace : block.getMeta();
 	}
 	
-	protected static SelectedBlock scrubEggs(Block block, int meta) {
-		// If it is a monster egg scrub it
-		if (block == Blocks.monster_egg)
-			switch (meta) {
-			case 0:
-				block = Blocks.stone;
-				meta = 0;
-				break;
-			case 1:
-				block = Blocks.cobblestone;
-				meta = 0;
-				break;
-			case 2:
-				block = Blocks.stonebrick;
-				meta = 0;
-				break;
-			case 3:
-				block = Blocks.stonebrick;
-				meta = 1;
-				break;
-			case 4:
-				block = Blocks.stonebrick;
-				meta = 2;
-			case 5:
-				block = Blocks.stonebrick;
-				meta = 3;
-				break;
-			default:
-				;
-			}
-		return new SelectedBlock(block, meta);
+	protected static SelectedBlock scrubEggs(final SelectedBlock block) {
+		
+		if(block.getBlock() != Blocks.monster_egg)
+			return block;
+		
+		Block b = null;
+		int meta = 0;
+		switch (block.getMeta()) {
+		case 0:
+			b = Blocks.stone;
+			meta = 0;
+			break;
+		case 1:
+			b = Blocks.cobblestone;
+			meta = 0;
+			break;
+		case 2:
+			b = Blocks.stonebrick;
+			meta = 0;
+			break;
+		case 3:
+			b = Blocks.stonebrick;
+			meta = 1;
+			break;
+		case 4:
+			b = Blocks.stonebrick;
+			meta = 2;
+		case 5:
+			b = Blocks.stonebrick;
+			meta = 3;
+			break;
+		default:
+			;
+		}
+		
+		return new SelectedBlock(b, meta);
 	}
 
-	public SelectedBlock findReplacement(Block block, int meta, boolean scrubEggs) {
-		
-		SelectedBlock t = null;
+	public SelectedBlock findReplacement(SelectedBlock block, boolean scrubEggs) {
 		
 		if(scrubEggs)
-			t = scrubEggs(block, meta);
-		else
-			t = new SelectedBlock(block, meta);
+			block = scrubEggs(block);
 
-		final Block b = biomeBlockReplace(t);
-		final int m = biomeMetaReplace(t);
+		final Block b = biomeBlockReplace(block);
+		final int m = biomeMetaReplace(block);
 		return new SelectedBlock(b, m);
 	}
 	
-	public Block findReplacementBlock(Block block, int meta, boolean scrubEggs) {
-		
-		SelectedBlock t = null;
+	public Block findReplacementBlock(SelectedBlock block, boolean scrubEggs) {
 		
 		if(scrubEggs)
-			t = scrubEggs(block, meta);
-		else
-			t = new SelectedBlock(block, meta);
+			block = scrubEggs(block);
 
-		return biomeBlockReplace(t);
+		return biomeBlockReplace(block);
 	}
 	
-	public int findReplacementMeta(Block block, int meta, boolean scrubEggs) {
-		
-		SelectedBlock t = null;
+	public int findReplacementMeta(SelectedBlock block, boolean scrubEggs) {
 		
 		if(scrubEggs)
-			t = scrubEggs(block, meta);
-		else
-			t = new SelectedBlock(block, meta);
+			block = scrubEggs(block);
 
-		return biomeMetaReplace(t);
+		return biomeMetaReplace(block);
 	}
 }
