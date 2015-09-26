@@ -338,6 +338,10 @@ public final class Assets {
 		return result;
 	}
 
+	public static boolean areSchematicsInstalled() {
+		return villageSchematics.size() != 0 || worldSchematics.size() != 0;
+	}
+	
 	public static int villageStructureCount() {
 		return villageSchematics.size();
 	}

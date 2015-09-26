@@ -50,8 +50,6 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 public class Proxy {
 
 	public void preInit(FMLPreInitializationEvent event) {
-		//new TerrainEventBusHandler();
-		
 		// Register early to give the background process a good amount
 		// of time to get the mod version data
 		VersionCheck.register();

@@ -22,27 +22,33 @@
  * THE SOFTWARE.
  */
 
-package org.blockartistry.mod.Restructured.proxy;
+package org.blockartistry.mod.Restructured;
 
-import org.blockartistry.mod.Restructured.LoginMessaging;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import org.blockartistry.mod.Restructured.assets.Assets;
 
-public class ProxyClient extends Proxy {
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.StatCollector;
 
-	@Override
-	public void preInit(FMLPreInitializationEvent event) {
-		super.preInit(event);
-	}
+public class LoginMessaging {
 
-	@Override
-	public void init(FMLInitializationEvent event) {
-		super.init(event);
+	public static void register() {
+		final LoginMessaging msg = new LoginMessaging();
+		FMLCommonHandler.instance().bus().register(msg);
 	}
 	
-	public void postInit(FMLPostInitializationEvent event) {
-		super.postInit(event);
-		LoginMessaging.register();
+	@SubscribeEvent
+	public void playerLogin(final PlayerLoggedInEvent event) {
+
+		if (event.player instanceof EntityPlayer) {
+			if (!Assets.areSchematicsInstalled()) {
+				final String msg = StatCollector.translateToLocalFormatted("msg.NoSchematics",
+						Restructured.MOD_NAME);
+				event.player.addChatMessage(new ChatComponentText(msg));
+			}
+		}
 	}
 }
