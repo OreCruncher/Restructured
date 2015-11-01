@@ -45,29 +45,29 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class SchematicWorldGenHandler implements IWorldGenerator {
 
 	private static final int CHUNK_SIZE = 16;
-	private static final SchematicProperties NOSPAWN_SENTINEL = new SchematicProperties();
 	private static final int MINIMUM_SPAWN_DISTANCE = 4; // chunks
-	private static final int MINIMUM_VILLAGE_DISTANCE_SQUARED = 8 * 8
-			* CHUNK_SIZE * CHUNK_SIZE; // blocks
+	private static final int MINIMUM_VILLAGE_DISTANCE_SQUARED = 8 * 8 * CHUNK_SIZE * CHUNK_SIZE; // blocks
 	private static final int MINIMUM_GEN_DISTANCE_SQUARED = 16; // chunks
 
 	private static Set<ChunkCoordinates> activeGeneration = new HashSet<ChunkCoordinates>();
 
-	private static ChunkCoordinates getRandomStart(Random rand, int chunkX,
-			int chunkZ) {
-		int x = (chunkX << 4) + 3 + rand.nextInt(8);
-		int z = (chunkZ << 4) + 3 + rand.nextInt(8);
+	private static ChunkCoordinates getRandomStart(final Random rand, final int chunkX, final int chunkZ) {
+		final int x = (chunkX << 4) + 3 + rand.nextInt(8);
+		final int z = (chunkZ << 4) + 3 + rand.nextInt(8);
 		return new ChunkCoordinates(x, 0, z);
 	}
 
 	private static boolean tooCloseToOtherGen(ChunkCoordinates loc) {
-		if (activeGeneration.isEmpty())
-			return false;
 
-		for (ChunkCoordinates a : activeGeneration) {
-			int distance = (int) loc.getDistanceSquaredToChunkCoordinates(a);
-			if (distance <= MINIMUM_GEN_DISTANCE_SQUARED)
-				return true;
+		synchronized (activeGeneration) {
+			if (activeGeneration.isEmpty())
+				return false;
+
+			for (final ChunkCoordinates a : activeGeneration) {
+				int distance = (int) loc.getDistanceSquaredToChunkCoordinates(a);
+				if (distance <= MINIMUM_GEN_DISTANCE_SQUARED)
+					return true;
+			}
 		}
 
 		return false;
@@ -85,11 +85,10 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 
 		List<?> villageList = world.villageCollectionObj.getVillageList();
 
-		for (Object o : villageList) {
-			ChunkCoordinates coords = ((Village) o).getCenter();
+		for (final Object o : villageList) {
+			final ChunkCoordinates coords = ((Village) o).getCenter();
 			coords.posY = loc.posY;
-			int distance = (int) coords
-					.getDistanceSquaredToChunkCoordinates(loc);
+			final int distance = (int) coords.getDistanceSquaredToChunkCoordinates(loc);
 			if (distance < MINIMUM_VILLAGE_DISTANCE_SQUARED)
 				return true;
 		}
@@ -98,14 +97,14 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 	}
 
 	private static boolean tooCloseToSpawn(World world, ChunkCoordinates loc) {
-		ChunkCoordinates coords = world.getSpawnPoint();
+		final ChunkCoordinates coords = world.getSpawnPoint();
 		coords.posY = loc.posY;
 		return (int) coords.getDistanceSquaredToChunkCoordinates(loc) < MINIMUM_SPAWN_DISTANCE;
 	}
 
 	@Override
-	public void generate(Random random, int chunkX, int chunkZ, World world,
-			IChunkProvider chunkGenerator, IChunkProvider chunkProvider) {
+	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator,
+			IChunkProvider chunkProvider) {
 
 		// Not sure this can happen, but...
 		if (world.isRemote)
@@ -123,52 +122,54 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 			return;
 
 		// Leave our bread crumb
-		activeGeneration.add(currentGen);
+		synchronized (activeGeneration) {
+			activeGeneration.add(currentGen);
+		}
 
 		try {
 			// set our random
 			random = world.setRandomSeed(chunkX, chunkZ, 0xdeadbeef);
 
 			// Figure the x and z in the current chunk
-			ChunkCoordinates start = getRandomStart(random, chunkX, chunkZ);
+			final ChunkCoordinates start = getRandomStart(random, chunkX, chunkZ);
 
 			// See if we are too close to a village or to world spawn
-			if (anyVillagesTooClose(world, start)
-					|| tooCloseToSpawn(world, start))
+			if (anyVillagesTooClose(world, start) || tooCloseToSpawn(world, start))
 				return;
 
-			int dimension = world.provider.dimensionId;
-			BiomeGenBase biome = BiomeHelper.chunkBiomeSurvey(world,
-					chunkGenerator.provideChunk(chunkX, chunkZ));
+			final int dimension = world.provider.dimensionId;
+			final BiomeGenBase biome = BiomeHelper.chunkBiomeSurvey(world, chunkGenerator.provideChunk(chunkX, chunkZ));
 
 			// Find applicable structures for this attempt. If there aren't
 			// any return.
-			WeightTable<SchematicWeightItem> structs = Assets
-					.getTableForWorldGen(dimension, biome);
+			final WeightTable<SchematicWeightItem> structs = Assets.getTableForWorldGen(dimension, biome);
 			if (structs.size() == 0)
 				return;
 
 			// Only 1 in 100 chunks will have a chance. Add a no
 			// spawn sentinel at 99 times the total weight of the current
 			// weight table.
-			NOSPAWN_SENTINEL.worldWeight = structs.getTotalWeight() * 99;
-			structs.add(new SchematicWeightItem(NOSPAWN_SENTINEL, false));
+			final SchematicProperties noSpawn = new SchematicProperties();
+			noSpawn.worldWeight = structs.getTotalWeight() * 99;
+			structs.add(new SchematicWeightItem(noSpawn, false));
 
 			// Assuming we get here are are going for it
-			SchematicProperties props = structs.next().properties;
-			if (props == NOSPAWN_SENTINEL)
+			final SchematicProperties props = structs.next().properties;
+			if (props == noSpawn)
 				return;
 
 			// Get a random orientation and build the structure
-			int direction = random.nextInt(4);
+			final int direction = random.nextInt(4);
 
-			SchematicWorldGenStructure structure = new SchematicWorldGenStructure(
-					world, biome, direction, start.posX, start.posZ, props);
+			final SchematicWorldGenStructure structure = new SchematicWorldGenStructure(world, biome, direction, start.posX,
+					start.posZ, props);
 			structure.build();
 
 		} finally {
 			// Remove our bread crumb - we are done
-			activeGeneration.remove(currentGen);
+			synchronized (activeGeneration) {
+				activeGeneration.remove(currentGen);
+			}
 		}
 	}
 }
