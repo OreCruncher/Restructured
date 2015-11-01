@@ -76,7 +76,7 @@ public class Restructured {
 	}
 
 	@EventHandler
-	public void preInit(FMLPreInitializationEvent event) {
+	public void preInit(final FMLPreInitializationEvent event) {
 
 		// Load up our configuration
 		dataDirectory = new File(event.getModConfigurationDirectory(),
@@ -93,19 +93,19 @@ public class Restructured {
 	}
 
 	@EventHandler
-	public void init(FMLInitializationEvent event) {
+	public void init(final FMLInitializationEvent event) {
 		proxy.init(event);
 	}
 
 	@EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
+	public void postInit(final FMLPostInitializationEvent event) {
 
 		proxy.postInit(event);
 		config.save();
 	}
 
 	@EventHandler
-	public void serverLoad(FMLServerStartingEvent event) {
+	public void serverLoad(final FMLServerStartingEvent event) {
 
 		proxy.serverLoad(event);
 	}

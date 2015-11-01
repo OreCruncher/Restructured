@@ -36,33 +36,33 @@ public final class ModLog {
 		return logger;
 	}
 
-	public static void setLogger(Logger log) {
+	public static void setLogger(final Logger log) {
 		logger = log;
 	}
 
-	public static void info(String msg, Object... parms) {
+	public static void info(final String msg, final Object... parms) {
 		if (logger != null)
 			logger.info(String.format(msg, parms));
 	}
 
-	public static void warn(String msg, Object... parms) {
+	public static void warn(final String msg, final Object... parms) {
 		if (logger != null)
 			logger.warn(String.format(msg, parms));
 	}
 
-	public static void debug(String msg, Object... parms) {
+	public static void debug(final String msg, final Object... parms) {
 		if (logger != null && ModOptions.getEnableDebugLogging()) {
 			logger.info(String.format(msg, parms));
 		}
 	}
 
-	public static void error(String msg, Throwable e) {
+	public static void error(final String msg, final Throwable e) {
 		if (logger != null)
 			logger.error(msg);
 		e.printStackTrace();
 	}
 
-	public static void catching(Throwable t) {
+	public static void catching(final Throwable t) {
 		if (logger != null) {
 			logger.catching(t);
 			t.printStackTrace();

@@ -32,6 +32,8 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
+import org.blockartistry.mod.Restructured.chunk.MyRegionFileCache;
+import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
 import org.blockartistry.mod.Restructured.world.village.themes.BirchForestVillageTheme;
 import org.blockartistry.mod.Restructured.world.village.themes.DesertVillageTheme;
 import org.blockartistry.mod.Restructured.world.village.themes.ForestVillageTheme;
@@ -49,32 +51,39 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 public class Proxy {
 
-	public void preInit(FMLPreInitializationEvent event) {
+	public void preInit(final FMLPreInitializationEvent event) {
+		if(ModOptions.getEnableRegionFileCacheTweaks())
+			MyRegionFileCache.initialize();
+		
 		// Register early to give the background process a good amount
 		// of time to get the mod version data
 		VersionCheck.register();
 	}
 
-	public void init(FMLInitializationEvent event) {
+	public void init(final FMLInitializationEvent event) {
+		
+		// Hook to patch up any village generation code
+		TerrainEventBusHandler.initialize();
+		
 	}
 
-	public void postInit(FMLPostInitializationEvent event) {
+	public void postInit(final FMLPostInitializationEvent event) {
 		
 		Assets.initialize();
 		
 		// Patch up the village biome list with the configured
 		// settings.  We need to create a new map because
 		// the one that is there is immutable.
-		int[] additional = ModOptions.getAdditionalVillageBiomes();
+		final int[] additional = ModOptions.getAdditionalVillageBiomes();
 		if(additional.length > 0) {
-			List<BiomeGenBase> newList = new ArrayList<BiomeGenBase>();
-			for(Object o: MapGenVillage.villageSpawnBiomes) {
-				BiomeGenBase b = (BiomeGenBase)o;
+			final List<BiomeGenBase> newList = new ArrayList<BiomeGenBase>();
+			for(final Object o: MapGenVillage.villageSpawnBiomes) {
+				final BiomeGenBase b = (BiomeGenBase)o;
 				newList.add(b);
 			}
 			
-			for(int biomeId: ModOptions.getAdditionalVillageBiomes()) {
-				BiomeGenBase biome = BiomeGenBase.getBiome(biomeId);
+			for(final int biomeId: additional) {
+				final BiomeGenBase biome = BiomeGenBase.getBiome(biomeId);
 				if(biome != null)
 					newList.add(biome);
 			}
