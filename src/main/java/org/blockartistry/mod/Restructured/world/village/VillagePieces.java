@@ -59,7 +59,7 @@ public class VillagePieces {
 		try {
 			boundingBox = ReflectionHelper.findField(StructureComponent.class, "boundingBox", "field_74887_e");
 			averageGroundLevel = ReflectionHelper.findField(Path.class, "averageGroundLevel", "field_74934_a");
-		} catch(Throwable t) {
+		} catch(final Exception t) {
 			ModLog.warn("Unable to hook fields in VillagePieces");
 		}
 		
@@ -185,7 +185,7 @@ public class VillagePieces {
 	                    start.field_74932_i.add(village);
 	                    return village;
 	                }
-            	} catch(Throwable t) {
+            	} catch(final Exception t) {
             		;
             	}
             }
@@ -374,7 +374,7 @@ public class VillagePieces {
 	                }
 	            }
             }
-            catch(Throwable t) {
+            catch(final Exception t) {
             	;
             }
             

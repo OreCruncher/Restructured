@@ -50,7 +50,7 @@ public class TerrainEventBusHandler {
 			density = ReflectionHelper.findField(MapGenVillage.class, "field_82665_g");
 			minDistance = ReflectionHelper.findField(MapGenVillage.class, "field_82666_h");
 			
-		} catch(final Throwable t) {
+		} catch(final Exception t) {
 			ModLog.warn("Unable to hook MapGenVillage parameters");
 			//terrainType = null;
 			density = null;
@@ -82,7 +82,7 @@ public class TerrainEventBusHandler {
 					if(t > 0)
 						minDistance.setInt(event.newGen, t);
 					
-				} catch(final Throwable t) {
+				} catch(final Exception t) {
 					ModLog.error("Unable to set village generation parameters", t);
 				}
 			}

@@ -126,7 +126,7 @@ public class SchematicAlpha extends SchematicFormat {
 						schematic.setTileEntity(tileEntity.xCoord,
 								tileEntity.yCoord, tileEntity.zCoord, tileEntity);
 					}
-				} catch (Throwable e) {
+				} catch (final Exception e) {
 					ModLog.error("TileEntity failed to load properly!", e);
 				}
 			}
@@ -161,7 +161,7 @@ public class SchematicAlpha extends SchematicFormat {
 					}
 
 					schematic.addEntity(entity);
-				} catch (Throwable e) {
+				} catch (final Exception e) {
 					ModLog.error("Entity failed to load properly!", e);
 				}
 			}

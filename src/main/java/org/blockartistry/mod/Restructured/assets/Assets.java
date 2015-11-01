@@ -304,7 +304,7 @@ public final class Assets {
 								values);
 					}
 
-				} catch (Throwable e) {
+				} catch (final Exception e) {
 					ModLog.error("Unable to parse chest entry", e);
 				}
 			}

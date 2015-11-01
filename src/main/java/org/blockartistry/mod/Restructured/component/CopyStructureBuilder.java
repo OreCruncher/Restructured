@@ -68,7 +68,7 @@ public class CopyStructureBuilder {
 			soilBlockID = ReflectionHelper.findField(ItemSeeds.class, "soilBlockID", "field_77838_b");
 			cropBlock = ReflectionHelper.findField(ItemSeeds.class, "field_150925_a");
 			
-		} catch(Throwable t) {
+		} catch(final Exception t) {
 			
 			ModLog.warn("Unable to hook ItemSeeds.soilBlockId");
 			
@@ -222,7 +222,7 @@ public class CopyStructureBuilder {
 				}
 
 				world.spawnEntityInWorld(entity);
-			} catch (Throwable t) {
+			} catch (final Exception t) {
 				ModLog.warn("Unable to place entity");
 			}
 		}
@@ -248,7 +248,7 @@ public class CopyStructureBuilder {
 			if(properties.schematic.getBlock(x, y - 1, z) == newHostBlock)
 				result = (Block)cropBlock.get(s);
 			
-		} catch(Throwable t) {
+		} catch(final Exception t) {
 			;
 		}
 		
