@@ -41,7 +41,7 @@ public class ChunkInputStream extends DataInputStream {
 
 	private final static ConcurrentLinkedQueue<ChunkInputStream> freeInputStreams = new ConcurrentLinkedQueue<ChunkInputStream>();
 
-	public static ChunkInputStream getChunkInputStream(final byte[] bits, final int dataLength) {
+	public static ChunkInputStream getStream(final byte[] bits, final int dataLength) {
 		ChunkInputStream buffer = freeInputStreams.poll();
 		if(buffer == null)
 			buffer = new ChunkInputStream();

@@ -319,7 +319,7 @@ public class MyRegionFile {
 			// Pass back an appropriate stream for the requester
 			switch (buffer[4]) {
 			case STREAM_VERSION_FLATION:
-				return ChunkInputStream.getChunkInputStream(buffer, dataLength);
+				return ChunkInputStream.getStream(buffer, dataLength);
 			case STREAM_VERSION_GZIP:
 				final InputStream is = new ByteArrayInputStream(buffer, CHUNK_HEADER_SIZE, dataLength);
 				return new DataInputStream(new GZIPInputStream(is));
@@ -340,7 +340,7 @@ public class MyRegionFile {
 		if (outOfBounds(regionX, regionZ))
 			return null;
 
-		return ChunkOutputStream.getChunkOutputStream(regionX, regionZ, this);
+		return ChunkOutputStream.getStream(regionX, regionZ, this);
 	}
 
 	public synchronized void write(final int regionX, final int regionZ, final byte[] buffer, final int length) {

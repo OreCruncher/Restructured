@@ -65,7 +65,18 @@ public class RenameMapper extends Remapper {
 		final String newName = methodNameMap.get(name);
 		return newName == null ? name : newName;
 	}
-	
+
+	@Override
+    public String mapFieldName(String owner, String name, String desc) {
+		if(methodNameMap == null)
+			return name;
+		
+		final String newName = methodNameMap.get(name);
+		if(newName != null)
+			System.out.println(String.format("Renaming '%s' => '%s'", name, newName));
+		return newName == null ? name : newName;
+    }
+
 	@Override
 	public String mapType(String type) {
 		return fix(type);

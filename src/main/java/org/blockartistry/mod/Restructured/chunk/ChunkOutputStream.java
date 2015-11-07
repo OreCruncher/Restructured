@@ -48,7 +48,7 @@ public class ChunkOutputStream extends DataOutputStream {
 
 	private final static ConcurrentLinkedQueue<ChunkOutputStream> freeOutputStreams = new ConcurrentLinkedQueue<ChunkOutputStream>();
 
-	public static ChunkOutputStream getChunkOutputStream(final int chunkX, final int chunkZ, final MyRegionFile region) {
+	public static ChunkOutputStream getStream(final int chunkX, final int chunkZ, final MyRegionFile region) {
 		ChunkOutputStream buffer = freeOutputStreams.poll();
 		if(buffer == null)
 			buffer = new ChunkOutputStream();
