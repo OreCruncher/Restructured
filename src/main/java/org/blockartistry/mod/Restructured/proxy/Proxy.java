@@ -32,7 +32,6 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
-import org.blockartistry.mod.Restructured.chunk.MyRegionFileCache;
 import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
 import org.blockartistry.mod.Restructured.world.village.themes.BirchForestVillageTheme;
 import org.blockartistry.mod.Restructured.world.village.themes.DesertVillageTheme;
@@ -52,9 +51,6 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 public class Proxy {
 
 	public void preInit(final FMLPreInitializationEvent event) {
-		if(ModOptions.getEnableRegionFileCacheTweaks())
-			MyRegionFileCache.initialize();
-		
 		// Register early to give the background process a good amount
 		// of time to get the mod version data
 		VersionCheck.register();

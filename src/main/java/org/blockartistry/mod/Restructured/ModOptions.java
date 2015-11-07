@@ -34,8 +34,6 @@ public final class ModOptions {
 	}
 
 	protected static final String CATEGORY_GLOBAL = "global";
-	protected static final String CONFIG_ENABLE_REGION_FILE_CACHE_TWEAKS = "Enable RegionFileCache Tweaks";
-	protected static boolean enableRegionFileCacheTweaks = false;
 
 	protected static final String CATEGORY_LOGGING_CONTROL = "logging";
 	protected static final String CONFIG_ENABLE_DEBUG_LOGGING = "Enable Debug Logging";
@@ -56,9 +54,6 @@ public final class ModOptions {
 		String comment;
 
 		// CATEGORY_GLOBAL
-		enableRegionFileCacheTweaks = config.getBoolean(CONFIG_ENABLE_REGION_FILE_CACHE_TWEAKS, CATEGORY_GLOBAL,
-				enableRegionFileCacheTweaks,
-				"Enables/disables tweak of RegionFileCache for performance (Experimental)");
 
 		// CATEGORY_LOGGING_CONTROL
 		enableOnlineVersionCheck = config.getBoolean(CONFIG_ENABLE_ONLINE_VERSION_CHECK, CATEGORY_LOGGING_CONTROL,
@@ -84,11 +79,6 @@ public final class ModOptions {
 		villageDensity = config.getInt(CONFIG_VILLAGE_DENSITY, CATEGORY_GENERATION, villageDensity, 0,
 				Integer.MAX_VALUE, comment);
 	}
-
-	public static boolean getEnableRegionFileCacheTweaks() {
-		return enableRegionFileCacheTweaks;
-	}
-
 
 	public static boolean getOnlineVersionChecking() {
 		return true;

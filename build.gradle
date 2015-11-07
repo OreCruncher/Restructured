@@ -101,9 +101,21 @@ def parseConfig(File config) {
     }
 }
 
+jar {
+	manifest 
+	{
+        attributes("FMLCorePlugin": "org.blockartistry.mod.Restructured.asm.TransformLoader", 'FMLCorePluginContainsFMLMod': 'true')
+    }
+}
+
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     classifier = 'dev'
+
+	manifest 
+	{
+        attributes("FMLCorePlugin": "org.blockartistry.mod.Restructured.asm.TransformLoader", 'FMLCorePluginContainsFMLMod': 'true')
+    }
 }
 
 artifacts {
