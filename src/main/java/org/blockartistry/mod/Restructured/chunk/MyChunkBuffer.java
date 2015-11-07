@@ -47,7 +47,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class MyChunkBuffer extends OutputStream {
 
-	private final static boolean DO_TIMINGS = true;
+	private final static boolean DO_TIMINGS = false;
 	
 	private final static int DEFAULT_BUFFER_SIZE = 4096 * 4;
 	private final static int CHUNK_HEADER_SIZE = 5;
