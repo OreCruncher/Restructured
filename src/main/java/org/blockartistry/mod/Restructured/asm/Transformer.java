@@ -33,6 +33,7 @@ import java.util.Map;
 import org.blockartistry.mod.Restructured.chunk.MyRegionFile;
 import org.blockartistry.mod.Restructured.chunk.MyThreadedFileIOBase;
 import org.blockartistry.mod.Restructured.chunk.RegionFileLRU;
+import org.blockartistry.mod.Restructured.chunk.ChunkOutputStream;
 import org.blockartistry.mod.Restructured.chunk.MyChunkBuffer;
 import org.blockartistry.mod.Restructured.chunk.MyRegionCache;
 import org.objectweb.asm.ClassReader;
@@ -54,6 +55,7 @@ public class Transformer implements IClassTransformer {
 		targets.put("net.minecraft.world.chunk.storage.ChunkBuffer", MyChunkBuffer.class);
 		targets.put("net.minecraft.world.chunk.storage.RegionFileLRU", RegionFileLRU.class);
 		targets.put("net.minecraft.world.storage.ThreadedFileIOBase", MyThreadedFileIOBase.class);
+		targets.put("net.minecraft.world.storage.ChunkOutputStream", ChunkOutputStream.class);
 
 		targets.put("aqj", MyRegionCache.class);
 		targets.put("aqh", MyRegionFile.class);
@@ -69,6 +71,8 @@ public class Transformer implements IClassTransformer {
 				"net.minecraft.world.chunk.storage.RegionFileLRU");
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyThreadedFileIOBase",
 				"net.minecraft.world.storage.ThreadedFileIOBase");
+		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.ChunkOutputStream",
+				"net.minecraft.world.storage.ChunkOutputStream");
 
 		// Obsfucation mapping - yay obsfucation!
 		// RegionFileCache
@@ -84,6 +88,7 @@ public class Transformer implements IClassTransformer {
 		// ThreadedIOBase
 		obsRemap.put("queueIO", "func_75735_a");
 		obsRemap.put("waitForFinish", "func_75734_a");
+		obsRemap.put("threadedIOInstance"," field_75741_a");
 	}
 
 	private byte[] getClassBytes(final Class<?> clazz) {

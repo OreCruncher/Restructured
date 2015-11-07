@@ -79,25 +79,14 @@ public class MyRegionFile {
 	private final static int SECTOR_NUMBER_SHIFT = 8;
 	private final static int REGION_CHUNK_DIMENSION = 32;
 	private final static int CHUNKS_IN_REGION = REGION_CHUNK_DIMENSION * REGION_CHUNK_DIMENSION;
-	private final static int EXTEND_CHUNKS_QUANTITY = 32;
+	private final static int EXTEND_CHUNKS_QUANTITY = 256;
 	private final static byte[] EMPTY_SECTOR = new byte[SECTOR_SIZE];
 
-	// Known compression versions that can be encountered within
+	// Known stream versions that can be encountered within
 	// the data file. Current active version is inflate/deflate.
-	private final static byte COMPRESSION_UNKNOWN = 0;
-	private final static byte COMPRESSION_GZIP = 1;
-	private final static byte COMPRESSION_FLATION = 2;
-
-	// Change the default compression level and strategy. Improves
-	// performance of the chunk update routines offset by an
-	// increase in storage required. However, since storage is sector
-	// based the increase does not require additional sectors from
-	// the data file in most cases.
-	private final static int COMPRESSION_LEVEL = 3;
-	private final static int COMPRESSION_STRATEGY = Deflater.FILTERED;
-	private final static int COMPRESSION_BUFFER_SIZE = SECTOR_SIZE; // Default
-																	// 512 in
-																	// Deflator
+	private final static byte STREAM_VERSION_UNKNOWN = 0;
+	private final static byte STREAM_VERSION_GZIP = 1;
+	private final static byte STREAM_VERSION_FLATION = 2;
 
 	// Chunk exist check cache. It appears that Minecraft will check
 	// if a chunk exists prior to reading. What this does is cause
@@ -115,11 +104,11 @@ public class MyRegionFile {
 	// Tracks the last time a query was made to the region file.
 	// Used by the region file caching routine to evict idle
 	// region files when the opportunity presents. By default
-	// the idle time is 10 minutes. Note that region files
+	// the idle time is 5 minutes. Note that region files
 	// may be kept in the cache longer than the idle threshold
 	// due to how the LRU algorithm works. This is more of a
 	// hint/suggestion to the logic.
-	private final static long IDLE_TIME_THRESHOLD = 10 * 60 * 1000;
+	private final static long IDLE_TIME_THRESHOLD = 5 * 60 * 1000;
 	private long lastAccess;
 
 	// Bits that define what sectors within the file that
@@ -157,7 +146,7 @@ public class MyRegionFile {
 			if (needsInit) {
 				// Write empty sectors to the disk. Reserve
 				// space for 2 control sectors plus whatever
-				// the default extention constant is set.
+				// the default extension constant is set.
 				writeEmptySectors(0, EXTEND_CHUNKS_QUANTITY + 2);
 			}
 
@@ -232,7 +221,7 @@ public class MyRegionFile {
 	}
 
 	private boolean isValidCompressionVersion(final int ver) {
-		return ver != COMPRESSION_UNKNOWN && (ver == COMPRESSION_FLATION || ver == COMPRESSION_GZIP);
+		return ver != STREAM_VERSION_UNKNOWN && (ver == STREAM_VERSION_FLATION || ver == STREAM_VERSION_GZIP);
 	}
 
 	public String name() {
@@ -327,15 +316,12 @@ public class MyRegionFile {
 				}
 			}
 
-			// Wrap our buffer and offset by the chunk header. I doubt that
-			// the compression routine would be interested in it.
-			final InputStream is = new ByteArrayInputStream(buffer, CHUNK_HEADER_SIZE, dataLength);
-
 			// Pass back an appropriate stream for the requester
 			switch (buffer[4]) {
-			case COMPRESSION_FLATION:
-				return new DataInputStream(new InflaterInputStream(is));
-			case COMPRESSION_GZIP:
+			case STREAM_VERSION_FLATION:
+				return ChunkInputStream.getChunkInputStream(buffer, dataLength);
+			case STREAM_VERSION_GZIP:
+				final InputStream is = new ByteArrayInputStream(buffer, CHUNK_HEADER_SIZE, dataLength);
 				return new DataInputStream(new GZIPInputStream(is));
 			default:
 				;
@@ -351,14 +337,10 @@ public class MyRegionFile {
 	public DataOutputStream getChunkDataOutputStream(final int regionX, final int regionZ) {
 
 		lastAccess = System.currentTimeMillis();
-
 		if (outOfBounds(regionX, regionZ))
 			return null;
 
-		final Deflater def = new Deflater(COMPRESSION_LEVEL);
-		def.setStrategy(COMPRESSION_STRATEGY);
-		return new DataOutputStream(new DeflaterOutputStream(MyChunkBuffer.getChunkBuffer(regionX, regionZ, this), def,
-				COMPRESSION_BUFFER_SIZE));
+		return ChunkOutputStream.getChunkOutputStream(regionX, regionZ, this);
 	}
 
 	public synchronized void write(final int regionX, final int regionZ, final byte[] buffer, final int length) {
@@ -369,6 +351,13 @@ public class MyRegionFile {
 		// before this write was initiated. The provided length includes
 		// the header so we do not add the header length in the following
 		// calculation.
+		
+		// Note that the Vanilla version of this calculation would add
+		// an extra sector if the length to be written fell exactly on
+		// a sector boundary, meaning that if the length was SECTOR_SIZE
+		// it would consume 2 sectors, the 2nd being left empty.  The
+		// chances of that happening are pretty darn slim, but I feel better
+		// being more exact. :)
 		final int sectorsRequired = (length + SECTOR_SIZE - 1) / SECTOR_SIZE;
 		if (sectorsRequired > MAX_SECTORS_PER_CHUNK)
 			return;
@@ -454,7 +443,7 @@ public class MyRegionFile {
 				sectorUsed.set(sectorNumber, sectorNumber + sectorsRequired);
 			}
 
-			setCompressionVersion(regionX, regionZ, COMPRESSION_FLATION);
+			setCompressionVersion(regionX, regionZ, STREAM_VERSION_FLATION);
 
 			if (CHECKSUM_CHECK) {
 				setChunkTimestamp(regionX, regionZ, calculateCRC(buffer, length));
