@@ -72,8 +72,6 @@ public class RenameMapper extends Remapper {
 			return name;
 		
 		final String newName = methodNameMap.get(name);
-		if(newName != null)
-			System.out.println(String.format("Renaming '%s' => '%s'", name, newName));
 		return newName == null ? name : newName;
     }
 
