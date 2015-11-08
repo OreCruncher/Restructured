@@ -46,7 +46,7 @@ public class MyChunkBuffer extends OutputStream {
 	// Time measurement stuff. Intended to work with
 	// concurrent ChunkBuffer writes in the case of
 	// multiple IO write threads.
-	private final static boolean DO_TIMINGS = false;
+	private final static boolean DO_TIMINGS = true;
 	private final static AtomicInteger bytesWritten;
 	private final static AtomicInteger totalWrites;
 	private final static AtomicInteger outstandingWrites;

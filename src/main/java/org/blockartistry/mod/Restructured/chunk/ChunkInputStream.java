@@ -31,11 +31,8 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 /**
- * Replacement for the standard DataInputStream that is returned
- * from RegionFile.  The goal is to cache ChunkInputStream objects
- * for reuse, but currently AnvilChunkLoader does not issue a
- * close() on the stream once it is done reading.  It needs to be
- * fixed to issue that close().
+ * Replacement for the standard DataInputStream that is returned from
+ * RegionFile.
  */
 public class ChunkInputStream extends DataInputStream {
 
@@ -43,21 +40,21 @@ public class ChunkInputStream extends DataInputStream {
 
 	public static ChunkInputStream getStream(final byte[] bits, final int dataLength) {
 		ChunkInputStream buffer = freeInputStreams.poll();
-		if(buffer == null)
+		if (buffer == null)
 			buffer = new ChunkInputStream();
-		
+
 		return buffer.reset(bits, dataLength);
 	}
-	
+
 	private final static int CHUNK_HEADER_SIZE = 5;
-	
+
 	private Inflater inflater;
 	private ByteArrayInputStream input;
 	private InflaterInputStream inflaterStream;
 
 	public ChunkInputStream() {
 		super(null);
-		
+
 		this.inflater = new Inflater();
 	}
 
@@ -68,7 +65,7 @@ public class ChunkInputStream extends DataInputStream {
 		this.in = this.inflaterStream;
 		return this;
 	}
-	
+
 	@Override
 	public void close() throws IOException {
 		// Close out the underlying stream and queue
