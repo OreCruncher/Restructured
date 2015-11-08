@@ -52,7 +52,6 @@ public class Transformer implements IClassTransformer {
 
 	static {
 
-		targets.put("net.minecraft.world.chunk.storage.AnvilChunkLoader", MyAnvilChunkLoader.class);
 		targets.put("net.minecraft.world.chunk.storage.RegionFileCache", MyRegionCache.class);
 		targets.put("net.minecraft.world.chunk.storage.RegionFile", MyRegionFile.class);
 		targets.put("net.minecraft.world.chunk.storage.ChunkBuffer", MyChunkBuffer.class);
@@ -60,11 +59,12 @@ public class Transformer implements IClassTransformer {
 		targets.put("net.minecraft.world.storage.ThreadedFileIOBase", MyThreadedFileIOBase.class);
 		targets.put("net.minecraft.world.storage.ChunkOutputStream", ChunkOutputStream.class);
 		targets.put("net.minecraft.world.storage.ChunkInputStream", ChunkInputStream.class);
+		targets.put("net.minecraft.world.chunk.storage.AnvilChunkLoader", MyAnvilChunkLoader.class);
 
-		targets.put("aqk", MyAnvilChunkLoader.class);
 		targets.put("aqj", MyRegionCache.class);
 		targets.put("aqh", MyRegionFile.class);
 		targets.put("azr", MyThreadedFileIOBase.class);
+		targets.put("aqk", MyAnvilChunkLoader.class);
 
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyAnvilChunkLoader",
 				"net.minecraft.world.chunk.storage.AnvilChunkLoader");
@@ -98,6 +98,9 @@ public class Transformer implements IClassTransformer {
 		obsRemap.put("queueIO", "func_75735_a");
 		obsRemap.put("waitForFinish", "func_75734_a");
 		obsRemap.put("threadedIOInstance", "field_75741_a");
+		
+		// AnvilChunkLoader
+		obsRemap.put("chunkSaveLocation", "field_75825_d");
 	}
 
 	private byte[] getClassBytes(final Class<?> clazz) {
