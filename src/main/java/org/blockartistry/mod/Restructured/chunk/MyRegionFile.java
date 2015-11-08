@@ -35,25 +35,22 @@ import net.minecraft.server.MinecraftServer;
  * Replacement for Minecraft's RegionFile implementation. This version improves
  * on Minecraft's implementation in the following ways:
  * 
- * - Sector based reads/writes. It is more efficient to read buffers of
+ * + Sector based reads/writes. It is more efficient to read buffers of
  * information than individual pieces from the file.
  * 
- * - Using BitSet to track used sectors within the data file rather than an
+ * + Using BitSet to track used sectors within the data file rather than an
  * array of Boolean objects.
  * 
- * - Changed the parameters to the Deflate compression routine to improve
- * overall performance of serializing and updating chunk data on disk.
- * 
- * - Cache compression version of a chunk to mitigate impact of repeated
+ * + Cache compression version of a chunk to mitigate impact of repeated
  * chunkExist() calls.
  * 
- * - Pre-read chunk data during chunkExist() in anticipation of the subsequent
+ * + Pre-read chunk data during chunkExist() in anticipation of the subsequent
  * getChunkDataInputStream().
  * 
- * - Write to the data file control region is via a direct IntBuffer that
+ * + Write to the data file control region is via a direct IntBuffer that
  * overlays the file region.
  * 
- * - Extend the data file with multiple empty sectors rather than just what is
+ * + Extend the data file with multiple empty sectors rather than just what is
  * needed for a given chunk write. This improves the overall time taken to
  * initialize a new region file.
  */

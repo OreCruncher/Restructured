@@ -31,16 +31,16 @@ import net.minecraft.world.storage.IThreadedFileIO;
 /**
  * Replacement ThreadedFileIOBase. It improves on the Vanilla version by:
  * 
- * - Uses a LinkedBlockingDeque for queuing tasks to be executed.
+ * + Uses a LinkedBlockingDeque for queuing tasks to be executed.
  * 
- * - Capable of having multiple threads servicing the queue.
+ * + Capable of having multiple threads servicing the queue.
  * 
- * - Efficient wait on the queue for work. No sleeps or other timers. Immediate
+ * + Efficient wait on the queue for work. No sleeps or other timers. Immediate
  * dispatch of work when it is queued.
  * 
- * - Simple AtomicInteger for tracking work that is being performed.
+ * + Simple AtomicInteger for tracking work that is being performed.
  *
- * - Doesn't have the strange behavior of leaving a task in the queue when it is
+ * + Doesn't have the strange behavior of leaving a task in the queue when it is
  * being executed. Tasks are removed and it is up to application logic to put
  * the appropriate items into the queue for servicing. (This works with the
  * AnvilChunkLoader code.)

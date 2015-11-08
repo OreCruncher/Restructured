@@ -32,7 +32,15 @@ import java.util.zip.InflaterInputStream;
 
 /**
  * Replacement for the standard DataInputStream that is returned from
- * RegionFile.
+ * RegionFile.  Improvements:
+ * 
+ * + Object pooling so the stream instances can be reused.  Helps reduce
+ * GC pressures for IO as well as speed things up a tad for processing.
+ * 
+ * + Maintain buffers between reads if possible.  Reduces probably
+ * of buffer allocation over time.
+ * 
+ * + Share byte buffer with MyRegionFile for efficiency.
  */
 public class ChunkInputStream extends DataInputStream {
 

@@ -59,29 +59,28 @@ import org.apache.logging.log4j.Logger;
  * Implementation of a new AnvilChunkLoader. The improvements that have been
  * made:
  * 
- * - Single list tracking pending write operations rather than having two lists
+ * + Single list tracking pending write operations rather than having two lists
  * which resulted in a double search.
  * 
- * - Use a Map instead of array for lookups of cached writes. Eliminate
+ * + Use a Map instead of array for lookups of cached writes. Eliminate
  * PendingChunk in the process.
  * 
- * - Issue a close() on the ChunkInputStream object when the chunk has been
+ * + Issue a close() on the ChunkInputStream object when the chunk has been
  * deserialized. This permits the object to be placed back into the object pool.
  * 
- * - Refine the scope of locks that need to be held so that they are as narrow
+ * + Refine the scope of locks that need to be held so that they are as narrow
  * as possible.
  * 
- * - Removed the session lock check during chunk save. The check was opening and
+ * + Removed the session lock check during chunk save. The check was opening and
  * reading the lock file every time a chunk save came through. Mechanism should
  * be changed to use the file as a semaphore by obtaining an exclusive lock when
- * the world loads and croak at that time.
- *
+ * the world loads and croak at that time if there is contention.
  *
  * Note that this implementation uses a Map rather than ArrayList for tracking
  * the pending writes. At the moment having an entry in the list for save is
  * more important than any other particular FIFO need.  In fact the hashCode
  * may provide a degree of randomization when it comes to write and avoid
- * the serial nature of writing chunks since the underlying RegionMap is
+ * the serial nature of writing chunks since the underlying RegionMap are
  * synchronized.
  */
 public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {

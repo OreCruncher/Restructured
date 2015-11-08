@@ -32,8 +32,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Replaces Minecraft MyChunkBuffer. It improves on Minecraft's implementation
  * in the following ways:
  * 
- * + Default allocation is 4 sectors. Most newly formed/empty chunks take one or
- * two sectors to hold NBT information.
+ * + Default allocation is 8 sectors. Most newly formed/empty chunks take one or
+ * two sectors to hold NBT information.  It is expected that modded chunks may
+ * take more sectors.
  * 
  * + The chunk stream header is incorporated into the buffer to reduce impact on
  * the underlying write routines.
@@ -67,7 +68,7 @@ public class MyChunkBuffer extends OutputStream {
 		}
 	}
 
-	private final static int DEFAULT_BUFFER_SIZE = 4096 * 4;
+	private final static int DEFAULT_BUFFER_SIZE = 4096 * 8;
 	private final static int CHUNK_HEADER_SIZE = 5;
 
 	private MyRegionFile file;

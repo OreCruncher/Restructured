@@ -36,12 +36,15 @@ import java.util.zip.DeflaterOutputStream;
  * that is normally returned by RegionFile and improves on it
  * in the following ways:
  * 
- * - The deflation compression objects are reused rather than
+ * + Object pool for reducing pressure on GC and improving
+ * performance a tad.
+ * 
+ * + The deflation compression objects are reused rather than
  * reallocating from the heap.  Helps mitigate impacts of
  * memory allocation and GC when realistically they can be
  * long lived objects with tons of reuse.
  * 
- * - The deflation parameters have been adjusted to improve
+ * + The deflation parameters have been adjusted to improve
  * performance with little more data size.
  *
  */

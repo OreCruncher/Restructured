@@ -26,6 +26,11 @@ package org.blockartistry.mod.Restructured.chunk;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Non-synchronized version of ByteArrayInputStream that also
+ * permits attachment of byte buffers rather than recreating
+ * the input stream from scratch.
+ */
 public class ByteArrayInputStreamNonAsync extends InputStream {
 
     protected byte buf[];
