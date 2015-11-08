@@ -26,6 +26,7 @@ package org.blockartistry.mod.Restructured.chunk;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -46,6 +47,7 @@ import java.util.zip.DeflaterOutputStream;
  */
 public class ChunkOutputStream extends DataOutputStream {
 
+	private static final AtomicInteger streamNumber = new AtomicInteger();
 	private final static ConcurrentLinkedQueue<ChunkOutputStream> freeOutputStreams = new ConcurrentLinkedQueue<ChunkOutputStream>();
 
 	public static ChunkOutputStream getStream(final int chunkX, final int chunkZ, final MyRegionFile region) {
@@ -61,6 +63,9 @@ public class ChunkOutputStream extends DataOutputStream {
 	private final static int COMPRESSION_LEVEL = 4;
 	private final static int COMPRESSION_STRATEGY = Deflater.FILTERED;
 	private final static int COMPRESSION_BUFFER_SIZE = 4096;
+
+	@SuppressWarnings("unused")
+	private int myID = streamNumber.incrementAndGet();
 
 	private MyChunkBuffer myChunkBuffer = new MyChunkBuffer(0, 0, null);
 	private Deflater myDeflater = new Deflater(COMPRESSION_LEVEL);

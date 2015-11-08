@@ -37,7 +37,6 @@ import org.blockartistry.mod.Restructured.chunk.ChunkInputStream;
 import org.blockartistry.mod.Restructured.chunk.ChunkOutputStream;
 import org.blockartistry.mod.Restructured.chunk.MyAnvilChunkLoader;
 import org.blockartistry.mod.Restructured.chunk.MyChunkBuffer;
-import org.blockartistry.mod.Restructured.chunk.MyPendingChunk;
 import org.blockartistry.mod.Restructured.chunk.MyRegionCache;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -61,7 +60,6 @@ public class Transformer implements IClassTransformer {
 		targets.put("net.minecraft.world.storage.ThreadedFileIOBase", MyThreadedFileIOBase.class);
 		targets.put("net.minecraft.world.storage.ChunkOutputStream", ChunkOutputStream.class);
 		targets.put("net.minecraft.world.storage.ChunkInputStream", ChunkInputStream.class);
-		targets.put("net.minecraft.world.chunk.storage.PendingChunk", MyPendingChunk.class);
 
 		targets.put("aqk", MyAnvilChunkLoader.class);
 		targets.put("aqj", MyRegionCache.class);
@@ -70,8 +68,6 @@ public class Transformer implements IClassTransformer {
 
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyAnvilChunkLoader",
 				"net.minecraft.world.chunk.storage.AnvilChunkLoader");
-		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyPendingChunk",
-				"net.minecraft.world.chunk.storage.PendingChunk");
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyRegionCache",
 				"net.minecraft.world.chunk.storage.RegionFileCache");
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyRegionFile",

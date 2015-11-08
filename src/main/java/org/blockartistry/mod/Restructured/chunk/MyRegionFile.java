@@ -93,7 +93,7 @@ public class MyRegionFile {
 	// the actual read to occur during chunk exist since it has
 	// to read some of the data from the file to determine
 	// if it exists.
-	private byte[] ceBuffer = null;
+	private ChunkInputStream ceStream = null;
 	private int ceX = -1;
 	private int ceZ = -1;
 
@@ -202,6 +202,7 @@ public class MyRegionFile {
 
 		if (buffer == null || buffer.length < dataLength)
 			buffer = new byte[dataLength];
+		
 		dataFile.seek(dataPosition);
 		int bytesRead = dataFile.read(buffer, 0, dataLength);
 		if (bytesRead != dataLength) {
@@ -216,6 +217,10 @@ public class MyRegionFile {
 		dataFile.write(buffer, 0, length);
 	}
 
+	private int lastUsedSector() {
+		return sectorUsed.previousSetBit(sectorUsed.length());
+	}
+	
 	private int sectorCount() throws IOException {
 		return (int) (dataFile.length() / SECTOR_SIZE);
 	}
@@ -239,7 +244,7 @@ public class MyRegionFile {
 		final int sectorNumber = offset >> SECTOR_NUMBER_SHIFT;
 		final int numberOfSectors = offset & SECTOR_COUNT_MASK;
 
-		if (sectorNumber + numberOfSectors > sectorsInFile)
+		if (sectorNumber + numberOfSectors > lastUsedSector())
 			return false;
 
 		if (isValidCompressionVersion(getCompressionVersion(regionX, regionZ)))
@@ -247,21 +252,24 @@ public class MyRegionFile {
 
 		try {
 
+			final int dataLength = numberOfSectors * SECTOR_SIZE;
+			
 			// Pre-load the chunk because there is going to be
 			// a read right behind.
 			ceX = ceZ = -1;
-			ceBuffer = readSectors(sectorNumber, numberOfSectors, ceBuffer);
-
-			final int dataLength = numberOfSectors * SECTOR_SIZE;
-			final int streamLength = getInt(ceBuffer);
+			if(ceStream == null)
+				ceStream = ChunkInputStream.getStream();
+			
+			final byte[] buffer = readSectors(sectorNumber, numberOfSectors, ceStream.getBuffer(dataLength));
+			final int streamLength = getInt(buffer);
 
 			if (streamLength <= 0 || streamLength > dataLength)
 				return false;
 
-			if (isValidCompressionVersion(ceBuffer[4])) {
+			if (isValidCompressionVersion(buffer[4])) {
 				ceX = regionX;
 				ceZ = regionZ;
-				setCompressionVersion(regionX, regionZ, ceBuffer[4]);
+				setCompressionVersion(regionX, regionZ, buffer[4]);
 				return true;
 			}
 
@@ -284,29 +292,33 @@ public class MyRegionFile {
 		final int sectorNumber = offset >> SECTOR_NUMBER_SHIFT;
 		final int numberOfSectors = offset & SECTOR_COUNT_MASK;
 
-		if (sectorNumber + numberOfSectors > sectorsInFile) {
+		if (sectorNumber + numberOfSectors > lastUsedSector()) {
 			return null;
 		}
 
 		try {
 
+			final int dataLength = numberOfSectors * SECTOR_SIZE;
+			
+			ChunkInputStream stream;
 			byte[] buffer = null;
 
-			if (ceBuffer != null && ceX == regionX && ceZ == regionZ) {
-				buffer = ceBuffer;
-				ceBuffer = null;
+			if (ceStream != null && ceX == regionX && ceZ == regionZ) {
+				stream = ceStream;
+				buffer = stream.getBuffer();
+				ceStream = null;
 				ceX = ceZ = -1;
 			} else {
-				// Direct read from the region file
-				buffer = readSectors(sectorNumber, numberOfSectors, null);
+				stream = ChunkInputStream.getStream();
+				buffer = readSectors(sectorNumber, numberOfSectors, stream.getBuffer(dataLength));
 			}
 
-			final int dataLength = numberOfSectors * SECTOR_SIZE;
 			final int streamLength = getInt(buffer);
 
 			if (streamLength <= 0 || streamLength > dataLength) {
 				System.out.println(String.format("getChunkDataInputStream() %d %d streamLength (%d) return null",
 						regionX, regionZ, streamLength));
+				ChunkInputStream.returnStream(stream);
 				return null;
 			}
 
@@ -319,7 +331,7 @@ public class MyRegionFile {
 			// Pass back an appropriate stream for the requester
 			switch (buffer[4]) {
 			case STREAM_VERSION_FLATION:
-				return ChunkInputStream.getStream(buffer, dataLength);
+				return stream.bake();
 			case STREAM_VERSION_GZIP:
 				final InputStream is = new ByteArrayInputStream(buffer, CHUNK_HEADER_SIZE, dataLength);
 				return new DataInputStream(new GZIPInputStream(is));
@@ -351,11 +363,11 @@ public class MyRegionFile {
 		// before this write was initiated. The provided length includes
 		// the header so we do not add the header length in the following
 		// calculation.
-		
+
 		// Note that the Vanilla version of this calculation would add
 		// an extra sector if the length to be written fell exactly on
 		// a sector boundary, meaning that if the length was SECTOR_SIZE
-		// it would consume 2 sectors, the 2nd being left empty.  The
+		// it would consume 2 sectors, the 2nd being left empty. The
 		// chances of that happening are pretty darn slim, but I feel better
 		// being more exact. :)
 		final int sectorsRequired = (length + SECTOR_SIZE - 1) / SECTOR_SIZE;
@@ -371,10 +383,11 @@ public class MyRegionFile {
 
 		try {
 
-			// If we are writing this chunk it is stale
+			// If we are writing this chunk it is stale.  Keep
+			// any cached stream - it can be reused for the next
+			// go around.
 			if (ceX == regionX && ceZ == regionZ) {
 				ceX = ceZ = -1;
-				ceBuffer = null;
 			}
 
 			boolean zeroRegion = false;

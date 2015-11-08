@@ -73,7 +73,6 @@ public class MyRegionCache {
 	}
 
 	public static void clearRegionFileReferences() {
-
 		synchronized (regionsByFilename) {
 
 			for (final MyRegionFile rf : regionsByFilename.values()) {

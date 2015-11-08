@@ -28,9 +28,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -54,23 +56,39 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * Implementation of a new AnvilChunkLoader. The improvements that have been made:
+ * Implementation of a new AnvilChunkLoader. The improvements that have been
+ * made:
  * 
  * - Single list tracking pending write operations rather than having two lists
  * which resulted in a double search.
+ * 
+ * - Use a Map instead of array for lookups of cached writes. Eliminate
+ * PendingChunk in the process.
  * 
  * - Issue a close() on the ChunkInputStream object when the chunk has been
  * deserialized. This permits the object to be placed back into the object pool.
  * 
  * - Refine the scope of locks that need to be held so that they are as narrow
  * as possible.
+ * 
+ * - Removed the session lock check during chunk save. The check was opening and
+ * reading the lock file every time a chunk save came through. Mechanism should
+ * be changed to use the file as a semaphore by obtaining an exclusive lock when
+ * the world loads and croak at that time.
  *
+ *
+ * Note that this implementation uses a Map rather than ArrayList for tracking
+ * the pending writes. At the moment having an entry in the list for save is
+ * more important than any other particular FIFO need.  In fact the hashCode
+ * may provide a degree of randomization when it comes to write and avoid
+ * the serial nature of writing chunks since the underlying RegionMap is
+ * synchronized.
  */
 public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 
 	private static final Logger logger = LogManager.getLogger();
 	public final File chunkSaveLocation;
-	private List<MyPendingChunk> pendingIO = new ArrayList<MyPendingChunk>();
+	private final Map<ChunkCoordIntPair, NBTTagCompound> pendingIO = new HashMap<ChunkCoordIntPair, NBTTagCompound>();
 
 	public MyAnvilChunkLoader(final File saveLocation) {
 		this.chunkSaveLocation = saveLocation;
@@ -80,11 +98,11 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 
 		final ChunkCoordIntPair coords = new ChunkCoordIntPair(chunkX, chunkZ);
 		synchronized (pendingIO) {
-			if (pendingIO.contains(coords))
+			if (pendingIO.containsKey(coords))
 				return true;
 		}
 
-		return MyRegionCache.createOrLoadRegionFile(this.chunkSaveLocation, chunkX, chunkZ).chunkExists(chunkX & 31,
+		return MyRegionCache.createOrLoadRegionFile(chunkSaveLocation, chunkX, chunkZ).chunkExists(chunkX & 31,
 				chunkZ & 31);
 	}
 
@@ -103,17 +121,20 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 		NBTTagCompound nbt = null;
 		final ChunkCoordIntPair coords = new ChunkCoordIntPair(chunkX, chunkZ);
 		synchronized (pendingIO) {
-			final int idx = pendingIO.indexOf(coords);
-			if (idx != -1)
-				nbt = pendingIO.get(idx).nbtTags;
+			nbt = pendingIO.get(coords);
 		}
 
 		if (nbt == null) {
-			final DataInputStream stream = MyRegionCache.getChunkInputStream(this.chunkSaveLocation, chunkX, chunkZ);
+			final DataInputStream stream = MyRegionCache.getChunkInputStream(chunkSaveLocation, chunkX, chunkZ);
 			if (stream == null) {
 				return null;
 			}
 			nbt = CompressedStreamTools.read(stream);
+
+			// Need this. Underneath it triggers the routines to put
+			// the stream into it's object pool for reuse. Besides,
+			// you should always close a stream when done because it
+			// may be needed.
 			stream.close();
 		}
 
@@ -159,25 +180,20 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 	}
 
 	public void saveChunk(final World world, final Chunk chunk) throws MinecraftException, IOException {
-		world.checkSessionLock();
 		try {
-			
+
 			final NBTTagCompound nbt1 = new NBTTagCompound();
 			final NBTTagCompound nbt2 = new NBTTagCompound();
 			nbt1.setTag("Level", nbt2);
 			writeChunkToNBT(chunk, world, nbt2);
 			MinecraftForge.EVENT_BUS.post(new ChunkDataEvent.Save(chunk, nbt1));
-			
+
 			final ChunkCoordIntPair coords = chunk.getChunkCoordIntPair();
 
 			synchronized (pendingIO) {
-				final int idx = pendingIO.indexOf(coords);
-				if (idx != -1)
-					pendingIO.get(idx).nbtTags = nbt1;
-				else
-					pendingIO.add(new MyPendingChunk(coords, nbt1));
+				pendingIO.put(coords, nbt1);
 			}
-			
+
 			MyThreadedFileIOBase.threadedIOInstance.queueIO(this);
 
 		} catch (final Exception exception) {
@@ -186,15 +202,20 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 	}
 
 	public boolean writeNextIO() {
-		MyPendingChunk pendingchunk = null;
-		
+		ChunkCoordIntPair coords = null;
+		NBTTagCompound nbt = null;
+
 		synchronized (pendingIO) {
-			pendingchunk = (pendingIO.isEmpty()) ? null : pendingIO.remove(0);
+			if (!pendingIO.isEmpty()) {
+				// Peel the first entry from the map
+				coords = pendingIO.keySet().iterator().next();
+				nbt = pendingIO.remove(coords);
+			}
 		}
-		
-		if (pendingchunk != null) {
+
+		if (nbt != null) {
 			try {
-				writeChunkNBTTags(pendingchunk);
+				writeChunkNBTTags(coords, nbt);
 			} catch (Exception exception) {
 				exception.printStackTrace();
 			}
@@ -202,10 +223,10 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 		return true;
 	}
 
-	private void writeChunkNBTTags(final MyPendingChunk chunk) throws IOException {
-		final DataOutputStream stream = MyRegionCache.getChunkOutputStream(this.chunkSaveLocation,
-				chunk.coords.chunkXPos, chunk.coords.chunkZPos);
-		CompressedStreamTools.write(chunk.nbtTags, stream);
+	private void writeChunkNBTTags(final ChunkCoordIntPair coords, final NBTTagCompound nbt) throws IOException {
+		final DataOutputStream stream = MyRegionCache.getChunkOutputStream(chunkSaveLocation, coords.chunkXPos,
+				coords.chunkZPos);
+		CompressedStreamTools.write(nbt, stream);
 		stream.close();
 	}
 

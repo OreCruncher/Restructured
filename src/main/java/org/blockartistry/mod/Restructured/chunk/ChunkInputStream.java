@@ -23,10 +23,10 @@
 
 package org.blockartistry.mod.Restructured.chunk;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
@@ -36,41 +36,108 @@ import java.util.zip.InflaterInputStream;
  */
 public class ChunkInputStream extends DataInputStream {
 
+	// Size limit of the buffer that is kept around. Defaults
+	// to 8 sectors, and may need to be tuned based on modpack
+	// behaviors.
+	private static final int INPUT_BUFFER_SIZE_LIMIT = 4096 * 8;
+
+	private static final int CHUNK_HEADER_SIZE = 5;
+
+	private static final AtomicInteger streamNumber = new AtomicInteger();
+
 	private final static ConcurrentLinkedQueue<ChunkInputStream> freeInputStreams = new ConcurrentLinkedQueue<ChunkInputStream>();
 
-	public static ChunkInputStream getStream(final byte[] bits, final int dataLength) {
-		ChunkInputStream buffer = freeInputStreams.poll();
-		if (buffer == null)
-			buffer = new ChunkInputStream();
-
-		return buffer.reset(bits, dataLength);
+	public static ChunkInputStream getStream() {
+		final ChunkInputStream buffer = freeInputStreams.poll();
+		return buffer != null ? buffer : new ChunkInputStream();
 	}
 
-	private final static int CHUNK_HEADER_SIZE = 5;
+	public static void returnStream(final ChunkInputStream stream) {
+		if (stream != null)
+			freeInputStreams.add(stream);
+	}
 
+	@SuppressWarnings("unused")
+	private int myID = streamNumber.incrementAndGet();
+
+	private byte[] inputBuffer;
 	private Inflater inflater;
-	private ByteArrayInputStream input;
+	private ByteArrayInputStreamNonAsync input;
 	private InflaterInputStream inflaterStream;
 
 	public ChunkInputStream() {
 		super(null);
 
-		this.inflater = new Inflater();
+		inputBuffer = new byte[INPUT_BUFFER_SIZE_LIMIT];
+		input = new ByteArrayInputStreamNonAsync();
+		inflater = new Inflater();
 	}
 
-	protected ChunkInputStream reset(final byte[] buffer, final int dataLength) {
-		this.input = new ByteArrayInputStream(buffer, CHUNK_HEADER_SIZE, dataLength);
-		this.inflater.reset();
-		this.inflaterStream = new InflaterInputStream(this.input, inflater);
-		this.in = this.inflaterStream;
+	public ChunkInputStream bake() {
+		if (inputBuffer == null)
+			inputBuffer = new byte[INPUT_BUFFER_SIZE_LIMIT];
+
+		input.attach(inputBuffer, CHUNK_HEADER_SIZE, inputBuffer.length);
+		inflater.reset();
+		inflaterStream = new InflaterInputStream(input, inflater);
+		in = inflaterStream;
 		return this;
+	}
+
+	public byte[] getBuffer() {
+		return inputBuffer;
+	}
+
+	/**
+	 * Get's the buffer associated with the stream and ensures it is of
+	 * an appropriate size.  The length of the buffer returned can be
+	 * greater than requested.
+	 * 
+	 * @param desiredSize
+	 * @return
+	 */
+	public byte[] getBuffer(final int desiredSize) {
+		if (inputBuffer == null || desiredSize > inputBuffer.length)
+			inputBuffer = new byte[Math.max(desiredSize, INPUT_BUFFER_SIZE_LIMIT)];
+
+		return inputBuffer;
+	}
+
+	/**
+	 * Attaches the buffer to this stream. The stream takes ownership.
+	 * 
+	 * @param buffer
+	 * @return
+	 */
+	public byte[] setBuffer(final byte[] buffer) {
+		inputBuffer = buffer;
+		return buffer;
+	}
+
+	/**
+	 * Resizes the buffer if necessary to stay within limits.
+	 */
+	public void trimBuffer() {
+		if (inputBuffer != null && inputBuffer.length > INPUT_BUFFER_SIZE_LIMIT)
+			inputBuffer = null;
 	}
 
 	@Override
 	public void close() throws IOException {
 		// Close out the underlying stream and queue
 		// for reuse.
-		this.in.close();
+		if (in != null) {
+			in.close();
+			in = null;
+			inflaterStream = null;
+		}
+
+		// Get the buffer back to normal if needed. Don't
+		// want to keep very large buffers around if it
+		// isn't needed.
+		trimBuffer();
+
+		// To the free list!
 		freeInputStreams.add(this);
 	}
 }
