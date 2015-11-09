@@ -57,7 +57,7 @@ public class MyThreadedFileIOBase implements Runnable {
 	private final static AtomicInteger outstandingWork = new AtomicInteger();
 
 	public final static MyThreadedFileIOBase threadedIOInstance = new MyThreadedFileIOBase(THREAD_COUNT);
-
+	
 	private MyThreadedFileIOBase() {
 		this(1);
 	}
@@ -72,7 +72,7 @@ public class MyThreadedFileIOBase implements Runnable {
 			thread.start();
 		}
 	}
-
+	
 	public void run() {
 		do {
 
@@ -81,8 +81,12 @@ public class MyThreadedFileIOBase implements Runnable {
 				// Service an item from the queue. The outstanding work
 				// is decremented AFTER the service.
 				final IThreadedFileIO task = workQueue.take();
-				task.writeNextIO();
-				outstandingWork.decrementAndGet();
+				
+				try {
+					task.writeNextIO();
+				} finally {
+					outstandingWork.decrementAndGet();
+				}
 
 			} catch (final InterruptedException ie) {
 				;

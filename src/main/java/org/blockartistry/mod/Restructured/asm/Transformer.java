@@ -35,6 +35,7 @@ import org.blockartistry.mod.Restructured.chunk.MyThreadedFileIOBase;
 import org.blockartistry.mod.Restructured.chunk.RegionFileLRU;
 import org.blockartistry.mod.Restructured.chunk.ChunkInputStream;
 import org.blockartistry.mod.Restructured.chunk.ChunkOutputStream;
+import org.blockartistry.mod.Restructured.chunk.LockManager;
 import org.blockartistry.mod.Restructured.chunk.MyAnvilChunkLoader;
 import org.blockartistry.mod.Restructured.chunk.MyChunkBuffer;
 import org.blockartistry.mod.Restructured.chunk.MyRegionCache;
@@ -56,6 +57,7 @@ public class Transformer implements IClassTransformer {
 		targets.put("net.minecraft.world.chunk.storage.RegionFile", MyRegionFile.class);
 		targets.put("net.minecraft.world.chunk.storage.ChunkBuffer", MyChunkBuffer.class);
 		targets.put("net.minecraft.world.chunk.storage.RegionFileLRU", RegionFileLRU.class);
+		targets.put("net.minecraft.world.chunk.storage.LockManager", LockManager.class);
 		targets.put("net.minecraft.world.storage.ThreadedFileIOBase", MyThreadedFileIOBase.class);
 		targets.put("net.minecraft.world.storage.ChunkOutputStream", ChunkOutputStream.class);
 		targets.put("net.minecraft.world.storage.ChunkInputStream", ChunkInputStream.class);
@@ -76,6 +78,8 @@ public class Transformer implements IClassTransformer {
 				"net.minecraft.world.chunk.storage.ChunkBuffer");
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.RegionFileLRU",
 				"net.minecraft.world.chunk.storage.RegionFileLRU");
+		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.LockManager",
+				"net.minecraft.world.chunk.storage.LockManager");
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyThreadedFileIOBase",
 				"net.minecraft.world.storage.ThreadedFileIOBase");
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.ChunkOutputStream",

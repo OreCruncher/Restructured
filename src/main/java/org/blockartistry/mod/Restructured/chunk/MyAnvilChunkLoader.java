@@ -78,15 +78,57 @@ import org.apache.logging.log4j.Logger;
  *
  * Note that this implementation uses a Map rather than ArrayList for tracking
  * the pending writes. At the moment having an entry in the list for save is
- * more important than any other particular FIFO need.  In fact the hashCode
- * may provide a degree of randomization when it comes to write and avoid
- * the serial nature of writing chunks since the underlying RegionMap are
- * synchronized.
+ * more important than any other particular FIFO need. In fact the hashCode may
+ * provide a degree of randomization when it comes to write and avoid the serial
+ * nature of writing chunks since the underlying RegionMap are synchronized.
  */
 public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 
 	private static final Logger logger = LogManager.getLogger();
 	public final File chunkSaveLocation;
+	
+	// To explain there is some hackish type things going on.  With multiple
+	// threads running IO there is a possibility that multiple threads could
+	// attempt writing the same chunk but with different data versions.  For
+	// example:
+	//
+	// 1. Data for Chunk XZ could be pulled off by the IO Thread 1.  Context
+	// switch occurs.
+	//
+	// 2. saveChunk() queues up another update for Chunk XZ.  Context switch
+	// occurs.
+	//
+	// 3. IO Thread 2 pulls off the 2nd Chunk XZ data and starts the write.
+	// It gets a lock on the underlying RegionFile. Context switch.
+	//
+	// 4. IO Thread 1 starts to write, but blocks on the underlying RegionFile
+	// synchronized method lock.  Context switch.
+	//
+	// 5. IO Thread 2 completes the write.  New data written. Context switch.
+	//
+	// 6. IO Thread 1 completes the write.  Old data overwrites new data.
+	//
+	// The LockManager<> is intended to mitigate this scenario.  The IO Thread
+	// will obtain a lock with the manager based on the chunk coordinates.
+	// If there isn't a pending lock for that coordinate one is established
+	// and the IO Thread continues.  If a lock is already being held it will
+	// block until the lock is released by the other IO Thread.
+	//
+	// Note that this chunk coordinate lock is obtained while the lock on
+	// pendingIO is held.  If a thread were to block on both locks all save
+	// operations will block until the thread that owns both locks completes
+	// it's activity.  Once that happens concurrent behavior will continue
+	// until such a time a similar circumstance arises.
+	//
+	// Note that the chances of this actually happening are pretty slim.
+	// However, it is possible so it has to be guarded against.  Ideally
+	// the whole Chunk IO cache/write stack should be refactored around
+	// concurrent behavior, but since I am attempting to slide these changes
+	// in under the hood there is a limit to what can be accomplished.
+	//
+	// It's starting to feel like I am back at my old job...
+	//
+	private final LockManager<ChunkCoordIntPair> locks = new LockManager<ChunkCoordIntPair>();
 	private final Map<ChunkCoordIntPair, NBTTagCompound> pendingIO = new HashMap<ChunkCoordIntPair, NBTTagCompound>();
 
 	public MyAnvilChunkLoader(final File saveLocation) {
@@ -199,6 +241,7 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 			exception.printStackTrace();
 		}
 	}
+	
 
 	public boolean writeNextIO() {
 		ChunkCoordIntPair coords = null;
@@ -209,6 +252,12 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 				// Peel the first entry from the map
 				coords = pendingIO.keySet().iterator().next();
 				nbt = pendingIO.remove(coords);
+				
+				try {
+					locks.lock(coords);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -217,6 +266,8 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 				writeChunkNBTTags(coords, nbt);
 			} catch (Exception exception) {
 				exception.printStackTrace();
+			} finally {
+				locks.unlock(coords);
 			}
 		}
 		return true;
