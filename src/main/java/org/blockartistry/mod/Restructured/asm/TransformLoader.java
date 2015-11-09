@@ -29,7 +29,7 @@ import java.util.Map;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 @IFMLLoadingPlugin.MCVersion(value = "1.7.10")
-@IFMLLoadingPlugin.SortingIndex(value = 1001)
+@IFMLLoadingPlugin.SortingIndex(value = 10001)
 public class TransformLoader implements IFMLLoadingPlugin {
 	
 	public static boolean runtimeDeobEnabled = false;

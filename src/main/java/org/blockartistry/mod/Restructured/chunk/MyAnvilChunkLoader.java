@@ -29,7 +29,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -86,42 +85,42 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 
 	private static final Logger logger = LogManager.getLogger();
 	public final File chunkSaveLocation;
-	
-	// To explain there is some hackish type things going on.  With multiple
+
+	// To explain there is some hackish type things going on. With multiple
 	// threads running IO there is a possibility that multiple threads could
-	// attempt writing the same chunk but with different data versions.  For
+	// attempt writing the same chunk but with different data versions. For
 	// example:
 	//
-	// 1. Data for Chunk XZ could be pulled off by the IO Thread 1.  Context
+	// 1. Data for Chunk XZ could be pulled off by the IO Thread 1. Context
 	// switch occurs.
 	//
-	// 2. saveChunk() queues up another update for Chunk XZ.  Context switch
+	// 2. saveChunk() queues up another update for Chunk XZ. Context switch
 	// occurs.
 	//
 	// 3. IO Thread 2 pulls off the 2nd Chunk XZ data and starts the write.
 	// It gets a lock on the underlying RegionFile. Context switch.
 	//
 	// 4. IO Thread 1 starts to write, but blocks on the underlying RegionFile
-	// synchronized method lock.  Context switch.
+	// synchronized method lock. Context switch.
 	//
-	// 5. IO Thread 2 completes the write.  New data written. Context switch.
+	// 5. IO Thread 2 completes the write. New data written. Context switch.
 	//
-	// 6. IO Thread 1 completes the write.  Old data overwrites new data.
+	// 6. IO Thread 1 completes the write. Old data overwrites new data.
 	//
-	// The LockManager<> is intended to mitigate this scenario.  The IO Thread
+	// The LockManager<> is intended to mitigate this scenario. The IO Thread
 	// will obtain a lock with the manager based on the chunk coordinates.
 	// If there isn't a pending lock for that coordinate one is established
-	// and the IO Thread continues.  If a lock is already being held it will
+	// and the IO Thread continues. If a lock is already being held it will
 	// block until the lock is released by the other IO Thread.
 	//
 	// Note that this chunk coordinate lock is obtained while the lock on
-	// pendingIO is held.  If a thread were to block on both locks all save
+	// pendingIO is held. If a thread were to block on both locks all save
 	// operations will block until the thread that owns both locks completes
-	// it's activity.  Once that happens concurrent behavior will continue
+	// it's activity. Once that happens concurrent behavior will continue
 	// until such a time a similar circumstance arises.
 	//
 	// Note that the chances of this actually happening are pretty slim.
-	// However, it is possible so it has to be guarded against.  Ideally
+	// However, it is possible so it has to be guarded against. Ideally
 	// the whole Chunk IO cache/write stack should be refactored around
 	// concurrent behavior, but since I am attempting to slide these changes
 	// in under the hood there is a limit to what can be accomplished.
@@ -204,12 +203,12 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 			nbt.setInteger("xPos", chunkX);
 			nbt.setInteger("zPos", chunkZ);
 
-			NBTTagList tileEntities = nbt.getCompoundTag("Level").getTagList("TileEntities", 10);
+			final NBTTagList tileEntities = nbt.getCompoundTag("Level").getTagList("TileEntities", 10);
 			if (tileEntities != null) {
 				for (int te = 0; te < tileEntities.tagCount(); te++) {
-					NBTTagCompound tileEntity = tileEntities.getCompoundTagAt(te);
-					int x = tileEntity.getInteger("x") - chunk.xPosition * 16;
-					int z = tileEntity.getInteger("z") - chunk.zPosition * 16;
+					final NBTTagCompound tileEntity = tileEntities.getCompoundTagAt(te);
+					final int x = tileEntity.getInteger("x") - chunk.xPosition * 16;
+					final int z = tileEntity.getInteger("z") - chunk.zPosition * 16;
 					tileEntity.setInteger("x", chunkX * 16 + x);
 					tileEntity.setInteger("z", chunkZ * 16 + z);
 				}
@@ -226,7 +225,11 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 			final NBTTagCompound nbt1 = new NBTTagCompound();
 			final NBTTagCompound nbt2 = new NBTTagCompound();
 			nbt1.setTag("Level", nbt2);
+			
+			final long startTime = System.nanoTime();
 			writeChunkToNBT(chunk, world, nbt2);
+			final long elapsedTime = System.nanoTime() - startTime;
+			System.out.println(String.format("Serialization time: %d", elapsedTime / 1000));
 			MinecraftForge.EVENT_BUS.post(new ChunkDataEvent.Save(chunk, nbt1));
 
 			final ChunkCoordIntPair coords = chunk.getChunkCoordIntPair();
@@ -241,32 +244,39 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 			exception.printStackTrace();
 		}
 	}
-	
 
 	public boolean writeNextIO() {
 		ChunkCoordIntPair coords = null;
 		NBTTagCompound nbt = null;
 
 		synchronized (pendingIO) {
-			if (!pendingIO.isEmpty()) {
-				// Peel the first entry from the map
-				coords = pendingIO.keySet().iterator().next();
-				nbt = pendingIO.remove(coords);
-				
+			if (pendingIO.isEmpty())
+				return false;
+
+			// Peel the first entry from the map
+			coords = pendingIO.keySet().iterator().next();
+			nbt = pendingIO.remove(coords);
+
+			// If this lock attempt blocks the lock on
+			// pendingIO will be held until the lock
+			// clears. The only time the lock should
+			// block is if another IO thread is currently
+			// handling the same chunk.
+			if (nbt != null)
 				try {
 					locks.lock(coords);
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 					e.printStackTrace();
 				}
-			}
 		}
 
 		if (nbt != null) {
 			try {
 				writeChunkNBTTags(coords, nbt);
-			} catch (Exception exception) {
+			} catch (final Exception exception) {
 				exception.printStackTrace();
 			} finally {
+				// Make sure the lock is cleared
 				locks.unlock(coords);
 			}
 		}
@@ -291,6 +301,7 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void writeChunkToNBT(final Chunk chunk, final World world, final NBTTagCompound nbt) {
 		nbt.setByte("V", (byte) 1);
 		nbt.setInteger("xPos", chunk.xPosition);
@@ -300,117 +311,113 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 		nbt.setBoolean("TerrainPopulated", chunk.isTerrainPopulated);
 		nbt.setBoolean("LightPopulated", chunk.isLightPopulated);
 		nbt.setLong("InhabitedTime", chunk.inhabitedTime);
-		ExtendedBlockStorage[] aextendedblockstorage = chunk.getBlockStorageArray();
-		NBTTagList nbttaglist = new NBTTagList();
-		boolean flag = !world.provider.hasNoSky;
-		ExtendedBlockStorage[] aextendedblockstorage1 = aextendedblockstorage;
-		int i = aextendedblockstorage.length;
-		for (int j = 0; j < i; j++) {
-			ExtendedBlockStorage extendedblockstorage = aextendedblockstorage1[j];
-			if (extendedblockstorage != null) {
-				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-				nbttagcompound1.setByte("Y", (byte) (extendedblockstorage.getYLocation() >> 4 & 0xFF));
-				nbttagcompound1.setByteArray("Blocks", extendedblockstorage.getBlockLSBArray());
-				if (extendedblockstorage.getBlockMSBArray() != null) {
-					nbttagcompound1.setByteArray("Add", extendedblockstorage.getBlockMSBArray().data);
+
+		NBTTagCompound scratch = null;
+
+		final NBTTagList sections = new NBTTagList();
+		final boolean flag = !world.provider.hasNoSky;
+		final ExtendedBlockStorage[] ebs = chunk.getBlockStorageArray();
+		for (int j = 0; j < ebs.length; j++) {
+			final ExtendedBlockStorage tebs = ebs[j];
+			if (tebs != null) {
+				scratch = new NBTTagCompound();
+				scratch.setByte("Y", (byte) (tebs.getYLocation() >> 4 & 0xFF));
+				scratch.setByteArray("Blocks", tebs.getBlockLSBArray());
+				if (tebs.getBlockMSBArray() != null) {
+					scratch.setByteArray("Add", tebs.getBlockMSBArray().data);
 				}
-				nbttagcompound1.setByteArray("Data", extendedblockstorage.getMetadataArray().data);
-				nbttagcompound1.setByteArray("BlockLight", extendedblockstorage.getBlocklightArray().data);
+				scratch.setByteArray("Data", tebs.getMetadataArray().data);
+				scratch.setByteArray("BlockLight", tebs.getBlocklightArray().data);
 				if (flag) {
-					nbttagcompound1.setByteArray("SkyLight", extendedblockstorage.getSkylightArray().data);
+					scratch.setByteArray("SkyLight", tebs.getSkylightArray().data);
 				} else {
-					nbttagcompound1.setByteArray("SkyLight",
-							new byte[extendedblockstorage.getBlocklightArray().data.length]);
+					scratch.setByteArray("SkyLight", new byte[tebs.getBlocklightArray().data.length]);
 				}
-				nbttaglist.appendTag(nbttagcompound1);
+				sections.appendTag(scratch);
 			}
 		}
-		nbt.setTag("Sections", nbttaglist);
+		nbt.setTag("Sections", sections);
+
 		nbt.setByteArray("Biomes", chunk.getBiomeArray());
-		chunk.hasEntities = false;
-		NBTTagList nbttaglist2 = new NBTTagList();
-		for (i = 0; i < chunk.entityLists.length; i++) {
-			Iterator<?> iterator1 = chunk.entityLists[i].iterator();
-			while (iterator1.hasNext()) {
-				Entity entity = (Entity) iterator1.next();
-				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
+
+		final NBTTagList entities = new NBTTagList();
+		for (int i = 0; i < chunk.entityLists.length; i++) {
+			for (final Entity entity : (List<Entity>) chunk.entityLists[i]) {
+				scratch = new NBTTagCompound();
 				try {
-					if (entity.writeToNBTOptional(nbttagcompound1)) {
-						chunk.hasEntities = true;
-						nbttaglist2.appendTag(nbttagcompound1);
+					if (entity.writeToNBTOptional(scratch)) {
+						entities.appendTag(scratch);
 					}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					FMLLog.log(Level.ERROR, e,
 							"An Entity type %s has thrown an exception trying to write state. It will not persist. Report this to the mod author",
 							new Object[] { entity.getClass().getName() });
 				}
 			}
 		}
-		nbt.setTag("Entities", nbttaglist2);
-		NBTTagList nbttaglist3 = new NBTTagList();
-		Iterator<?> iterator1 = chunk.chunkTileEntityMap.values().iterator();
-		while (iterator1.hasNext()) {
-			TileEntity tileentity = (TileEntity) iterator1.next();
-			NBTTagCompound nbttagcompound1 = new NBTTagCompound();
+		chunk.hasEntities = entities.tagCount() > 0;
+		nbt.setTag("Entities", entities);
+
+		final NBTTagList tileEntities = new NBTTagList();
+		for (final TileEntity tileentity : (Iterable<TileEntity>) chunk.chunkTileEntityMap.values()) {
+			scratch = new NBTTagCompound();
 			try {
-				tileentity.writeToNBT(nbttagcompound1);
-				nbttaglist3.appendTag(nbttagcompound1);
-			} catch (Exception e) {
+				tileentity.writeToNBT(scratch);
+				tileEntities.appendTag(scratch);
+			} catch (final Exception e) {
 				FMLLog.log(Level.ERROR, e,
 						"A TileEntity type %s has throw an exception trying to write state. It will not persist. Report this to the mod author",
 						new Object[] { tileentity.getClass().getName() });
 			}
 		}
-		nbt.setTag("TileEntities", nbttaglist3);
-		List<?> list = world.getPendingBlockUpdates(chunk, false);
+		nbt.setTag("TileEntities", tileEntities);
+
+		final List<NextTickListEntry> list = world.getPendingBlockUpdates(chunk, false);
 		if (list != null) {
-			long k = world.getTotalWorldTime();
-			NBTTagList nbttaglist1 = new NBTTagList();
-			Iterator<?> iterator = list.iterator();
-			while (iterator.hasNext()) {
-				NextTickListEntry nextticklistentry = (NextTickListEntry) iterator.next();
-				NBTTagCompound nbttagcompound2 = new NBTTagCompound();
-				nbttagcompound2.setInteger("i", Block.getIdFromBlock(nextticklistentry.func_151351_a()));
-				nbttagcompound2.setInteger("x", nextticklistentry.xCoord);
-				nbttagcompound2.setInteger("y", nextticklistentry.yCoord);
-				nbttagcompound2.setInteger("z", nextticklistentry.zCoord);
-				nbttagcompound2.setInteger("t", (int) (nextticklistentry.scheduledTime - k));
-				nbttagcompound2.setInteger("p", nextticklistentry.priority);
-				nbttaglist1.appendTag(nbttagcompound2);
+			final long k = world.getTotalWorldTime();
+			final NBTTagList tileTicks = new NBTTagList();
+			for (final NextTickListEntry tickEntry : list) {
+				scratch = new NBTTagCompound();
+				scratch.setInteger("i", Block.getIdFromBlock(tickEntry.func_151351_a()));
+				scratch.setInteger("x", tickEntry.xCoord);
+				scratch.setInteger("y", tickEntry.yCoord);
+				scratch.setInteger("z", tickEntry.zCoord);
+				scratch.setInteger("t", (int) (tickEntry.scheduledTime - k));
+				scratch.setInteger("p", tickEntry.priority);
+				tileTicks.appendTag(scratch);
 			}
-			nbt.setTag("TileTicks", nbttaglist1);
+			nbt.setTag("TileTicks", tileTicks);
 		}
 	}
 
 	private Chunk readChunkFromNBT(final World world, final NBTTagCompound nbt) {
-		int i = nbt.getInteger("xPos");
-		int j = nbt.getInteger("zPos");
-		Chunk chunk = new Chunk(world, i, j);
+		final int i = nbt.getInteger("xPos");
+		final int j = nbt.getInteger("zPos");
+		final Chunk chunk = new Chunk(world, i, j);
 		chunk.heightMap = nbt.getIntArray("HeightMap");
 		chunk.isTerrainPopulated = nbt.getBoolean("TerrainPopulated");
 		chunk.isLightPopulated = nbt.getBoolean("LightPopulated");
 		chunk.inhabitedTime = nbt.getLong("InhabitedTime");
-		NBTTagList nbttaglist = nbt.getTagList("Sections", 10);
-		byte b0 = 16;
-		ExtendedBlockStorage[] aextendedblockstorage = new ExtendedBlockStorage[b0];
-		boolean flag = !world.provider.hasNoSky;
-		for (int k = 0; k < nbttaglist.tagCount(); k++) {
-			NBTTagCompound nbttagcompound1 = nbttaglist.getCompoundTagAt(k);
-			byte b1 = nbttagcompound1.getByte("Y");
-			ExtendedBlockStorage extendedblockstorage = new ExtendedBlockStorage(b1 << 4, flag);
-			extendedblockstorage.setBlockLSBArray(nbttagcompound1.getByteArray("Blocks"));
-			if (nbttagcompound1.hasKey("Add", 7)) {
-				extendedblockstorage.setBlockMSBArray(new NibbleArray(nbttagcompound1.getByteArray("Add"), 4));
+		final NBTTagList sections = nbt.getTagList("Sections", 10);
+		final ExtendedBlockStorage[] ebs = new ExtendedBlockStorage[16];
+		final boolean flag = !world.provider.hasNoSky;
+		for (int k = 0; k < sections.tagCount(); k++) {
+			final NBTTagCompound scratch = sections.getCompoundTagAt(k);
+			final byte b1 = scratch.getByte("Y");
+			final ExtendedBlockStorage tebs = new ExtendedBlockStorage(b1 << 4, flag);
+			tebs.setBlockLSBArray(scratch.getByteArray("Blocks"));
+			if (scratch.hasKey("Add", 7)) {
+				tebs.setBlockMSBArray(new NibbleArray(scratch.getByteArray("Add"), 4));
 			}
-			extendedblockstorage.setBlockMetadataArray(new NibbleArray(nbttagcompound1.getByteArray("Data"), 4));
-			extendedblockstorage.setBlocklightArray(new NibbleArray(nbttagcompound1.getByteArray("BlockLight"), 4));
+			tebs.setBlockMetadataArray(new NibbleArray(scratch.getByteArray("Data"), 4));
+			tebs.setBlocklightArray(new NibbleArray(scratch.getByteArray("BlockLight"), 4));
 			if (flag) {
-				extendedblockstorage.setSkylightArray(new NibbleArray(nbttagcompound1.getByteArray("SkyLight"), 4));
+				tebs.setSkylightArray(new NibbleArray(scratch.getByteArray("SkyLight"), 4));
 			}
-			extendedblockstorage.removeInvalidBlocks();
-			aextendedblockstorage[b1] = extendedblockstorage;
+			tebs.removeInvalidBlocks();
+			ebs[b1] = tebs;
 		}
-		chunk.setStorageArrays(aextendedblockstorage);
+		chunk.setStorageArrays(ebs);
 		if (nbt.hasKey("Biomes", 7)) {
 			chunk.setBiomeArray(nbt.getByteArray("Biomes"));
 		}
@@ -418,18 +425,19 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 	}
 
 	public void loadEntities(final World world, final NBTTagCompound nbt, final Chunk chunk) {
-		NBTTagList nbttaglist1 = nbt.getTagList("Entities", 10);
-		if (nbttaglist1 != null) {
-			for (int l = 0; l < nbttaglist1.tagCount(); l++) {
-				NBTTagCompound nbttagcompound3 = nbttaglist1.getCompoundTagAt(l);
-				Entity entity2 = EntityList.createEntityFromNBT(nbttagcompound3, world);
+		NBTTagCompound scratch = null;
+		final NBTTagList entities = nbt.getTagList("Entities", 10);
+		if (entities != null) {
+			for (int l = 0; l < entities.tagCount(); l++) {
+				scratch = entities.getCompoundTagAt(l);
+				final Entity entity2 = EntityList.createEntityFromNBT(scratch, world);
 				chunk.hasEntities = true;
 				if (entity2 != null) {
 					chunk.addEntity(entity2);
 					Entity entity = entity2;
-					for (NBTTagCompound nbttagcompound2 = nbttagcompound3; nbttagcompound2.hasKey("Riding",
+					for (NBTTagCompound nbttagcompound2 = scratch; nbttagcompound2.hasKey("Riding",
 							10); nbttagcompound2 = nbttagcompound2.getCompoundTag("Riding")) {
-						Entity entity1 = EntityList.createEntityFromNBT(nbttagcompound2.getCompoundTag("Riding"),
+						final Entity entity1 = EntityList.createEntityFromNBT(nbttagcompound2.getCompoundTag("Riding"),
 								world);
 						if (entity1 != null) {
 							chunk.addEntity(entity1);
@@ -440,24 +448,26 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 				}
 			}
 		}
-		NBTTagList nbttaglist2 = nbt.getTagList("TileEntities", 10);
-		if (nbttaglist2 != null) {
-			for (int i1 = 0; i1 < nbttaglist2.tagCount(); i1++) {
-				NBTTagCompound nbttagcompound4 = nbttaglist2.getCompoundTagAt(i1);
-				TileEntity tileentity = TileEntity.createAndLoadEntity(nbttagcompound4);
+
+		final NBTTagList tileEntities = nbt.getTagList("TileEntities", 10);
+		if (tileEntities != null) {
+			for (int i1 = 0; i1 < tileEntities.tagCount(); i1++) {
+				scratch = tileEntities.getCompoundTagAt(i1);
+				final TileEntity tileentity = TileEntity.createAndLoadEntity(scratch);
 				if (tileentity != null) {
 					chunk.addTileEntity(tileentity);
 				}
 			}
 		}
+
 		if (nbt.hasKey("TileTicks", 9)) {
-			NBTTagList nbttaglist3 = nbt.getTagList("TileTicks", 10);
-			if (nbttaglist3 != null) {
-				for (int j1 = 0; j1 < nbttaglist3.tagCount(); j1++) {
-					NBTTagCompound nbttagcompound5 = nbttaglist3.getCompoundTagAt(j1);
-					world.func_147446_b(nbttagcompound5.getInteger("x"), nbttagcompound5.getInteger("y"),
-							nbttagcompound5.getInteger("z"), Block.getBlockById(nbttagcompound5.getInteger("i")),
-							nbttagcompound5.getInteger("t"), nbttagcompound5.getInteger("p"));
+			final NBTTagList tileTicks = nbt.getTagList("TileTicks", 10);
+			if (tileTicks != null) {
+				for (int j1 = 0; j1 < tileTicks.tagCount(); j1++) {
+					scratch = tileTicks.getCompoundTagAt(j1);
+					world.func_147446_b(scratch.getInteger("x"), scratch.getInteger("y"), scratch.getInteger("z"),
+							Block.getBlockById(scratch.getInteger("i")), scratch.getInteger("t"),
+							scratch.getInteger("p"));
 				}
 			}
 		}

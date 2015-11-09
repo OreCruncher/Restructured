@@ -59,21 +59,21 @@ public class RenameMapper extends Remapper {
 
 	@Override
 	public String mapMethodName(String owner, String name, String desc) {
-		if(methodNameMap == null)
+		if (methodNameMap == null)
 			return name;
-		
+
 		final String newName = methodNameMap.get(name);
 		return newName == null ? name : newName;
 	}
 
 	@Override
-    public String mapFieldName(String owner, String name, String desc) {
-		if(methodNameMap == null)
+	public String mapFieldName(String owner, String name, String desc) {
+		if (methodNameMap == null)
 			return name;
-		
+
 		final String newName = methodNameMap.get(name);
 		return newName == null ? name : newName;
-    }
+	}
 
 	@Override
 	public String mapType(String type) {
@@ -88,8 +88,9 @@ public class RenameMapper extends Remapper {
 	private String fix(String s) {
 		if (s != null) {
 			for (final Entry<String, String> entry : mapping.entrySet()) {
-				if (s.indexOf(entry.getKey()) != -1)
+				if (s.indexOf(entry.getKey()) != -1) {
 					s = s.replaceAll(entry.getKey(), entry.getValue());
+				}
 			}
 		}
 		return s;

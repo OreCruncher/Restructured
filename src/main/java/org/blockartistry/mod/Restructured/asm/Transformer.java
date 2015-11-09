@@ -30,43 +30,58 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.blockartistry.mod.Restructured.chunk.MyRegionFile;
-import org.blockartistry.mod.Restructured.chunk.MyThreadedFileIOBase;
-import org.blockartistry.mod.Restructured.chunk.RegionFileLRU;
-import org.blockartistry.mod.Restructured.chunk.ChunkInputStream;
-import org.blockartistry.mod.Restructured.chunk.ChunkOutputStream;
-import org.blockartistry.mod.Restructured.chunk.LockManager;
-import org.blockartistry.mod.Restructured.chunk.MyAnvilChunkLoader;
-import org.blockartistry.mod.Restructured.chunk.MyChunkBuffer;
-import org.blockartistry.mod.Restructured.chunk.MyRegionCache;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.RemappingClassAdapter;
 import org.objectweb.asm.util.CheckClassAdapter;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 
 public class Transformer implements IClassTransformer {
 
-	private static Map<String, Class<?>> targets = new HashMap<String, Class<?>>();
+	private static final boolean DO_NBT = true;
+
+	private static Map<String, String> targets = new HashMap<String, String>();
 	private static Map<String, String> typesToReplace = new HashMap<String, String>();
 	private static Map<String, String> obsRemap = new HashMap<String, String>();
 
 	static {
 
-		targets.put("net.minecraft.world.chunk.storage.RegionFileCache", MyRegionCache.class);
-		targets.put("net.minecraft.world.chunk.storage.RegionFile", MyRegionFile.class);
-		targets.put("net.minecraft.world.chunk.storage.ChunkBuffer", MyChunkBuffer.class);
-		targets.put("net.minecraft.world.chunk.storage.RegionFileLRU", RegionFileLRU.class);
-		targets.put("net.minecraft.world.chunk.storage.LockManager", LockManager.class);
-		targets.put("net.minecraft.world.storage.ThreadedFileIOBase", MyThreadedFileIOBase.class);
-		targets.put("net.minecraft.world.storage.ChunkOutputStream", ChunkOutputStream.class);
-		targets.put("net.minecraft.world.storage.ChunkInputStream", ChunkInputStream.class);
-		targets.put("net.minecraft.world.chunk.storage.AnvilChunkLoader", MyAnvilChunkLoader.class);
+		targets.put("net.minecraft.world.chunk.storage.RegionFileCache", "chunk/MyRegionCache");
+		targets.put("net.minecraft.world.chunk.storage.RegionFile", "chunk/MyRegionFile");
+		targets.put("net.minecraft.world.chunk.storage.ChunkBuffer", "chunk/MyChunkBuffer");
+		targets.put("net.minecraft.world.chunk.storage.RegionFileLRU", "chunk/RegionFileLRU");
+		targets.put("net.minecraft.world.chunk.storage.LockManager", "chunk/LockManager");
+		targets.put("net.minecraft.world.storage.ThreadedFileIOBase", "chunk/MyThreadedFileIOBase");
+		targets.put("net.minecraft.world.storage.ChunkOutputStream", "chunk/ChunkOutputStream");
+		targets.put("net.minecraft.world.storage.ChunkInputStream", "chunk/ChunkInputStream");
+		targets.put("net.minecraft.world.chunk.storage.AnvilChunkLoader", "chunk/MyAnvilChunkLoader");
 
-		targets.put("aqj", MyRegionCache.class);
-		targets.put("aqh", MyRegionFile.class);
-		targets.put("azr", MyThreadedFileIOBase.class);
-		targets.put("aqk", MyAnvilChunkLoader.class);
+		targets.put("aqj", "chunk/MyRegionCache");
+		targets.put("aqh", "chunk/MyRegionFile");
+		targets.put("azr", "chunk/MyThreadedFileIOBase");
+		targets.put("aqk", "chunk/MyAnvilChunkLoader");
+
+		if (DO_NBT) {
+			targets.put("net.minecraft.nbt.NBTSizeTracker$1", "nbt/MyNBTSizeTracker$1");
+			targets.put("net.minecraft.nbt.CompressedStreamTools", "nbt/MyCompressedStreamTools");
+			targets.put("net.minecraft.nbt.NBTFactory", "nbt/NBTFactory");
+			targets.put("net.minecraft.nbt.NBTBase", "nbt/MyNBTBase");
+			targets.put("net.minecraft.nbt.NBTPrimitive", "nbt/MyNBTPrimitive");
+			targets.put("net.minecraft.nbt.NBTSizeTracker", "nbt/MyNBTSizeTracker");
+			targets.put("net.minecraft.nbt.NBTTagByte", "nbt/MyNBTTagByte");
+			targets.put("net.minecraft.nbt.NBTTagByteArray", "nbt/MyNBTTagByteArray");
+			targets.put("net.minecraft.nbt.NBTTagCompound", "nbt/MyNBTTagCompound");
+			targets.put("net.minecraft.nbt.NBTTagDouble", "nbt/MyNBTTagDouble");
+			targets.put("net.minecraft.nbt.NBTTagEnd", "nbt/MyNBTTagEnd");
+			targets.put("net.minecraft.nbt.NBTTagFloat", "nbt/MyNBTTagFloat");
+			targets.put("net.minecraft.nbt.NBTTagInt", "nbt/MyNBTTagInt");
+			targets.put("net.minecraft.nbt.NBTTagIntArray", "nbt/MyNBTTagIntArray");
+			targets.put("net.minecraft.nbt.NBTTagList", "nbt/MyNBTTagList");
+			targets.put("net.minecraft.nbt.NBTTagLong", "nbt/MyNBTTagLong");
+			targets.put("net.minecraft.nbt.NBTTagShort", "nbt/MyNBTTagShort");
+			targets.put("net.minecraft.nbt.NBTTagString", "nbt/MyNBTTagString");
+		}
 
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.MyAnvilChunkLoader",
 				"net.minecraft.world.chunk.storage.AnvilChunkLoader");
@@ -87,6 +102,36 @@ public class Transformer implements IClassTransformer {
 		typesToReplace.put("org.blockartistry.mod.Restructured.chunk.ChunkInputStream",
 				"net.minecraft.world.storage.ChunkInputStream");
 
+		if (DO_NBT) {
+
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyCompressedStreamTools", "net.minecraft.nbt.CompressedStreamTools");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.NBTBaseFactory", "net.minecraft.nbt.NBTFactory");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTBase", "net.minecraft.nbt.NBTBase");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTPrimitive",
+					"net.minecraft.nbt.NBTPrimitive");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTSizeTracker",
+					"net.minecraft.nbt.NBTSizeTracker");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagByte", "net.minecraft.nbt.NBTTagByte");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagCompound",
+					"net.minecraft.nbt.NBTTagCompound");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagDouble",
+					"net.minecraft.nbt.NBTTagDouble");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagEnd", "net.minecraft.nbt.NBTTagEnd");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagFloat", "net.minecraft.nbt.NBTTagFloat");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagInt", "net.minecraft.nbt.NBTTagInt");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagByteArray",
+					"net.minecraft.nbt.NBTTagByteArray");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagIntArray",
+					"net.minecraft.nbt.NBTTagIntArray");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagList", "net.minecraft.nbt.NBTTagList");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagLong", "net.minecraft.nbt.NBTTagLong");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagShort", "net.minecraft.nbt.NBTTagShort");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagString",
+					"net.minecraft.nbt.NBTTagString");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.NBTFactory",
+					"net.minecraft.nbt.NBTFactory");
+		}
+
 		// Obsfucation mapping - yay obsfucation!
 		// RegionFileCache
 		obsRemap.put("createOrLoadRegionFile", "func_76550_a");
@@ -102,16 +147,17 @@ public class Transformer implements IClassTransformer {
 		obsRemap.put("queueIO", "func_75735_a");
 		obsRemap.put("waitForFinish", "func_75734_a");
 		obsRemap.put("threadedIOInstance", "field_75741_a");
-		
+
 		// AnvilChunkLoader
 		obsRemap.put("chunkSaveLocation", "field_75825_d");
 	}
 
-	private byte[] getClassBytes(final Class<?> clazz) {
+	//private byte[] getClassBytes(final Class<?> clazz) {
+	private byte[] getClassBytes(final String clazz) {
 
 		try {
-			String name = clazz.getName().replace('.', '/') + ".class";
-			InputStream stream = clazz.getClassLoader().getResourceAsStream(name);
+			String name = "org/blockartistry/mod/Restructured/" + clazz + ".class"; // clazz.getName().replace('.', '/') + ".class";
+			InputStream stream = Transformer.class.getClassLoader().getResourceAsStream(name);
 			final byte[] result = new byte[stream.available()];
 			stream.read(result);
 			return result;
@@ -123,6 +169,9 @@ public class Transformer implements IClassTransformer {
 	}
 
 	private boolean verifyClassBytes(final byte[] bytes) {
+		
+		return true;
+		/*
 		final StringWriter sw = new StringWriter();
 		final PrintWriter pw = new PrintWriter(sw);
 		CheckClassAdapter.verify(new ClassReader(bytes), false, pw);
@@ -130,19 +179,20 @@ public class Transformer implements IClassTransformer {
 		if (result.length() > 0)
 			System.out.print(result);
 		return result.length() == 0;
+		*/
 	}
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 
-		final Class<?> replaceClass = targets.get(name);
+		final String replaceClass = targets.get(name);
 		if (replaceClass != null) {
-			System.out.println(String.format("Redefining '%s'...", name));
+			System.out.println(String.format("Redefining '%s' with '%s'...", name, replaceClass));
 			final ClassReader reader = new ClassReader(getClassBytes(replaceClass));
 			final ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS);
 			final RenameMapper mapper = new RenameMapper(typesToReplace,
 					TransformLoader.runtimeDeobEnabled ? obsRemap : null);
-			final MyRemappingClassAdapter adapter = new MyRemappingClassAdapter(writer, mapper);
+			final RemappingClassAdapter adapter = new RemappingClassAdapter(writer, mapper);
 			reader.accept(adapter, ClassReader.EXPAND_FRAMES);
 			final byte[] result = writer.toByteArray();
 			if (verifyClassBytes(result)) {
