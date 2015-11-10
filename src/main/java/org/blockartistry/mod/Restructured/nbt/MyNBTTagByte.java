@@ -7,7 +7,7 @@ import java.io.IOException;
 import net.minecraftforge.common.util.Constants.NBT;
 
 public class MyNBTTagByte extends MyNBTPrimitive {
-	
+
 	private byte data;
 
 	MyNBTTagByte() {
@@ -40,12 +40,8 @@ public class MyNBTTagByte extends MyNBTPrimitive {
 		return new MyNBTTagByte(this.data);
 	}
 
-	public boolean equals(final Object p_equals_1_) {
-		if (super.equals(p_equals_1_)) {
-			MyNBTTagByte localNBTTagByte = (MyNBTTagByte) p_equals_1_;
-			return this.data == localNBTTagByte.data;
-		}
-		return false;
+	public boolean equals(final Object tag) {
+		return super.equals(tag) && this.data == ((MyNBTTagByte) tag).data;
 	}
 
 	public int hashCode() {

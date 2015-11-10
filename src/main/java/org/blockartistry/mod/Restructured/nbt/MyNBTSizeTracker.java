@@ -10,9 +10,9 @@ package org.blockartistry.mod.Restructured.nbt;
  */
 public class MyNBTSizeTracker {
 	
-	public static class NoopNBTTracker extends MyNBTSizeTracker {
+	public static class NullNBTTracker extends MyNBTSizeTracker {
 
-		protected NoopNBTTracker() {
+		protected NullNBTTracker() {
 			super(0);
 		}
 		
@@ -25,7 +25,7 @@ public class MyNBTSizeTracker {
 		}
 	}
 	
-	public static final MyNBTSizeTracker noopTracker = new NoopNBTTracker();
+	public static final MyNBTSizeTracker nullTracker = new NullNBTTracker();
 	
 	private final long field_152452_b;
 	private long field_152453_c;

@@ -18,6 +18,11 @@ public class MyNBTTagEnd extends MyNBTBase {
 	void writeStream(final DataOutput stream) throws IOException {
 	}
 
+	@Override
+	public boolean isImmutable() {
+		return true;
+	}
+	
 	public byte getId() {
 		return NBT.TAG_END;
 	}

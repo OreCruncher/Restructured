@@ -63,12 +63,12 @@ public class Transformer implements IClassTransformer {
 		targets.put("aqk", "chunk/MyAnvilChunkLoader");
 
 		if (DO_NBT) {
-			targets.put("net.minecraft.nbt.NBTSizeTracker$NoopNBTTracker", "nbt/MyNBTSizeTracker$NoopNBTTracker");
+			targets.put("net.minecraft.nbt.NBTSizeTracker", "nbt/MyNBTSizeTracker");
+			targets.put("net.minecraft.nbt.NBTSizeTracker$NullNBTTracker", "nbt/MyNBTSizeTracker$NullNBTTracker");
 			targets.put("net.minecraft.nbt.CompressedStreamTools", "nbt/MyCompressedStreamTools");
 			targets.put("net.minecraft.nbt.NBTFactory", "nbt/NBTFactory");
 			targets.put("net.minecraft.nbt.NBTBase", "nbt/MyNBTBase");
 			targets.put("net.minecraft.nbt.NBTPrimitive", "nbt/MyNBTPrimitive");
-			targets.put("net.minecraft.nbt.NBTSizeTracker", "nbt/MyNBTSizeTracker");
 			targets.put("net.minecraft.nbt.NBTTagByte", "nbt/MyNBTTagByte");
 			targets.put("net.minecraft.nbt.NBTTagByteArray", "nbt/MyNBTTagByteArray");
 			targets.put("net.minecraft.nbt.NBTTagCompound", "nbt/MyNBTTagCompound");
@@ -111,8 +111,8 @@ public class Transformer implements IClassTransformer {
 					"net.minecraft.nbt.NBTPrimitive");
 			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTSizeTracker",
 					"net.minecraft.nbt.NBTSizeTracker");
-			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTSizeTracker$NoopNBTTracker",
-					"net.minecraft.nbt.NBTSizeTracker$NoopNBTTracker");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTSizeTracker$NullNBTTracker",
+					"net.minecraft.nbt.NBTSizeTracker$NullNBTTracker");
 			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagByte", "net.minecraft.nbt.NBTTagByte");
 			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagCompound",
 					"net.minecraft.nbt.NBTTagCompound");
@@ -173,6 +173,7 @@ public class Transformer implements IClassTransformer {
 	private boolean verifyClassBytes(final byte[] bytes) {
 		
 		return true;
+		
 		/*
 		final StringWriter sw = new StringWriter();
 		final PrintWriter pw = new PrintWriter(sw);

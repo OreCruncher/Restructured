@@ -39,12 +39,8 @@ public class MyNBTTagInt extends MyNBTPrimitive {
 		return new MyNBTTagInt(this.data);
 	}
 
-	public boolean equals(final Object p_equals_1_) {
-		if (super.equals(p_equals_1_)) {
-			MyNBTTagInt localNBTTagInt = (MyNBTTagInt) p_equals_1_;
-			return this.data == localNBTTagInt.data;
-		}
-		return false;
+	public boolean equals(final Object tag) {
+		return super.equals(tag) && this.data == ((MyNBTTagInt) tag).data;
 	}
 
 	public int hashCode() {

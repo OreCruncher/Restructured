@@ -43,13 +43,13 @@ public class MyNBTTagString extends MyNBTBase {
 		return new MyNBTTagString(this.data);
 	}
 
-	public boolean equals(final Object p_equals_1_) {
-		if (!super.equals(p_equals_1_)) {
+	public boolean equals(final Object tag) {
+		if(!super.equals(tag))
 			return false;
-		}
-		MyNBTTagString nbttagstring = (MyNBTTagString) p_equals_1_;
-		return ((this.data == null) && (nbttagstring.data == null))
-				|| ((this.data != null) && (this.data.equals(nbttagstring.data)));
+		
+		final MyNBTTagString nbt = (MyNBTTagString) tag;
+		return ((this.data == null) && (nbt.data == null))
+				|| ((this.data != null) && (this.data.equals(nbt.data)));
 	}
 
 	public int hashCode() {

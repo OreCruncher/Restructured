@@ -7,7 +7,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.util.Constants.NBT;
 
 public class MyNBTTagDouble extends MyNBTPrimitive {
-	
+
 	private double data;
 
 	MyNBTTagDouble() {
@@ -40,12 +40,8 @@ public class MyNBTTagDouble extends MyNBTPrimitive {
 		return new MyNBTTagDouble(this.data);
 	}
 
-	public boolean equals(final Object p_equals_1_) {
-		if (super.equals(p_equals_1_)) {
-			final MyNBTTagDouble localNBTTagDouble = (MyNBTTagDouble) p_equals_1_;
-			return this.data == localNBTTagDouble.data;
-		}
-		return false;
+	public boolean equals(final Object tag) {
+		return super.equals(tag) && this.data == ((MyNBTTagDouble) tag).data;
 	}
 
 	public int hashCode() {

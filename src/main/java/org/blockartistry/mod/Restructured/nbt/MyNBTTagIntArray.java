@@ -59,8 +59,8 @@ public class MyNBTTagIntArray extends MyNBTBase {
 		return new MyNBTTagIntArray(newArray);
 	}
 
-	public boolean equals(Object tag) {
-		return super.equals(tag) ? Arrays.equals(this.intArray, ((MyNBTTagIntArray) tag).intArray) : false;
+	public boolean equals(final Object tag) {
+		return super.equals(tag) && Arrays.equals(this.intArray, ((MyNBTTagIntArray) tag).intArray);
 	}
 
 	public int hashCode() {

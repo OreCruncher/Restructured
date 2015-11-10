@@ -8,7 +8,7 @@ import java.util.Arrays;
 import net.minecraftforge.common.util.Constants.NBT;
 
 public class MyNBTTagByteArray extends MyNBTBase {
-	
+
 	private byte[] byteArray;
 
 	MyNBTTagByteArray() {
@@ -47,9 +47,8 @@ public class MyNBTTagByteArray extends MyNBTBase {
 		return new MyNBTTagByteArray(newArray);
 	}
 
-	public boolean equals(final Object p_equals_1_) {
-		return super.equals(p_equals_1_) ? Arrays.equals(this.byteArray, ((MyNBTTagByteArray) p_equals_1_).byteArray)
-				: false;
+	public boolean equals(final Object tag) {
+		return super.equals(tag) && Arrays.equals(this.byteArray, ((MyNBTTagByteArray) tag).byteArray);
 	}
 
 	public int hashCode() {
