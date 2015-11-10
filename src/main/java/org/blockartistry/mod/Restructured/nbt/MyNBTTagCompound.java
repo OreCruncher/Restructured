@@ -3,238 +3,294 @@ package org.blockartistry.mod.Restructured.nbt;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.util.ReportedException;
+import net.minecraftforge.common.util.Constants.NBT;
 
 public class MyNBTTagCompound extends MyNBTBase {
 
-	private Map<String, MyNBTBase> tagMap = new HashMap<String, MyNBTBase>();
+	private final static int DEFAULT_LIST_SIZE = 64;
+
+	private Object[] list = new Object[DEFAULT_LIST_SIZE];
+	private int newIndex = 0;
+	private int tagCount = 0;
+
+	private void ensureCapacity(final int size) {
+		if (size <= list.length)
+			return;
+
+		int newLength = list.length;
+		while (newLength < size)
+			newLength = newLength << 1;
+
+		final Object[] newArray = new Object[newLength];
+		System.arraycopy(list, 0, newArray, 0, list.length);
+		list = newArray;
+	}
+
+	private int findIndex(final String key) {
+		if (tagCount > 0)
+			for (int i = 0; i < newIndex; i += 2)
+				if (list[i] != null && list[i].equals(key))
+					return i;
+		return -1;
+	}
 
 	@Override
 	void writeStream(final DataOutput stream) throws IOException {
-		for (final Entry<String, MyNBTBase> entry : tagMap.entrySet())
-			writeTag(entry.getKey(), entry.getValue(), stream);
+		if (tagCount > 0) {
+			for (int i = 0; i < newIndex; i += 2)
+				if (list[i] != null)
+					writeTag((String) list[i], (MyNBTBase) list[i + 1], stream);
+		}
 		stream.writeByte(0);
 	}
 
 	@Override
-	void readStream(DataInput stream, int depth, MyNBTSizeTracker tracker) throws IOException {
+	void readStream(final DataInput stream, final int depth, final MyNBTSizeTracker tracker) throws IOException {
 		if (depth > 512) {
 			throw new RuntimeException("Tried to read NBT tag with too high complexity, depth > 512");
 		}
-		this.tagMap.clear();
+
+		newIndex = 0;
+		tagCount = 0;
+
 		byte type;
-		while ((type = readByte(stream, tracker)) != 0) {
-			String key = readString(stream, tracker);
+		while ((type = readByte(stream, tracker)) != NBT.TAG_END) {
+			final String key = readString(stream, tracker);
 			MyNBTSizeTracker.readUTF(tracker, key);
-			MyNBTBase nbtbase = readTag(type, key, stream, depth + 1, tracker);
-			this.tagMap.put(key, nbtbase);
+			final MyNBTBase nbtbase = readTag(type, key, stream, depth + 1, tracker);
+			setTag(key, nbtbase);
 		}
 	}
 
 	public Set<String> func_150296_c() {
-		return this.tagMap.keySet();
+		final Set<String> result = new HashSet<String>();
+		if (tagCount > 0)
+			for (int i = 0; i < newIndex; i += 2)
+				if (list[i] != null)
+					result.add((String) list[i]);
+		return result;
 	}
 
 	public byte getId() {
-		return 10;
+		return NBT.TAG_COMPOUND;
 	}
 
-	public void setTag(String key, MyNBTBase value) {
-		this.tagMap.put(key, value);
+	public void setTag(final String key, final MyNBTBase value) {
+		int idx = findIndex(key);
+		if (idx != -1) {
+			list[++idx] = value;
+		} else {
+			ensureCapacity(newIndex + 2);
+			list[newIndex++] = key;
+			list[newIndex++] = value;
+			tagCount++;
+		}
 	}
 
-	public void setByte(String key, byte value) {
-		this.tagMap.put(key, new MyNBTTagByte(value));
+	public void setByte(final String key, final byte value) {
+		setTag(key, new MyNBTTagByte(value));
 	}
 
-	public void setShort(String key, short value) {
-		this.tagMap.put(key, new MyNBTTagShort(value));
+	public void setShort(final String key, final short value) {
+		setTag(key, new MyNBTTagShort(value));
 	}
 
-	public void setInteger(String key, int value) {
-		this.tagMap.put(key, new MyNBTTagInt(value));
+	public void setInteger(final String key, final int value) {
+		setTag(key, new MyNBTTagInt(value));
 	}
 
-	public void setLong(String key, long value) {
-		this.tagMap.put(key, new MyNBTTagLong(value));
+	public void setLong(final String key, final long value) {
+		setTag(key, new MyNBTTagLong(value));
 	}
 
-	public void setFloat(String key, float value) {
-		this.tagMap.put(key, new MyNBTTagFloat(value));
+	public void setFloat(final String key, final float value) {
+		setTag(key, new MyNBTTagFloat(value));
 	}
 
-	public void setDouble(String key, double value) {
-		this.tagMap.put(key, new MyNBTTagDouble(value));
+	public void setDouble(final String key, final double value) {
+		setTag(key, new MyNBTTagDouble(value));
 	}
 
-	public void setString(String key, String value) {
-		this.tagMap.put(key, new MyNBTTagString(value));
+	public void setString(final String key, final String value) {
+		setTag(key, new MyNBTTagString(value));
 	}
 
-	public void setByteArray(String key, byte[] value) {
-		this.tagMap.put(key, new MyNBTTagByteArray(value));
+	public void setByteArray(final String key, final byte[] value) {
+		setTag(key, new MyNBTTagByteArray(value));
 	}
 
-	public void setIntArray(String key, int[] value) {
-		this.tagMap.put(key, new MyNBTTagIntArray(value));
+	public void setIntArray(final String key, final int[] value) {
+		setTag(key, new MyNBTTagIntArray(value));
 	}
 
-	public void setBoolean(String key, boolean value) {
+	public void setBoolean(final String key, final boolean value) {
 		setByte(key, (byte) (value ? 1 : 0));
 	}
 
-	public MyNBTBase getTag(String key) {
-		return this.tagMap.get(key);
+	public MyNBTBase getTag(final String key) {
+		int idx = findIndex(key);
+		return idx == -1 ? null : (MyNBTBase) list[++idx];
 	}
 
-	public byte func_150299_b(String key) {
-		MyNBTBase nbtbase = (MyNBTBase) this.tagMap.get(key);
+	public byte func_150299_b(final String key) {
+		MyNBTBase nbtbase = getTag(key);
 		return nbtbase != null ? nbtbase.getId() : 0;
 	}
 
-	public boolean hasKey(String key) {
-		return this.tagMap.containsKey(key);
+	public boolean hasKey(final String key) {
+		return findIndex(key) != -1;
 	}
 
-	public boolean hasKey(String key, int type) {
+	public boolean hasKey(final String key, final int type) {
 		byte b0 = func_150299_b(key);
 		return b0 == type;
 	}
 
-	public byte getByte(String key) {
+	public byte getByte(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? 0 : ((MyNBTPrimitive) this.tagMap.get(key)).func_150290_f();
+			int idx = findIndex(key);
+			return idx == -1 ? 0 : ((MyNBTPrimitive) list[++idx]).func_150290_f();
 		} catch (ClassCastException classcastexception) {
 		}
 		return 0;
 	}
 
-	public short getShort(String key) {
+	public short getShort(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? 0 : ((MyNBTPrimitive) this.tagMap.get(key)).func_150289_e();
+			int idx = findIndex(key);
+			return idx == -1 ? 0 : ((MyNBTPrimitive) list[++idx]).func_150289_e();
 		} catch (ClassCastException classcastexception) {
 		}
 		return 0;
 	}
 
-	public int getInteger(String key) {
+	public int getInteger(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? 0 : ((MyNBTPrimitive) this.tagMap.get(key)).func_150287_d();
+			int idx = findIndex(key);
+			return idx == -1 ? 0 : ((MyNBTPrimitive) list[++idx]).func_150287_d();
 		} catch (ClassCastException classcastexception) {
 		}
 		return 0;
 	}
 
-	public long getLong(String key) {
+	public long getLong(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? 0L : ((MyNBTPrimitive) this.tagMap.get(key)).func_150291_c();
+			int idx = findIndex(key);
+			return idx == -1 ? 0 : ((MyNBTPrimitive) list[++idx]).func_150291_c();
 		} catch (ClassCastException classcastexception) {
 		}
 		return 0L;
 	}
 
-	public float getFloat(String key) {
+	public float getFloat(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? 0.0F : ((MyNBTPrimitive) this.tagMap.get(key)).func_150288_h();
+			int idx = findIndex(key);
+			return idx == -1 ? 0 : ((MyNBTPrimitive) list[++idx]).func_150288_h();
 		} catch (ClassCastException classcastexception) {
 		}
 		return 0.0F;
 	}
 
-	public double getDouble(String key) {
+	public double getDouble(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? 0.0D : ((MyNBTPrimitive) this.tagMap.get(key)).func_150286_g();
+			int idx = findIndex(key);
+			return idx == -1 ? 0 : ((MyNBTPrimitive) list[++idx]).func_150286_g();
 		} catch (ClassCastException classcastexception) {
 		}
 		return 0.0D;
 	}
 
-	public String getString(String key) {
+	public String getString(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? "" : ((MyNBTBase) this.tagMap.get(key)).func_150285_a_();
+			int idx = findIndex(key);
+			return idx == -1 ? "" : ((MyNBTBase) list[++idx]).func_150285_a_();
 		} catch (ClassCastException classcastexception) {
 		}
 		return "";
 	}
 
-	public byte[] getByteArray(String key) {
+	public byte[] getByteArray(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? new byte[0]
-					: ((MyNBTTagByteArray) this.tagMap.get(key)).func_150292_c();
+			int idx = findIndex(key);
+			return idx == -1 ? new byte[0] : ((MyNBTTagByteArray) list[++idx]).func_150292_c();
 		} catch (ClassCastException classcastexception) {
-			;
 			throw new ReportedException(createCrashReport(key, 7, classcastexception));
 		}
 	}
 
-	public int[] getIntArray(String key) {
+	public int[] getIntArray(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? new int[0]
-					: ((MyNBTTagIntArray) this.tagMap.get(key)).func_150302_c();
+			int idx = findIndex(key);
+			return idx == -1 ? new int[0] : ((MyNBTTagIntArray) list[++idx]).func_150302_c();
 		} catch (ClassCastException classcastexception) {
-			;
 			throw new ReportedException(createCrashReport(key, 11, classcastexception));
 		}
 	}
 
-	public MyNBTTagCompound getCompoundTag(String key) {
+	public MyNBTTagCompound getCompoundTag(final String key) {
 		try {
-			return !this.tagMap.containsKey(key) ? new MyNBTTagCompound() : (MyNBTTagCompound) this.tagMap.get(key);
+			int idx = findIndex(key);
+			return idx == -1 ? new MyNBTTagCompound() : ((MyNBTTagCompound) list[++idx]);
 		} catch (ClassCastException classcastexception) {
 			;
 			throw new ReportedException(createCrashReport(key, 10, classcastexception));
 		}
 	}
 
-	public MyNBTTagList getTagList(String key, int type) {
+	public MyNBTTagList getTagList(final String key, final int type) {
 		try {
 			if (func_150299_b(key) != 9) {
 				return new MyNBTTagList();
 			}
-			MyNBTTagList nbttaglist = (MyNBTTagList) this.tagMap.get(key);
+			MyNBTTagList nbttaglist = (MyNBTTagList) getTag(key);
 			return (nbttaglist.tagCount() > 0) && (nbttaglist.func_150303_d() != type) ? new MyNBTTagList()
 					: nbttaglist;
 		} catch (ClassCastException classcastexception) {
-			;
 			throw new ReportedException(createCrashReport(key, 9, classcastexception));
 		}
 	}
 
-	public boolean getBoolean(String key) {
+	public boolean getBoolean(final String key) {
 		return getByte(key) != 0;
 	}
 
-	public void removeTag(String key) {
-		this.tagMap.remove(key);
+	public void removeTag(final String key) {
+		int idx = findIndex(key);
+		if (idx != -1) {
+			list[idx++] = null;
+			list[idx] = null;
+			tagCount--;
+		}
 	}
 
 	public String toString() {
 		final StringBuilder builder = new StringBuilder(128);
 		builder.append("{");
 
-		for (final Entry<String, MyNBTBase> entry : tagMap.entrySet())
-			builder.append(entry.getKey()).append(':').append(entry.getValue()).append(',');
+		if (tagCount > 0)
+			for (int i = 0; i < newIndex; i += 2)
+				if (list[i] != null)
+					builder.append(list[i]).append(':').append(list[i + 1]).append(',');
 
 		return builder.append('}').toString();
 	}
 
 	public boolean hasNoTags() {
-		return this.tagMap.isEmpty();
+		return tagCount == 0;
 	}
 
-	private CrashReport createCrashReport(final String key, final int type, ClassCastException exception) {
+	private CrashReport createCrashReport(final String key, final int type, final ClassCastException exception) {
 		CrashReport crashreport = CrashReport.makeCrashReport(exception, "Reading NBT data");
 		CrashReportCategory crashreportcategory = crashreport.makeCategoryDepth("Corrupt NBT tag", 1);
 		crashreportcategory.addCrashSectionCallable("Tag type found", new Callable<String>() {
 			public String call() {
-				return MyNBTBase.NBTTypes[((MyNBTBase) MyNBTTagCompound.this.tagMap.get(key)).getId()];
+				return MyNBTBase.NBTTypes[((MyNBTBase) MyNBTTagCompound.this.getTag(key)).getId()];
 			}
 		});
 		crashreportcategory.addCrashSectionCallable("Tag type expected", new Callable<String>() {
@@ -246,28 +302,46 @@ public class MyNBTTagCompound extends MyNBTBase {
 		return crashreport;
 	}
 
+	private MyNBTBase immutableCopy(final MyNBTBase src) {
+		if(!src.isImmutable())
+			src.copy();
+		
+		return src;
+	}
+	
 	public MyNBTBase copy() {
 
-		MyNBTTagCompound nbt = new MyNBTTagCompound();
-		for (final Entry<String, MyNBTBase> entry : tagMap.entrySet())
-			nbt.setTag(entry.getKey(), entry.getValue().copy());
+		final MyNBTTagCompound nbt = new MyNBTTagCompound();
 
-		return MyNBTBase.class.cast(nbt);
+		if (tagCount > 0) {
+			nbt.ensureCapacity(tagCount * 2);
+			int idx = 0;
+			for (int i = 0; i < newIndex; i += 2)
+				if (list[i] != null) {
+					nbt.list[idx++] = list[i];
+					nbt.list[idx++] = immutableCopy((MyNBTBase)list[i + 1]);
+				}
+			nbt.tagCount = tagCount;
+			nbt.newIndex = idx;
+		}
+
+		return nbt;
 	}
 
-	public boolean equals(Object p_equals_1_) {
+	public boolean equals(final Object p_equals_1_) {
 		if (super.equals(p_equals_1_)) {
 			MyNBTTagCompound nbttagcompound = (MyNBTTagCompound) p_equals_1_;
-			return this.tagMap.entrySet().equals(nbttagcompound.tagMap.entrySet());
+			return list.equals(nbttagcompound.list);
 		}
 		return false;
 	}
 
 	public int hashCode() {
-		return super.hashCode() ^ this.tagMap.hashCode();
+		return super.hashCode() ^ list.hashCode();
 	}
 
-	private static void writeTag(String key, MyNBTBase nbtBase, DataOutput stream) throws IOException {
+	private static void writeTag(final String key, final MyNBTBase nbtBase, final DataOutput stream)
+			throws IOException {
 		stream.writeByte(nbtBase.getId());
 		if (nbtBase.getId() != 0) {
 			stream.writeUTF(key);
@@ -275,18 +349,19 @@ public class MyNBTTagCompound extends MyNBTBase {
 		}
 	}
 
-	private static byte readByte(DataInput stream, MyNBTSizeTracker tracker) throws IOException {
+	private static byte readByte(final DataInput stream, final MyNBTSizeTracker tracker) throws IOException {
 		tracker.func_152450_a(8L);
 		return stream.readByte();
 	}
 
-	private static String readString(DataInput stream, MyNBTSizeTracker tracker) throws IOException {
+	private static String readString(final DataInput stream, final MyNBTSizeTracker tracker) throws IOException {
 		return stream.readUTF();
 	}
 
-	static MyNBTBase readTag(byte type, String key, DataInput stream, int depth, MyNBTSizeTracker tracker) {
+	static MyNBTBase readTag(final byte type, final String key, final DataInput stream, final int depth,
+			final MyNBTSizeTracker tracker) {
 		tracker.func_152450_a(32L);
-		MyNBTBase nbtbase = NBTFactory.getTag(type);
+		final MyNBTBase nbtbase = NBTFactory.getTag(type);
 		try {
 			nbtbase.readStream(stream, depth, tracker);
 			return nbtbase;

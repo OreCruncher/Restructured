@@ -134,6 +134,12 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 		this.chunkSaveLocation = saveLocation;
 	}
 
+	private static byte[] duplicate(final byte[] src) {
+		final byte[] newArray = new byte[src.length];
+		System.arraycopy(src, 0, newArray, 0, src.length);
+		return newArray;
+	}
+
 	public boolean chunkExists(final World world, final int chunkX, final int chunkZ) {
 
 		final ChunkCoordIntPair coords = new ChunkCoordIntPair(chunkX, chunkZ);
@@ -225,11 +231,9 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 			final NBTTagCompound nbt1 = new NBTTagCompound();
 			final NBTTagCompound nbt2 = new NBTTagCompound();
 			nbt1.setTag("Level", nbt2);
-			
-			final long startTime = System.nanoTime();
+
 			writeChunkToNBT(chunk, world, nbt2);
-			final long elapsedTime = System.nanoTime() - startTime;
-			System.out.println(String.format("Serialization time: %d", elapsedTime / 1000));
+
 			MinecraftForge.EVENT_BUS.post(new ChunkDataEvent.Save(chunk, nbt1));
 
 			final ChunkCoordIntPair coords = chunk.getChunkCoordIntPair();
@@ -322,14 +326,14 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 			if (tebs != null) {
 				scratch = new NBTTagCompound();
 				scratch.setByte("Y", (byte) (tebs.getYLocation() >> 4 & 0xFF));
-				scratch.setByteArray("Blocks", tebs.getBlockLSBArray());
+				scratch.setByteArray("Blocks", duplicate(tebs.getBlockLSBArray()));
 				if (tebs.getBlockMSBArray() != null) {
-					scratch.setByteArray("Add", tebs.getBlockMSBArray().data);
+					scratch.setByteArray("Add", duplicate(tebs.getBlockMSBArray().data));
 				}
-				scratch.setByteArray("Data", tebs.getMetadataArray().data);
-				scratch.setByteArray("BlockLight", tebs.getBlocklightArray().data);
+				scratch.setByteArray("Data", duplicate(tebs.getMetadataArray().data));
+				scratch.setByteArray("BlockLight", duplicate(tebs.getBlocklightArray().data));
 				if (flag) {
-					scratch.setByteArray("SkyLight", tebs.getSkylightArray().data);
+					scratch.setByteArray("SkyLight", duplicate(tebs.getSkylightArray().data));
 				} else {
 					scratch.setByteArray("SkyLight", new byte[tebs.getBlocklightArray().data.length]);
 				}
@@ -338,7 +342,7 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 		}
 		nbt.setTag("Sections", sections);
 
-		nbt.setByteArray("Biomes", chunk.getBiomeArray());
+		nbt.setByteArray("Biomes", duplicate(chunk.getBiomeArray()));
 
 		final NBTTagList entities = new NBTTagList();
 		for (int i = 0; i < chunk.entityLists.length; i++) {
@@ -405,21 +409,21 @@ public class MyAnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 			final NBTTagCompound scratch = sections.getCompoundTagAt(k);
 			final byte b1 = scratch.getByte("Y");
 			final ExtendedBlockStorage tebs = new ExtendedBlockStorage(b1 << 4, flag);
-			tebs.setBlockLSBArray(scratch.getByteArray("Blocks"));
+			tebs.setBlockLSBArray(duplicate(scratch.getByteArray("Blocks")));
 			if (scratch.hasKey("Add", 7)) {
-				tebs.setBlockMSBArray(new NibbleArray(scratch.getByteArray("Add"), 4));
+				tebs.setBlockMSBArray(new NibbleArray(duplicate(scratch.getByteArray("Add")), 4));
 			}
-			tebs.setBlockMetadataArray(new NibbleArray(scratch.getByteArray("Data"), 4));
-			tebs.setBlocklightArray(new NibbleArray(scratch.getByteArray("BlockLight"), 4));
+			tebs.setBlockMetadataArray(new NibbleArray(duplicate(scratch.getByteArray("Data")), 4));
+			tebs.setBlocklightArray(new NibbleArray(duplicate(scratch.getByteArray("BlockLight")), 4));
 			if (flag) {
-				tebs.setSkylightArray(new NibbleArray(scratch.getByteArray("SkyLight"), 4));
+				tebs.setSkylightArray(new NibbleArray(duplicate(scratch.getByteArray("SkyLight")), 4));
 			}
 			tebs.removeInvalidBlocks();
 			ebs[b1] = tebs;
 		}
 		chunk.setStorageArrays(ebs);
 		if (nbt.hasKey("Biomes", 7)) {
-			chunk.setBiomeArray(nbt.getByteArray("Biomes"));
+			chunk.setBiomeArray(duplicate(nbt.getByteArray("Biomes")));
 		}
 		return chunk;
 	}

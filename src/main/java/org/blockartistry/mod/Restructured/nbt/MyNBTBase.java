@@ -20,6 +20,10 @@ public abstract class MyNBTBase {
 
 	public abstract MyNBTBase copy();
 
+	public boolean isImmutable() {
+		return NBTFactory.isImmutable(getId());
+	}
+	
 	public boolean equals(Object p_equals_1_) {
 		if (!(p_equals_1_ instanceof MyNBTBase)) {
 			return false;

@@ -4,29 +4,31 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import net.minecraftforge.common.util.Constants.NBT;
+
 public class MyNBTTagLong extends MyNBTPrimitive {
 	private long data;
 
 	MyNBTTagLong() {
 	}
 
-	public MyNBTTagLong(long p_i45134_1_) {
-		this.data = p_i45134_1_;
+	public MyNBTTagLong(final long value) {
+		this.data = value;
 	}
 
 	@Override
-	void writeStream(DataOutput p_write_1_) throws IOException {
-		p_write_1_.writeLong(this.data);
+	void writeStream(final DataOutput stream) throws IOException {
+		stream.writeLong(this.data);
 	}
 
 	@Override
-	void readStream(DataInput p_152446_1_, int p_152446_2_, MyNBTSizeTracker p_152446_3_) throws IOException {
-		p_152446_3_.func_152450_a(64L);
-		this.data = p_152446_1_.readLong();
+	void readStream(final DataInput stream, final int depth, final MyNBTSizeTracker tracker) throws IOException {
+		tracker.func_152450_a(64L);
+		this.data = stream.readLong();
 	}
 
 	public byte getId() {
-		return 4;
+		return NBT.TAG_LONG;
 	}
 
 	public String toString() {
@@ -34,10 +36,10 @@ public class MyNBTTagLong extends MyNBTPrimitive {
 	}
 
 	public MyNBTBase copy() {
-		return MyNBTBase.class.cast(new MyNBTTagLong(this.data));
+		return new MyNBTTagLong(this.data);
 	}
 
-	public boolean equals(Object p_equals_1_) {
+	public boolean equals(final Object p_equals_1_) {
 		if (super.equals(p_equals_1_)) {
 			MyNBTTagLong localNBTTagLong = (MyNBTTagLong) p_equals_1_;
 			return this.data == localNBTTagLong.data;

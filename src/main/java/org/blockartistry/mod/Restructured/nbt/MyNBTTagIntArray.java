@@ -5,6 +5,8 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Arrays;
 
+import net.minecraftforge.common.util.Constants.NBT;
+
 public class MyNBTTagIntArray extends MyNBTBase {
 
 	private int[] intArray;
@@ -13,7 +15,9 @@ public class MyNBTTagIntArray extends MyNBTBase {
 	}
 
 	public MyNBTTagIntArray(final int[] array) {
-		this.intArray = array;
+		intArray = array;
+		// intArray = new int[array.length];
+		// System.arraycopy(array, 0, intArray, 0, array.length);
 	}
 
 	@Override
@@ -36,13 +40,13 @@ public class MyNBTTagIntArray extends MyNBTBase {
 	}
 
 	public byte getId() {
-		return 11;
+		return NBT.TAG_INT_ARRAY;
 	}
 
 	public String toString() {
 		final StringBuilder builder = new StringBuilder(128);
 		builder.append('[');
-		
+
 		for (int j = 0; j < intArray.length; j++)
 			builder.append(intArray[j]).append(',');
 
@@ -50,14 +54,13 @@ public class MyNBTTagIntArray extends MyNBTBase {
 	}
 
 	public MyNBTBase copy() {
-		final int[] aint = new int[this.intArray.length];
-		System.arraycopy(this.intArray, 0, aint, 0, this.intArray.length);
-		return MyNBTBase.class.cast(new MyNBTTagIntArray(aint));
+		final int[] newArray = new int[intArray.length];
+		System.arraycopy(intArray, 0, newArray, 0, intArray.length);
+		return new MyNBTTagIntArray(newArray);
 	}
 
 	public boolean equals(Object tag) {
-		return super.equals(tag) ? Arrays.equals(this.intArray, ((MyNBTTagIntArray) tag).intArray)
-				: false;
+		return super.equals(tag) ? Arrays.equals(this.intArray, ((MyNBTTagIntArray) tag).intArray) : false;
 	}
 
 	public int hashCode() {

@@ -4,30 +4,32 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import net.minecraft.util.MathHelper;
+import net.minecraftforge.common.util.Constants.NBT;
 
 public class MyNBTTagFloat extends MyNBTPrimitive {
+	
 	private float data;
 
 	MyNBTTagFloat() {
 	}
 
-	public MyNBTTagFloat(float p_i45131_1_) {
-		this.data = p_i45131_1_;
+	public MyNBTTagFloat(final float value) {
+		this.data = value;
 	}
 
 	@Override
-	void writeStream(DataOutput p_write_1_) throws IOException {
-		p_write_1_.writeFloat(this.data);
+	void writeStream(final DataOutput stream) throws IOException {
+		stream.writeFloat(this.data);
 	}
 
 	@Override
-	void readStream(DataInput p_152446_1_, int p_152446_2_, MyNBTSizeTracker p_152446_3_) throws IOException {
-		p_152446_3_.func_152450_a(32L);
-		this.data = p_152446_1_.readFloat();
+	void readStream(final DataInput stream, final int depth, final MyNBTSizeTracker tracker) throws IOException {
+		tracker.func_152450_a(32L);
+		this.data = stream.readFloat();
 	}
 
 	public byte getId() {
-		return 5;
+		return NBT.TAG_FLOAT;
 	}
 
 	public String toString() {
@@ -35,10 +37,10 @@ public class MyNBTTagFloat extends MyNBTPrimitive {
 	}
 
 	public MyNBTBase copy() {
-		return MyNBTBase.class.cast(new MyNBTTagFloat(this.data));
+		return new MyNBTTagFloat(this.data);
 	}
 
-	public boolean equals(Object p_equals_1_) {
+	public boolean equals(final Object p_equals_1_) {
 		if (super.equals(p_equals_1_)) {
 			MyNBTTagFloat localNBTTagFloat = (MyNBTTagFloat) p_equals_1_;
 			return this.data == localNBTTagFloat.data;

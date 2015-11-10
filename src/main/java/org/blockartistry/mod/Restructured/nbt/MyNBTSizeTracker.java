@@ -1,27 +1,44 @@
 package org.blockartistry.mod.Restructured.nbt;
 
+/**
+ * Improvements over the Vanilla NBTSizeTracker:
+ * 
+ * + The static readUTF() no longer performs calculations
+ * if the size tracker is noop.  Prior it would do the
+ * calculation and throw the results away.
+ *
+ */
 public class MyNBTSizeTracker {
 	
-	public static final MyNBTSizeTracker noopTracker = new MyNBTSizeTracker(true);
+	public static class NoopNBTTracker extends MyNBTSizeTracker {
+
+		protected NoopNBTTracker() {
+			super(0);
+		}
+		
+		public boolean isNoop() {
+			return true;
+		}
+		
+		public void func_152450_a(final long value) {
+			
+		}
+	}
 	
-	private final boolean noop;
+	public static final MyNBTSizeTracker noopTracker = new NoopNBTTracker();
+	
 	private final long field_152452_b;
 	private long field_152453_c;
 
-	private MyNBTSizeTracker(boolean noop) {
-		this.noop = noop;
-		this.field_152452_b = 0;
-	}
-	
 	public MyNBTSizeTracker(long p_i1203_1_) {
-		this.noop = false;
 		this.field_152452_b = p_i1203_1_;
 	}
 
+	public boolean isNoop() {
+		return false;
+	}
+	
 	public void func_152450_a(long p_152450_1_) {
-		if(noop)
-			return;
-		
 		this.field_152453_c += p_152450_1_ / 8L;
 		if (this.field_152453_c > this.field_152452_b) {
 			throw new RuntimeException("Tried to read NBT tag that was too big; tried to allocate: "
@@ -30,6 +47,10 @@ public class MyNBTSizeTracker {
 	}
 
 	public static void readUTF(MyNBTSizeTracker tracker, String data) {
+		
+		if(tracker.isNoop())
+			return;
+		
 		tracker.func_152450_a(16L);
 		if (data == null) {
 			return;

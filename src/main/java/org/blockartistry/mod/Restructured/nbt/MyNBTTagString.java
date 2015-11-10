@@ -4,6 +4,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import net.minecraftforge.common.util.Constants.NBT;
+
 public class MyNBTTagString extends MyNBTBase {
 	private String data;
 
@@ -11,26 +13,26 @@ public class MyNBTTagString extends MyNBTBase {
 		this.data = "";
 	}
 
-	public MyNBTTagString(String p_i1389_1_) {
-		this.data = p_i1389_1_;
-		if (p_i1389_1_ == null) {
+	public MyNBTTagString(final String text) {
+		this.data = text;
+		if (text == null) {
 			throw new IllegalArgumentException("Empty string not allowed");
 		}
 	}
 
 	@Override
-	void writeStream(DataOutput p_74734_1_) throws IOException {
-		p_74734_1_.writeUTF(this.data);
+	void writeStream(final DataOutput stream) throws IOException {
+		stream.writeUTF(this.data);
 	}
 
 	@Override
-	void readStream(DataInput p_152446_1_, int p_152446_2_, MyNBTSizeTracker p_152446_3_) throws IOException {
-		this.data = p_152446_1_.readUTF();
-		MyNBTSizeTracker.readUTF(p_152446_3_, this.data);
+	void readStream(final DataInput stream, final int depth, final MyNBTSizeTracker tracker) throws IOException {
+		this.data = stream.readUTF();
+		MyNBTSizeTracker.readUTF(tracker, this.data);
 	}
 
 	public byte getId() {
-		return 8;
+		return NBT.TAG_STRING;
 	}
 
 	public String toString() {
@@ -38,12 +40,10 @@ public class MyNBTTagString extends MyNBTBase {
 	}
 
 	public MyNBTBase copy() {
-		return MyNBTBase.class.cast(new MyNBTTagString(this.data));
+		return new MyNBTTagString(this.data);
 	}
 
-	public boolean equals(Object p_equals_1_) {
-		;
-		;
+	public boolean equals(final Object p_equals_1_) {
 		if (!super.equals(p_equals_1_)) {
 			return false;
 		}

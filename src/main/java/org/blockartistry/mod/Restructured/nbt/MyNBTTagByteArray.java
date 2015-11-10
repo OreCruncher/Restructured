@@ -5,24 +5,27 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Arrays;
 
+import net.minecraftforge.common.util.Constants.NBT;
+
 public class MyNBTTagByteArray extends MyNBTBase {
+	
 	private byte[] byteArray;
 
 	MyNBTTagByteArray() {
 	}
 
-	public MyNBTTagByteArray(byte[] array) {
-		this.byteArray = array;
+	public MyNBTTagByteArray(final byte[] array) {
+		byteArray = array;
 	}
 
 	@Override
-	void writeStream(DataOutput stream) throws IOException {
+	void writeStream(final DataOutput stream) throws IOException {
 		stream.writeInt(this.byteArray.length);
 		stream.write(this.byteArray);
 	}
 
 	@Override
-	void readStream(DataInput stream, int depth, MyNBTSizeTracker tracker) throws IOException {
+	void readStream(final DataInput stream, final int depth, final MyNBTSizeTracker tracker) throws IOException {
 		tracker.func_152450_a(32L);
 		int j = stream.readInt();
 		tracker.func_152450_a(8 * j);
@@ -31,7 +34,7 @@ public class MyNBTTagByteArray extends MyNBTBase {
 	}
 
 	public byte getId() {
-		return 7;
+		return NBT.TAG_BYTE_ARRAY;
 	}
 
 	public String toString() {
@@ -39,12 +42,12 @@ public class MyNBTTagByteArray extends MyNBTBase {
 	}
 
 	public MyNBTBase copy() {
-		byte[] abyte = new byte[this.byteArray.length];
-		System.arraycopy(this.byteArray, 0, abyte, 0, this.byteArray.length);
-		return MyNBTBase.class.cast(new MyNBTTagByteArray(abyte));
+		final byte[] newArray = new byte[byteArray.length];
+		System.arraycopy(byteArray, 0, newArray, 0, byteArray.length);
+		return new MyNBTTagByteArray(newArray);
 	}
 
-	public boolean equals(Object p_equals_1_) {
+	public boolean equals(final Object p_equals_1_) {
 		return super.equals(p_equals_1_) ? Arrays.equals(this.byteArray, ((MyNBTTagByteArray) p_equals_1_).byteArray)
 				: false;
 	}

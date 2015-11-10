@@ -63,7 +63,7 @@ public class Transformer implements IClassTransformer {
 		targets.put("aqk", "chunk/MyAnvilChunkLoader");
 
 		if (DO_NBT) {
-			targets.put("net.minecraft.nbt.NBTSizeTracker$1", "nbt/MyNBTSizeTracker$1");
+			targets.put("net.minecraft.nbt.NBTSizeTracker$NoopNBTTracker", "nbt/MyNBTSizeTracker$NoopNBTTracker");
 			targets.put("net.minecraft.nbt.CompressedStreamTools", "nbt/MyCompressedStreamTools");
 			targets.put("net.minecraft.nbt.NBTFactory", "nbt/NBTFactory");
 			targets.put("net.minecraft.nbt.NBTBase", "nbt/MyNBTBase");
@@ -111,6 +111,8 @@ public class Transformer implements IClassTransformer {
 					"net.minecraft.nbt.NBTPrimitive");
 			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTSizeTracker",
 					"net.minecraft.nbt.NBTSizeTracker");
+			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTSizeTracker$NoopNBTTracker",
+					"net.minecraft.nbt.NBTSizeTracker$NoopNBTTracker");
 			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagByte", "net.minecraft.nbt.NBTTagByte");
 			typesToReplace.put("org.blockartistry.mod.Restructured.nbt.MyNBTTagCompound",
 					"net.minecraft.nbt.NBTTagCompound");

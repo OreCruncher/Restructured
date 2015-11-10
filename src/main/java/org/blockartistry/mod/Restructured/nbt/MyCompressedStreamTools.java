@@ -20,10 +20,11 @@ import java.util.zip.GZIPOutputStream;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.util.ReportedException;
+import net.minecraftforge.common.util.Constants.NBT;
 
 public class MyCompressedStreamTools {
 
-	public static MyNBTTagCompound readCompressed(InputStream stream) throws IOException {
+	public static MyNBTTagCompound readCompressed(final InputStream stream) throws IOException {
 		DataInputStream datainputstream = new DataInputStream(new BufferedInputStream(new GZIPInputStream(stream)));
 		MyNBTTagCompound nbttagcompound;
 		try {
@@ -35,7 +36,7 @@ public class MyCompressedStreamTools {
 		return nbttagcompound;
 	}
 
-	public static void writeCompressed(MyNBTTagCompound nbt, OutputStream stream) throws IOException {
+	public static void writeCompressed(final MyNBTTagCompound nbt, final OutputStream stream) throws IOException {
 		DataOutputStream dataoutputstream = new DataOutputStream(
 				new BufferedOutputStream(new GZIPOutputStream(stream)));
 		try {
@@ -45,7 +46,7 @@ public class MyCompressedStreamTools {
 		}
 	}
 
-	public static MyNBTTagCompound read(byte[] buffer, MyNBTSizeTracker tracker) throws IOException {
+	public static MyNBTTagCompound read(final byte[] buffer, final MyNBTSizeTracker tracker) throws IOException {
 		DataInputStream datainputstream = new DataInputStream(
 				new BufferedInputStream(new GZIPInputStream(new ByteArrayInputStream(buffer))));
 		MyNBTTagCompound nbttagcompound;
@@ -58,9 +59,9 @@ public class MyCompressedStreamTools {
 		return nbttagcompound;
 	}
 
-	public static byte[] compress(MyNBTTagCompound nbt) throws IOException {
-		ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
-		DataOutputStream dataoutputstream = new DataOutputStream(new GZIPOutputStream(bytearrayoutputstream));
+	public static byte[] compress(final MyNBTTagCompound nbt) throws IOException {
+		final ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
+		final DataOutputStream dataoutputstream = new DataOutputStream(new GZIPOutputStream(bytearrayoutputstream));
 		try {
 			write(nbt, dataoutputstream);
 		} finally {
@@ -70,8 +71,8 @@ public class MyCompressedStreamTools {
 		return bytearrayoutputstream.toByteArray();
 	}
 
-	public static void safeWrite(MyNBTTagCompound nbt, File file) throws IOException {
-		File file2 = new File(file.getAbsolutePath() + "_tmp");
+	public static void safeWrite(final MyNBTTagCompound nbt, final File file) throws IOException {
+		final File file2 = new File(file.getAbsolutePath() + "_tmp");
 
 		if (file2.exists()) {
 			file2.delete();
@@ -90,12 +91,12 @@ public class MyCompressedStreamTools {
 		file2.renameTo(file);
 	}
 
-	public static MyNBTTagCompound read(DataInputStream stream) throws IOException {
+	public static MyNBTTagCompound read(final DataInputStream stream) throws IOException {
 		return read(stream, MyNBTSizeTracker.noopTracker);
 	}
 
-	public static MyNBTTagCompound read(DataInput stream, MyNBTSizeTracker tracker) throws IOException {
-		MyNBTBase nbtbase = read0(stream, 0, tracker);
+	public static MyNBTTagCompound read(final DataInput stream, final MyNBTSizeTracker tracker) throws IOException {
+		final MyNBTBase nbtbase = read0(stream, 0, tracker);
 
 		if (nbtbase instanceof MyNBTTagCompound) {
 			return ((MyNBTTagCompound) nbtbase);
@@ -104,35 +105,35 @@ public class MyCompressedStreamTools {
 		throw new IOException("Root tag must be a named compound tag");
 	}
 
-	public static void write(MyNBTTagCompound nbt, DataOutput stream) throws IOException {
+	public static void write(final MyNBTTagCompound nbt, final DataOutput stream) throws IOException {
 		write0(nbt, stream);
 	}
 
-	private static void write0(MyNBTBase tag, DataOutput stream) throws IOException {
+	private static void write0(final MyNBTBase tag, final DataOutput stream) throws IOException {
 		stream.writeByte(tag.getId());
 
-		if (tag.getId() == 0)
+		if (tag.getId() == NBT.TAG_END)
 			return;
 		stream.writeUTF("");
 		tag.writeStream(stream);
 	}
 
-	private static MyNBTBase read0(DataInput stream, int depth, MyNBTSizeTracker tracker)
+	private static MyNBTBase read0(final DataInput stream, final int depth, final MyNBTSizeTracker tracker)
 			throws IOException {
-		byte b0 = stream.readByte();
+		final byte b0 = stream.readByte();
 		tracker.func_152450_a(8L);
 
-		if (b0 == 0) {
-			return new MyNBTTagEnd();
+		if (b0 == NBT.TAG_END) {
+			return MyNBTTagEnd.END;
 		}
 
 		MyNBTSizeTracker.readUTF(tracker, stream.readUTF());
 		tracker.func_152450_a(32L);
-		MyNBTBase nbtbase = NBTFactory.getTag(b0);
+		final MyNBTBase nbtbase = NBTFactory.getTag(b0);
 		try {
 			nbtbase.readStream(stream, depth, tracker);
 			return nbtbase;
-		} catch (IOException ioexception) {
+		} catch (final IOException ioexception) {
 			CrashReport crashreport = CrashReport.makeCrashReport(ioexception, "Loading NBT data");
 			CrashReportCategory crashreportcategory = crashreport.makeCategory("NBT Tag");
 			crashreportcategory.addCrashSection("Tag name", "[UNNAMED TAG]");
@@ -141,7 +142,7 @@ public class MyCompressedStreamTools {
 		}
 	}
 
-	public static void write(MyNBTTagCompound nbt, File file) throws IOException {
+	public static void write(final MyNBTTagCompound nbt, final File file) throws IOException {
 		DataOutputStream dataoutputstream = new DataOutputStream(new FileOutputStream(file));
 		try {
 			write(nbt, dataoutputstream);
@@ -150,11 +151,11 @@ public class MyCompressedStreamTools {
 		}
 	}
 
-	public static MyNBTTagCompound read(File file) throws IOException {
+	public static MyNBTTagCompound read(final File file) throws IOException {
 		return read(file, MyNBTSizeTracker.noopTracker);
 	}
 
-	public static MyNBTTagCompound read(File file, MyNBTSizeTracker tracker) throws IOException {
+	public static MyNBTTagCompound read(final File file, final MyNBTSizeTracker tracker) throws IOException {
 		if (!(file.exists())) {
 			return null;
 		}

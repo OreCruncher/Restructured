@@ -4,18 +4,22 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import net.minecraftforge.common.util.Constants.NBT;
+
 public class MyNBTTagEnd extends MyNBTBase {
+	
+	public static final MyNBTTagEnd END = new MyNBTTagEnd();
 
 	@Override
-	void readStream(DataInput p_152446_1_, int p_152446_2_, MyNBTSizeTracker p_152446_3_) throws IOException {
+	void readStream(final DataInput stream, final int depth, final MyNBTSizeTracker tracker) throws IOException {
 	}
 
 	@Override
-	void writeStream(DataOutput p_write_1_) throws IOException {
+	void writeStream(final DataOutput stream) throws IOException {
 	}
 
 	public byte getId() {
-		return 0;
+		return NBT.TAG_END;
 	}
 
 	public String toString() {
@@ -23,6 +27,6 @@ public class MyNBTTagEnd extends MyNBTBase {
 	}
 
 	public MyNBTBase copy() {
-		return MyNBTBase.class.cast(new MyNBTTagEnd());
+		return END;
 	}
 }
