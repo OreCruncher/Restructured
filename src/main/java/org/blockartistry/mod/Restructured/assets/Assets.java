@@ -28,7 +28,9 @@ package org.blockartistry.mod.Restructured.assets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,6 @@ import org.blockartistry.mod.Restructured.util.WeightTable;
 import org.blockartistry.mod.Restructured.world.SchematicWorldGenHandler;
 
 import com.google.common.base.Preconditions;
-
 import cpw.mods.fml.common.registry.GameData;
 
 public final class Assets {
@@ -113,21 +114,37 @@ public final class Assets {
 
 	static final String CONFIG_CHESTS = "chests";
 
-	private static final String SCHEMATIC_RESOURCE_PATH = "schematics";
 	static final String SCHEMATIC_RESOURCE_EXTENSION = ".schematic";
 
 	private static File accessPath = null;
 	private static Configuration config = null;
 	private static Configuration chests = null;
 
+	private static final String STANDARD_PACK = "StandardPack.zip";
 	static {
-		accessPath = new File(Restructured.dataDirectory(), SCHEMATIC_RESOURCE_PATH);
-		if (!accessPath.exists())
-			accessPath.mkdirs();
-
+		accessPath = Restructured.dataDirectory();
 		config = new Configuration(new File(accessPath, "schematics.cfg"));
 		chests = new Configuration(new File(accessPath, "chests.cfg"));
 		schematicList = new ArrayList<SchematicProperties>();
+		
+		// If there are no zips present extract the standard
+		// archive into the folder.
+		if(!ZipProcessor.areZipsPresent(accessPath)) {
+			try {
+				final InputStream input = ClassLoader.getSystemResourceAsStream("assets/recycling/" + STANDARD_PACK);
+				if(input != null) {
+					final OutputStream output = new FileOutputStream(new File(accessPath, STANDARD_PACK));
+					int read = 0;
+					final byte[] buffer = new byte[4096];
+					while((read = input.read(buffer, 0, 4096)) > 0)
+						output.write(buffer, 0, read);
+					output.close();
+				}
+			} catch(final Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+
 	}
 
 	public static SchematicProperties getProperties(final String schematic) {

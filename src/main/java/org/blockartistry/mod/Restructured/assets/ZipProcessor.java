@@ -44,16 +44,19 @@ public final class ZipProcessor {
 	private ZipProcessor() {
 	}
 
-	private static void traverseZips(final File path, final Predicate<ZipEntry> test,
-			final Predicate<Object[]> process) {
-		final File[] zips = path.listFiles(new FileFilter() {
+	private static File[] getZipFiles(final File path) {
+		return path.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(final File pathname) {
 				return pathname.isFile() && pathname.getName().endsWith(".zip");
 			}
-		});
+		});		
+	}
+	
+	private static void traverseZips(final File path, final Predicate<ZipEntry> test,
+			final Predicate<Object[]> process) {
 
-		for (final File file : zips) {
+		for (final File file : getZipFiles(path)) {
 			try {
 				final ZipFile zip = new ZipFile(file);
 				final String prefix = StringUtils.removeEnd(file.getName(), ".zip").toLowerCase().replaceAll("[-.]", "_");
@@ -84,5 +87,9 @@ public final class ZipProcessor {
 				new ConfigProcessor.SchematicsConfigProcess(schematics));
 		traverseZips(path, new ConfigProcessor.SchematicFilter(),
 				new ConfigProcessor.SchematicsProcess(schematics, props));
+	}
+	
+	public static boolean areZipsPresent(final File path) {
+		return getZipFiles(path).length > 0;
 	}
 }

@@ -37,7 +37,6 @@ import org.blockartistry.mod.Restructured.util.ElementRule;
 import org.blockartistry.mod.Restructured.util.MyUtils;
 
 import com.google.common.base.Predicate;
-
 import org.blockartistry.mod.Restructured.util.ElementRule.Rule;
 import org.blockartistry.mod.Restructured.util.JarConfiguration;
 
@@ -85,7 +84,6 @@ public final class ConfigProcessor {
 		@Override
 		public boolean apply(final Object[] input) {
 			final String prefix = (String) input[0];
-			// final ZipEntry entry = (ZipEntry)input[1];
 			final InputStream stream = (InputStream) input[2];
 
 			// The input stream contains the config file we need
@@ -123,7 +121,6 @@ public final class ConfigProcessor {
 		@Override
 		public boolean apply(final Object[] input) {
 			final String prefix = (String) input[0];
-			// final ZipEntry entry = (ZipEntry)input[1];
 			final InputStream stream = (InputStream) input[2];
 
 			// The input stream contains the config file we need
@@ -138,14 +135,21 @@ public final class ConfigProcessor {
 				ConfigCategory temp = target.getCategory(name);
 				if (temp.isEmpty()) {
 					for (Entry<String, Property> item : p.getValues().entrySet()) {
-						if (item.getKey().equals(Assets.OPTION_CHEST_CONTENTS)
-								&& !item.getValue().getString().isEmpty()) {
-							final Property prop = new Property(Assets.OPTION_CHEST_CONTENTS,
-									prefix + "." + item.getValue().getString(), Property.Type.STRING);
-							temp.put(item.getKey(), prop);
-						} else
-							temp.put(item.getKey(), item.getValue());
-
+						Property prop = item.getValue();
+						if (item.getKey().equals(Assets.OPTION_CHEST_CONTENTS)) {
+							final String chestName = item.getValue().getString();
+							// ^ means keep the name without mangling.  Used to index
+							// existing loot tables
+							if (chestName.startsWith("^")) {
+								prop = new Property(Assets.OPTION_CHEST_CONTENTS,
+										item.getValue().getString().substring(1), Property.Type.STRING);
+							// Need to mangle the name to avoid collisions
+							} else if (!chestName.isEmpty()) {
+								prop = new Property(Assets.OPTION_CHEST_CONTENTS,
+										prefix + "." + item.getValue().getString(), Property.Type.STRING);
+							}
+						}
+						temp.put(item.getKey(), prop);
 					}
 				}
 			}
