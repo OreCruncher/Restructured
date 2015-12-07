@@ -27,6 +27,7 @@ package org.blockartistry.mod.Restructured.assets;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.List;
@@ -53,6 +54,15 @@ public final class ZipProcessor {
 		});		
 	}
 	
+	private static File[] getSchematicFiles(final File path) {
+		return path.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(final File pathname) {
+				return pathname.isFile() && pathname.getName().endsWith(".schematic");
+			}
+		});		
+	}
+	
 	private static void traverseZips(final File path, final Predicate<ZipEntry> test,
 			final Predicate<Object[]> process) {
 
@@ -65,11 +75,27 @@ public final class ZipProcessor {
 					final ZipEntry entry = entries.nextElement();
 					if (test.apply(entry)) {
 						final InputStream stream = zip.getInputStream(entry);
-						process.apply(new Object[] { prefix, entry, stream });
+						final String name = StringUtils.removeEnd(entry.getName(), ".schematic");
+						process.apply(new Object[] { prefix, name, stream });
 						stream.close();
 					}
 				}
 				zip.close();
+			} catch (final Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+
+	private static void traverseSchematics(final File path,
+			final Predicate<Object[]> process) {
+
+		for (final File file : getSchematicFiles(path)) {
+			try {
+				final InputStream stream = new FileInputStream(file);
+				final String entry = StringUtils.removeEnd(file.getName(), ".schematic").toLowerCase().replaceAll("[-.]", "_");
+				process.apply(new Object[] { "", entry, stream });
+				stream.close();
 			} catch (final Exception ex) {
 				ex.printStackTrace();
 			}
@@ -87,9 +113,15 @@ public final class ZipProcessor {
 				new ConfigProcessor.SchematicsConfigProcess(schematics));
 		traverseZips(path, new ConfigProcessor.SchematicFilter(),
 				new ConfigProcessor.SchematicsProcess(schematics, props));
+		
+		traverseSchematics(path, new ConfigProcessor.SchematicsProcess(schematics, props));
 	}
 	
 	public static boolean areZipsPresent(final File path) {
 		return getZipFiles(path).length > 0;
+	}
+	
+	public static boolean areSchematicsPresent(final File path) {
+		return getSchematicFiles(path).length > 0;
 	}
 }

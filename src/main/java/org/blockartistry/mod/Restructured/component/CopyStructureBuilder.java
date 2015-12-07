@@ -258,8 +258,11 @@ public class CopyStructureBuilder {
 	protected void generateChestContents(final IInventory inventory, final String category, final int count) {
 		final WeightedRandomChestContent[] contents = ChestGenHooks.getItems(
 				category, rand);
-		WeightedRandomChestContent.generateChestContents(rand, contents,
-				inventory, count);
+		if(contents == null || contents.length == 0)
+			ModLog.warn("Unable to get chest contents: %s", category);
+		else
+			WeightedRandomChestContent.generateChestContents(rand, contents,
+					inventory, count);
 	}
 
 	protected boolean doFillChestContents(final BlockHelper helper) {
