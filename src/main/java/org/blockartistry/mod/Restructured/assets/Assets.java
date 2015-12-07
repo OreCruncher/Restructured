@@ -28,13 +28,11 @@ package org.blockartistry.mod.Restructured.assets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -48,16 +46,11 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.oredict.OreDictionary;
 
-import org.apache.commons.lang3.StringUtils;
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.Restructured;
 import org.blockartistry.mod.Restructured.component.SchematicStructureCreationHandler;
-import org.blockartistry.mod.Restructured.schematica.SchematicFormat;
-import org.blockartistry.mod.Restructured.util.ElementRule;
-import org.blockartistry.mod.Restructured.util.ElementRule.Rule;
 import org.blockartistry.mod.Restructured.util.ItemStackHelper;
-import org.blockartistry.mod.Restructured.util.MyUtils;
 import org.blockartistry.mod.Restructured.util.WeightTable;
 import org.blockartistry.mod.Restructured.world.SchematicWorldGenHandler;
 
@@ -77,7 +70,7 @@ public final class Assets {
 	static final boolean DEFAULT_IS_WORLD = false;
 	static final boolean DEFAULT_IS_VILLAGE = true;
 	static final String DEFAULT_OPTIONS = "suppressFire;suppressEggs";
-	
+
 	static final int DEFAULT_VILLAGE_WEIGHT = 10;
 	static final int DEFAULT_WORLD_WEIGHT = 0;
 	static final int DEFAULT_LIMIT = 1;
@@ -90,11 +83,9 @@ public final class Assets {
 	static final boolean DEFAULT_BIOME_LIST_TYPE = true;
 	static final boolean DEFAULT_DIMENSION_LIST_TYPE = true;
 
-	static final int[] DEFAULT_BIOME_LIST = new int[] {
-			BiomeGenBase.deepOcean.biomeID, BiomeGenBase.frozenOcean.biomeID,
-			BiomeGenBase.frozenRiver.biomeID, BiomeGenBase.ocean.biomeID,
-			BiomeGenBase.river.biomeID, BiomeGenBase.swampland.biomeID,
-			BiomeGenBase.beach.biomeID, };
+	static final int[] DEFAULT_BIOME_LIST = new int[] { BiomeGenBase.deepOcean.biomeID,
+			BiomeGenBase.frozenOcean.biomeID, BiomeGenBase.frozenRiver.biomeID, BiomeGenBase.ocean.biomeID,
+			BiomeGenBase.river.biomeID, BiomeGenBase.swampland.biomeID, BiomeGenBase.beach.biomeID, };
 
 	static final int[] DEFAULT_DIMENSION_LIST = new int[] { 1, -1 };
 
@@ -105,7 +96,7 @@ public final class Assets {
 	static final String OPTION_OPTIONS_SUPPRESS_FIRE = "suppressFire";
 	static final String OPTION_OPTIONS_SUPPRESS_EGGS = "suppressEggs";
 	static final String OPTION_OPTIONS_RANDOM_CROPS = "randomCrops";
-	
+
 	static final String OPTION_VILLAGE_WEIGHT = "villageWeight";
 	static final String OPTION_WORLD_WEIGHT = "worldWeight";
 	static final String OPTION_LIMIT = "limit";
@@ -123,142 +114,24 @@ public final class Assets {
 	static final String CONFIG_CHESTS = "chests";
 
 	private static final String SCHEMATIC_RESOURCE_PATH = "schematics";
-	private static final String SCHEMATIC_RESOURCE_EXTENSION = ".schematic";
+	static final String SCHEMATIC_RESOURCE_EXTENSION = ".schematic";
 
 	private static File accessPath = null;
 	private static Configuration config = null;
 	private static Configuration chests = null;
 
 	static {
-
-		accessPath = new File(Restructured.dataDirectory(),
-				SCHEMATIC_RESOURCE_PATH);
+		accessPath = new File(Restructured.dataDirectory(), SCHEMATIC_RESOURCE_PATH);
 		if (!accessPath.exists())
 			accessPath.mkdirs();
 
 		config = new Configuration(new File(accessPath, "schematics.cfg"));
 		chests = new Configuration(new File(accessPath, "chests.cfg"));
-	}
-
-	public static List<SchematicProperties> getSchematicPropertyList() {
-
-		if (schematicList != null)
-			return schematicList;
-
 		schematicList = new ArrayList<SchematicProperties>();
-
-		for (File f : accessPath.listFiles()) {
-			if (f.isFile()
-					&& f.getName().endsWith(SCHEMATIC_RESOURCE_EXTENSION)) {
-
-				SchematicProperties props = new SchematicProperties();
-
-				props.name = StringUtils.removeEnd(f.getName(),
-						SCHEMATIC_RESOURCE_EXTENSION);
-				String category = CONFIG_STRUCTURES + "." + props.name;
-
-				props.villageWeight = config
-						.getInt(OPTION_VILLAGE_WEIGHT, category,
-								DEFAULT_VILLAGE_WEIGHT, 0, Integer.MAX_VALUE,
-								"Relative selection weight for village structure generation");
-
-				props.worldWeight = config.getInt(OPTION_WORLD_WEIGHT,
-						category, DEFAULT_WORLD_WEIGHT, 0, Integer.MAX_VALUE,
-						"Relative selection weight for world generation");
-
-				props.villagerCount = config
-						.getInt(OPTION_VILLAGER_COUNT, category,
-								DEFAULT_VILLAGER_COUNT, -1, Integer.MAX_VALUE,
-								"Number of villagers to spawn for the structure (-1 random)");
-
-				props.villagerProfession = config
-						.getInt(OPTION_VILLAGER_PROFESSION,
-								category,
-								DEFAULT_VILLAGER_PROFESSION,
-								-1,
-								4,
-								"Villager profession: -1 random, 0 farmer, 1 librarian, 2 priest, 3 smith, 4 butcher");
-
-				props.limit = config
-						.getInt(OPTION_LIMIT, category, DEFAULT_LIMIT, 0,
-								Integer.MAX_VALUE,
-								"Maximum number of this type of structure to have in a village");
-
-				props.groundOffset = config
-						.getInt(OPTION_OFFSET, category, DEFAULT_OFFSET, 0,
-								Integer.MAX_VALUE,
-								"The number of blocks below ground the structure extends");
-
-				props.chestContents = config
-						.getString(OPTION_CHEST_CONTENTS, category,
-								DEFAULT_CHEST_CONTENTS,
-								"What chest generation hook to use when filling chests");
-
-				props.chestContentsCount = config
-						.getInt(OPTION_CHEST_CONTENTS_COUNT, category,
-								DEFAULT_CHEST_CONTENTS_COUNT, 0,
-								Integer.MAX_VALUE,
-								"The number of stacks to pull from the generation table");
-
-				props.spawnerEnableChance = config.getInt(
-						OPTION_SPAWNER_ENABLE_CHANCE, category,
-						DEFAULT_SPAWNER_ENABLE_CHANCE, 0, 100,
-						"Chance that a spawner will be preserved when placed");
-
-				boolean asBlackList = config.getBoolean(OPTION_BIOME_LIST_TYPE,
-						category, DEFAULT_BIOME_LIST_TYPE,
-						"Treat the biome list as a blacklist vs. whitelist");
-				String def = MyUtils.join(";", DEFAULT_BIOME_LIST);
-				String list = config.getString(OPTION_BIOME_LIST, category,
-						def, "List of biome IDs");
-
-				try {
-					props.biomes = new ElementRule(
-							asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
-							MyUtils.split(";", list));
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-
-				asBlackList = config
-						.getBoolean(OPTION_DIMENSION_LIST_TYPE, category,
-								DEFAULT_DIMENSION_LIST_TYPE,
-								"Treat the dimension list as a blacklist vs. whitelist");
-				def = MyUtils.join(";", DEFAULT_DIMENSION_LIST);
-				list = config.getString(OPTION_DIMENSION_LIST, category, def,
-						"List of dimension IDs");
-
-				String options = config.getString(OPTION_OPTIONS, category, DEFAULT_OPTIONS, "Options for generation");
-				props.suppressFire = options.contains(OPTION_OPTIONS_SUPPRESS_FIRE);
-				props.suppressMonsterEgg = options.contains(OPTION_OPTIONS_SUPPRESS_EGGS);
-				props.randomizeCrops = options.contains(OPTION_OPTIONS_RANDOM_CROPS);
-				
-				try {
-					props.dimensions = new ElementRule(
-							asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
-							MyUtils.split(";", list));
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-
-				try {
-					InputStream stream = Assets.getSchematicFile(props.name);
-					props.schematic = SchematicFormat.readFromStream(stream);
-					stream.close();
-				} catch (IOException e) {
-					;
-				}
-
-				if (props.schematic != null)
-					schematicList.add(props);
-			}
-		}
-
-		return schematicList;
 	}
 
-	public static SchematicProperties getProperties(String schematic) {
-		for (SchematicProperties p : getSchematicPropertyList())
+	public static SchematicProperties getProperties(final String schematic) {
+		for (final SchematicProperties p : schematicList)
 			if (p.name.equals(schematic))
 				return p;
 		return null;
@@ -270,50 +143,45 @@ public final class Assets {
 			return chestHooks;
 
 		chestHooks = new ArrayList<ChestGenHooks>();
-		ConfigCategory c = chests.getCategory(CONFIG_CHESTS);
+		final ConfigCategory c = chests.getCategory(CONFIG_CHESTS);
 
-		for (ConfigCategory p : c.getChildren()) {
-			String chestHookName = p.getName();
+		for (final ConfigCategory p : c.getChildren()) {
+			for(final ConfigCategory cc : p.getChildren()) {
+				
+				String chestHookName = p.getName() + "." + cc.getName();
 
-			for (Entry<String, Property> item : p.getValues().entrySet()) {
-
-				ItemStack stack = ItemStackHelper.getItemStack(item.getKey());
-				if (stack == null
-						|| stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
-					ModLog.warn("Invalid item: %s", item.getKey());
-					continue;
-				}
-
-				try {
-
-					String values = item.getValue().getString();
-					String[] parms = values.split(",");
-					if (parms.length == 3) {
-
-						int min = Integer.valueOf(parms[0]);
-						int max = Integer.valueOf(parms[1]);
-						int weight = Integer.valueOf(parms[2]);
-
-						ChestGenHooks.addItem(chestHookName,
-								new WeightedRandomChestContent(stack, min, max,
-										weight));
-
-					} else {
-						ModLog.warn(
-								"Invalid number of values in parameter string: %s",
-								values);
+				for (Entry<String, Property> item : cc.getValues().entrySet()) {
+	
+					ItemStack stack = ItemStackHelper.getItemStack(item.getKey());
+					if (stack == null || stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
+						ModLog.warn("Invalid item: %s", item.getKey());
+						continue;
 					}
-
-				} catch (final Exception e) {
-					ModLog.error("Unable to parse chest entry", e);
+	
+					try {
+	
+						String values = item.getValue().getString();
+						String[] parms = values.split(",");
+						if (parms.length == 3) {
+	
+							int min = Integer.valueOf(parms[0]);
+							int max = Integer.valueOf(parms[1]);
+							int weight = Integer.valueOf(parms[2]);
+	
+							ChestGenHooks.addItem(chestHookName, new WeightedRandomChestContent(stack, min, max, weight));
+	
+						} else {
+							ModLog.warn("Invalid number of values in parameter string: %s", values);
+						}
+	
+					} catch (final Exception e) {
+						ModLog.error("Unable to parse chest entry", e);
+					}
 				}
+
+				chestHooks.add(ChestGenHooks.getInfo(chestHookName));
 			}
-
-			chestHooks.add(ChestGenHooks.getInfo(chestHookName));
 		}
-
-		// No longer need it - make sure it goes away
-		chests = null;
 
 		return chestHooks;
 	}
@@ -328,8 +196,7 @@ public final class Assets {
 		InputStream result = null;
 
 		try {
-			result = new FileInputStream(new File(accessPath, name
-					+ SCHEMATIC_RESOURCE_EXTENSION));
+			result = new FileInputStream(new File(accessPath, name + SCHEMATIC_RESOURCE_EXTENSION));
 		} catch (FileNotFoundException e) {
 			ModLog.warn("Unable to locate schematic [%s]", name);
 			e.printStackTrace();
@@ -341,7 +208,7 @@ public final class Assets {
 	public static boolean areSchematicsInstalled() {
 		return villageSchematics.size() != 0 || worldSchematics.size() != 0;
 	}
-	
+
 	public static int villageStructureCount() {
 		return villageSchematics.size();
 	}
@@ -349,13 +216,13 @@ public final class Assets {
 	public static int villageStructureTotalWeight() {
 		return villageSchematics.getTotalWeight();
 	}
-	
+
 	public static int villageStructureTotalLimit() {
 		int limit = 0;
-		
-		for(SchematicWeightItem e: villageSchematics.getEntries())
+
+		for (SchematicWeightItem e : villageSchematics.getEntries())
 			limit += e.properties.limit;
-		
+
 		return limit;
 	}
 
@@ -370,13 +237,12 @@ public final class Assets {
 	public static SchematicProperties getNextWorldStructure() {
 		return worldSchematics.next().properties;
 	}
-	
-	public static WeightTable<SchematicWeightItem> getTableForVillageGen()
-	{
+
+	public static WeightTable<SchematicWeightItem> getTableForVillageGen() {
 		WeightTable<SchematicWeightItem> table = new WeightTable<SchematicWeightItem>();
 		for (SchematicWeightItem e : villageSchematics.getEntries()) {
 			try {
-				table.add((SchematicWeightItem)e.clone());
+				table.add((SchematicWeightItem) e.clone());
 			} catch (CloneNotSupportedException e1) {
 				e1.printStackTrace();
 			}
@@ -385,15 +251,14 @@ public final class Assets {
 		return table;
 	}
 
-	public static WeightTable<SchematicWeightItem> getTableForWorldGen(
-			int dimId, BiomeGenBase biome) {
+	public static WeightTable<SchematicWeightItem> getTableForWorldGen(int dimId, BiomeGenBase biome) {
 
 		WeightTable<SchematicWeightItem> table = new WeightTable<SchematicWeightItem>();
 		for (SchematicWeightItem e : worldSchematics.getEntries()) {
 			SchematicProperties p = e.properties;
 			if (p.dimensions.isOk(dimId) && p.biomes.isOk(biome.biomeID))
 				try {
-					table.add((SchematicWeightItem)e.clone());
+					table.add((SchematicWeightItem) e.clone());
 				} catch (CloneNotSupportedException e1) {
 					e1.printStackTrace();
 				}
@@ -401,20 +266,20 @@ public final class Assets {
 
 		return table;
 	}
-	
+
 	public static List<ItemSeeds> getSeeds() {
-		
-		if(seeds != null)
+
+		if (seeds != null)
 			return seeds;
-		
+
 		seeds = new ArrayList<ItemSeeds>();
-		for(Item i: GameData.getItemRegistry().typeSafeIterable())
-			if((i instanceof ItemSeeds) && i != Items.pumpkin_seeds && i != Items.melon_seeds)
-				seeds.add((ItemSeeds)i);
-		
+		for (Item i : GameData.getItemRegistry().typeSafeIterable())
+			if ((i instanceof ItemSeeds) && i != Items.pumpkin_seeds && i != Items.melon_seeds)
+				seeds.add((ItemSeeds) i);
+
 		return seeds;
 	}
-	
+
 	protected static void dumpBiomeList() {
 
 		ModLog.info("Detected biomes:");
@@ -425,8 +290,10 @@ public final class Assets {
 	}
 
 	public static void initialize() {
+		
+		ZipProcessor.initialize(accessPath, config, chests, schematicList);
 
-		for (SchematicProperties p : getSchematicPropertyList()) {
+		for (final SchematicProperties p : schematicList) {
 
 			if (p.villageWeight > 0)
 				villageSchematics.add(new SchematicWeightItem(p, true));
@@ -440,8 +307,7 @@ public final class Assets {
 				if (ModOptions.getEnableDebugLogging()) {
 					Map<Block, Integer> analysis = p.analyze();
 					for (Entry<Block, Integer> e : analysis.entrySet()) {
-						ModLog.info("Block: [%s], count=%d", e.getKey()
-								.getLocalizedName(), e.getValue().intValue());
+						ModLog.info("Block: [%s], count=%d", e.getKey().getLocalizedName(), e.getValue().intValue());
 					}
 				}
 			}
@@ -450,7 +316,10 @@ public final class Assets {
 		// Just call once - process will register the hook info
 		// during load.
 		getChestGenerationHooks();
+		
+		// Save the configs so the player can edit
 		config.save();
+		chests.save();
 
 		// Create our handlers
 		if (villageStructureCount() > 0) {

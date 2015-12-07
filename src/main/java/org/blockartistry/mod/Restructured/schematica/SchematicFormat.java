@@ -61,7 +61,7 @@ public abstract class SchematicFormat {
 			}
 
 			return schematicFormat.readFromNBT(tagCompound);
-		} catch (Exception ex) {
+		} catch (final Exception ex) {
 			ModLog.error("Failed to read schematic!", ex);
 		}
 
