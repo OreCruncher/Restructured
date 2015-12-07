@@ -64,14 +64,13 @@ public final class Assets {
 	private static List<ChestGenHooks> chestHooks = null;
 	private static List<ItemSeeds> seeds = null;
 
+	// Editable configuration
 	private static final File accessPath = Restructured.dataDirectory();
 	private static Configuration config = new Configuration(new File(accessPath, "schematics.cfg"));
 	private static Configuration chests = new Configuration(new File(accessPath, "chests.cfg"));
 
 	private static final WeightTable<SchematicWeightItem> villageSchematics = new WeightTable<SchematicWeightItem>();
 	private static final WeightTable<SchematicWeightItem> worldSchematics = new WeightTable<SchematicWeightItem>();
-
-
 
 	static {
 		ModLog.info("Schematic ZIPs present: %s", Boolean.toString(ZipProcessor.areZipsPresent(accessPath)));
@@ -82,13 +81,14 @@ public final class Assets {
 			ModLog.info("Extracting %s to configuration directory", STANDARD_PACK);
 			try {
 				final InputStream input = ClassLoader.getSystemResourceAsStream("assets/recycling/" + STANDARD_PACK);
-				if (input != null)
+				if (input != null) {
 					StreamUtils.copy(input, new File(accessPath, STANDARD_PACK));
+					input.close();
+				}
 			} catch (final Exception ex) {
 				ex.printStackTrace();
 			}
 		}
-
 	}
 
 	public static SchematicProperties getProperties(final String schematic) {
@@ -99,12 +99,7 @@ public final class Assets {
 	}
 
 	private static boolean isContainerNode(final ConfigCategory c) {
-		if(c.isEmpty() || c.getChildren().isEmpty())
-			return false;
-		
-		final Map<String, Property> x = c.getChildren().iterator().next().getValues();
-		final Entry<String, Property> item  = x.entrySet().iterator().next();
-		return !item.getKey().contains(":");
+		return !c.getChildren().isEmpty();
 	}
 	
 	private static void processEntry(final ConfigCategory p, final ConfigCategory cc, final List<ChestGenHooks> list) {
@@ -144,6 +139,7 @@ public final class Assets {
 			}
 		}
 		list.add(ChestGenHooks.getInfo(chestHookName));
+		ModLog.info("Loaded chest loot table '%s'", chestHookName);
 	}
 	
 	private static List<ChestGenHooks> getChestGenerationHooks() {
@@ -246,7 +242,7 @@ public final class Assets {
 
 				if (ModOptions.getEnableDebugLogging()) {
 					Map<Block, Integer> analysis = p.analyze();
-					for (Entry<Block, Integer> e : analysis.entrySet()) {
+					for (final Entry<Block, Integer> e : analysis.entrySet()) {
 						ModLog.info("Block: [%s], count=%d", e.getKey().getLocalizedName(), e.getValue().intValue());
 					}
 				}
@@ -275,7 +271,8 @@ public final class Assets {
 		dumpBiomeList();
 
 		// Release the config files because they are
-		// not needed
+		// not needed from this point on - everything
+		// is cached.
 		config = null;
 		chests = null;
 	}
