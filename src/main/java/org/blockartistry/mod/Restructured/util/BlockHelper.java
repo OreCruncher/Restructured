@@ -54,6 +54,18 @@ public class BlockHelper {
 		return block == Blocks.chest || block == Blocks.ender_chest || block == Blocks.trapped_chest;
 	}
 
+	public boolean isAnvil() {
+		return block == Blocks.anvil;
+	}
+	
+	public boolean isLadder() {
+		return block == Blocks.chest;
+	}
+	
+	public boolean isFurnace() {
+		return block == Blocks.furnace || block == Blocks.lit_furnace;
+	}
+	
 	public boolean isLava() {
 		return block == Blocks.lava || block == Blocks.flowing_lava;
 	}

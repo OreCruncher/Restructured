@@ -30,8 +30,9 @@ import java.util.Random;
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
-import org.blockartistry.mod.Restructured.util.Vector;
+import org.blockartistry.mod.Restructured.schematica.ISchematic;
 
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.gen.structure.MapGenStructureIO;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureComponent;
@@ -47,13 +48,17 @@ public class SchematicStructureCreationHandler implements
 		MapGenStructureIO.func_143031_a(SchematicStructure.class, "reSS");
 	}
 
+	private static ChunkCoordinates fromSchematic(final ISchematic schem) {
+		return new ChunkCoordinates(schem.getWidth(), schem.getHeight(), schem.getLength());
+	}
+
 	public SchematicStructureCreationHandler() {
 
 		VillagerRegistry.instance().registerVillageCreationHandler(this);
 	}
 
 	@Override
-	public PieceWeight getVillagePieceWeight(Random random, int i) {
+	public PieceWeight getVillagePieceWeight(final Random random, final int i) {
 		return new SchematicPieceWeight(Assets.getTableForVillageGen());
 	}
 
@@ -64,17 +69,17 @@ public class SchematicStructureCreationHandler implements
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object buildComponent(PieceWeight villagePiece, Start startPiece,
-			List pieces, Random random, int x, int y, int z, int direction,
-			int type) {
+	public Object buildComponent(final PieceWeight villagePiece, final Start startPiece,
+			final List pieces, final Random random, final int x, final int y, final int z, final int orientation,
+			final int type) {
 
 		// This shouldn't happen, but just in case...
 		if (!(villagePiece instanceof SchematicPieceWeight))
 			return null;
 
 		// Get our next structure
-		SchematicPieceWeight pw = (SchematicPieceWeight) villagePiece;
-		SchematicProperties props = pw.getNextStructure();
+		final SchematicPieceWeight pw = (SchematicPieceWeight) villagePiece;
+		final SchematicProperties props = pw.getNextStructure();
 
 		// If we don't get properties we may have exceeded
 		// the spawn limit.
@@ -82,10 +87,10 @@ public class SchematicStructureCreationHandler implements
 			return null;
 
 		// Bound it out
-		Vector size = new Vector(props.schematic);
-		StructureBoundingBox _boundingBox = StructureBoundingBox
-				.getComponentToAddBoundingBox(x, y, z, 0, 0, 0, (int) size.x,
-						(int) size.y, (int) size.z, direction);
+		final ChunkCoordinates size = fromSchematic(props.schematic);
+		final StructureBoundingBox _boundingBox = StructureBoundingBox
+				.getComponentToAddBoundingBox(x, y, z, 0, 0, 0, size.posX,
+						size.posY, size.posZ, orientation);
 
 		// Check to see if the region is OK, and if so return back
 		// a SchematicStructure surrogate for the schematic.
@@ -93,9 +98,9 @@ public class SchematicStructureCreationHandler implements
 			if (StructureComponent.findIntersecting(pieces, _boundingBox) == null) {
 				try {
 					ModLog.debug("Village structure [%s] @(%s); mode %d", props.name,
-							_boundingBox, direction);
-					SchematicStructure struct = new SchematicStructure(
-							startPiece, type, random, _boundingBox, direction);
+							_boundingBox, orientation);
+					final SchematicStructure struct = new SchematicStructure(
+							startPiece, type, random, _boundingBox, orientation);
 					struct.setProperties(props);
 					return struct;
 				} catch (IllegalArgumentException e) {
@@ -108,7 +113,7 @@ public class SchematicStructureCreationHandler implements
 		return null;
 	}
 
-	private boolean canVillageGoDeeper(StructureBoundingBox _boundingBox) {
+	private boolean canVillageGoDeeper(final StructureBoundingBox _boundingBox) {
 		return _boundingBox != null && _boundingBox.minY > 10;
 	}
 }

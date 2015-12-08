@@ -26,6 +26,7 @@ package org.blockartistry.mod.Restructured.world;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -34,9 +35,9 @@ import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
 import org.blockartistry.mod.Restructured.component.IStructureBuilder;
+import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
-import org.blockartistry.mod.Restructured.util.Vector;
 import org.blockartistry.mod.Restructured.world.BoxHelper.RegionStats;
 import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
@@ -53,41 +54,44 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	protected final BiomeGenBase biome;
 	protected final VillageTheme theme;
 
+	private static ChunkCoordinates fromSchematic(final ISchematic schem) {
+		return new ChunkCoordinates(schem.getWidth(), schem.getHeight(), schem.getLength());
+	}
 
 	public SchematicWorldGenStructure(final World world, final BiomeGenBase biome,
 			final int direction, final int x, final int z, final SchematicProperties properties) {
-		final Vector size = new Vector(properties.schematic);
+		final ChunkCoordinates size = fromSchematic(properties.schematic);
 		this.world = world;
 		this.direction = direction;
 		this.properties = properties;
 		this.biome = biome;
 		this.boundingBox = StructureBoundingBox.getComponentToAddBoundingBox(x,
-				1, z, 0, 0, 0, size.x, size.y, size.z,
+				1, z, 0, 0, 0, size.posX, size.posY, size.posZ,
 				direction);
 		
 		this.theme = VillageTheme.find(this.biome);
 	}
 
 	@Override
-	public Vector getDimensions() {
-		return new Vector(properties.schematic);
+	public ChunkCoordinates getDimensions() {
+		return fromSchematic(properties.schematic);
 	}
 
 	@Override
 	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
-		final Vector v = getWorldCoordinates(x, y, z);
-		return box.isVecInside(v.x, v.y, v.z);
+		final ChunkCoordinates v = getWorldCoordinates(x, y, z);
+		return box.isVecInside(v.posX, v.posY, v.posZ);
 	}
 
 	@Override
-	public Vector getWorldCoordinates(final int x, final int y, final int z) {
-		return new Vector(this.getXWithOffset(x, z), this.getYWithOffset(y),
+	public ChunkCoordinates getWorldCoordinates(final int x, final int y, final int z) {
+		return new ChunkCoordinates(this.getXWithOffset(x, z), this.getYWithOffset(y),
 				this.getZWithOffset(x, z));
 	}
 
 	@Override
-	public Vector getWorldCoordinates(final Vector v) {
-		return getWorldCoordinates(v.x, v.y, v.z);
+	public ChunkCoordinates getWorldCoordinates(final ChunkCoordinates v) {
+		return getWorldCoordinates(v.posX, v.posY, v.posZ);
 	}
 
 	@Override
@@ -189,9 +193,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 		// Ensure a platform for the structure
 		final SelectedBlock blockToPlace = theme.findReplacement(DIRT_BLOCK, properties.suppressMonsterEgg);
-		final Vector size = getDimensions();
-		for (int xx = 0; xx < size.x; xx++) {
-			for (int zz = 0; zz < size.z; zz++) {
+		final ChunkCoordinates size = getDimensions();
+		for (int xx = 0; xx < size.posX; xx++) {
+			for (int zz = 0; zz < size.posZ; zz++) {
 				clearUpwards(xx, 0, zz, box);
 				clearDownwards(blockToPlace.getBlock(), blockToPlace.getMeta(), xx, -1, zz, box);
 			}

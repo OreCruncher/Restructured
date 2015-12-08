@@ -25,8 +25,6 @@
 
 package org.blockartistry.mod.Restructured.component;
 
-import java.util.HashMap;
-
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.assets.SchematicWeightItem;
 import org.blockartistry.mod.Restructured.util.WeightTable;
@@ -46,21 +44,16 @@ import net.minecraft.world.gen.structure.StructureVillagePieces.PieceWeight;
  */
 public class SchematicPieceWeight extends PieceWeight {
 
-	// Maintain a history of the schematics that came
-	// through this factory. Still have to apply weights
-	// and limits based on configuration.
-	protected HashMap<SchematicProperties, Integer> history = new HashMap<SchematicProperties, Integer>();
-	
 	protected WeightTable<SchematicWeightItem> potentials = null;
 
-	public SchematicPieceWeight(WeightTable<SchematicWeightItem> potentials) {
+	public SchematicPieceWeight(final WeightTable<SchematicWeightItem> potentials) {
 		super(SchematicStructure.class, potentials.getTotalWeight(),
 				0);
 		
 		this.potentials = potentials;
         this.villagePiecesLimit = 0;
         
-        for(SchematicWeightItem e: this.potentials.getEntries()) {
+        for(final SchematicWeightItem e: this.potentials.getEntries()) {
         	this.villagePiecesLimit += e.properties.limit;
         }
 	}
@@ -76,8 +69,8 @@ public class SchematicPieceWeight extends PieceWeight {
 		if(potentials.size() == 0)
 			return null;
 		
-		SchematicWeightItem item = potentials.next();
-		SchematicProperties props = item.properties;
+		final SchematicWeightItem item = potentials.next();
+		final SchematicProperties props = item.properties;
 		
 		item.properties.limit--;
 		if(item.properties.limit == 0)

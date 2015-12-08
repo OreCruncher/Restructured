@@ -24,11 +24,11 @@
 
 package org.blockartistry.mod.Restructured.component;
 
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
-import org.blockartistry.mod.Restructured.util.Vector;
 
 public interface IStructureBuilder {
 
@@ -38,7 +38,7 @@ public interface IStructureBuilder {
 	 * 
 	 * @return
 	 */
-	Vector getDimensions();
+	ChunkCoordinates getDimensions();
 
 	/**
 	 * Determines if the location is within the bounding boxes of the region.
@@ -59,8 +59,8 @@ public interface IStructureBuilder {
 	 * @param z
 	 * @return
 	 */
-	Vector getWorldCoordinates(int x, int y, int z);
-	Vector getWorldCoordinates(Vector v);
+	ChunkCoordinates getWorldCoordinates(int x, int y, int z);
+	ChunkCoordinates getWorldCoordinates(ChunkCoordinates v);
 
 	/**
 	 * Places a block into the world. The underlying logic is responsible for

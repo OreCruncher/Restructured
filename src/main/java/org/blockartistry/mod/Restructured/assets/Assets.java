@@ -66,7 +66,7 @@ public final class Assets {
 
 	// Editable configuration
 	private static final File accessPath = Restructured.dataDirectory();
-	private static Configuration config = new Configuration(new File(accessPath, "schematics.cfg"));
+	private static Configuration config = new Configuration(new File(accessPath, "SCHEMATICS.cfg"));
 	private static Configuration chests = new Configuration(new File(accessPath, "chests.cfg"));
 
 	private static final WeightTable<SchematicWeightItem> villageSchematics = new WeightTable<SchematicWeightItem>();
@@ -75,7 +75,7 @@ public final class Assets {
 	static {
 		ModLog.info("Schematic ZIPs present: %s", Boolean.toString(ZipProcessor.areZipsPresent(accessPath)));
 		ModLog.info("Schematic Files present: %s", Boolean.toString(ZipProcessor.areSchematicsPresent(accessPath)));
-		// If there are no zips or schematics present extract the standard
+		// If there are no zips or SCHEMATICS present extract the standard
 		// archive into the folder.
 		if (!ZipProcessor.areZipsPresent(accessPath) && !ZipProcessor.areSchematicsPresent(accessPath)) {
 			ModLog.info("Extracting %s to configuration directory", STANDARD_PACK);

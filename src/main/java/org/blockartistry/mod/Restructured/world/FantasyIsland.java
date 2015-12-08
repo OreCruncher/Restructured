@@ -53,19 +53,16 @@ public class FantasyIsland extends World {
 
 	@Override
 	protected IChunkProvider createChunkProvider() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	protected int func_152379_p() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public Entity getEntityByID(int p_73045_1_) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	

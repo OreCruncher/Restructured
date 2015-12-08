@@ -24,7 +24,6 @@
 
 package org.blockartistry.mod.Restructured.component;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 import org.blockartistry.mod.Restructured.assets.Assets;
@@ -32,12 +31,12 @@ import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
-import org.blockartistry.mod.Restructured.util.Vector;
 import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -46,11 +45,13 @@ import net.minecraft.world.gen.structure.StructureVillagePieces.Start;
 public class SchematicStructure extends VillageStructureBase implements
 		IStructureBuilder {
 
-	protected static final ArrayList<SchematicProperties> schematics = new ArrayList<SchematicProperties>();
-
 	protected SchematicProperties properties;
 	protected BiomeGenBase biome;
 	protected VillageTheme theme;
+
+	private static ChunkCoordinates fromSchematic(final ISchematic schem) {
+		return new ChunkCoordinates(schem.getWidth(), schem.getHeight(), schem.getLength());
+	}
 
 	public SchematicStructure() {
 		super(null, 0, null, null, 0);
@@ -108,8 +109,8 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 
 	@Override
-	public Vector getDimensions() {
-		return new Vector(properties.schematic);
+	public ChunkCoordinates getDimensions() {
+		return fromSchematic(properties.schematic);
 	}
 
 	@Override
@@ -129,12 +130,12 @@ public class SchematicStructure extends VillageStructureBase implements
 		builder.generate();
 	}
 
-	protected Vector getSafeVillagerLocation() {
+	protected ChunkCoordinates getSafeVillagerLocation() {
 
 		// Initialize starting point
-		final Vector size = new Vector(properties.schematic);
-		int x = size.x >> 1;
-		int z = size.z >> 1;
+		final ChunkCoordinates size = fromSchematic(properties.schematic);
+		int x = size.posX >> 1;
+		int z = size.posZ >> 1;
 		int y = properties.groundOffset;
 
 		// Try several times finding a suitable spot
@@ -157,7 +158,7 @@ public class SchematicStructure extends VillageStructureBase implements
 			z += 1 - rand.nextInt(3);
 		}
 
-		return new Vector(x, y, z);
+		return new ChunkCoordinates(x, y, z);
 	}
 
 	@Override
@@ -169,8 +170,8 @@ public class SchematicStructure extends VillageStructureBase implements
 		if (count == 0)
 			return;
 
-		final Vector loc = getSafeVillagerLocation();
-		this.spawnVillagers(world, box, loc.x, loc.y, loc.z,
+		final ChunkCoordinates loc = getSafeVillagerLocation();
+		this.spawnVillagers(world, box, loc.posX, loc.posY, loc.posZ,
 				count);
 	}
 
@@ -184,18 +185,18 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	@Override
 	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
-		final Vector v = getWorldCoordinates(x, y, z);
-		return box.isVecInside(v.x, v.y, v.z);
+		final ChunkCoordinates v = getWorldCoordinates(x, y, z);
+		return box.isVecInside(v.posX, v.posY, v.posZ);
 	}
 
 	@Override
-	public Vector getWorldCoordinates(final int x, final int y, final int z) {
-		return new Vector(this.getXWithOffset(x, z), this.getYWithOffset(y),
+	public ChunkCoordinates getWorldCoordinates(final int x, final int y, final int z) {
+		return new ChunkCoordinates(this.getXWithOffset(x, z), this.getYWithOffset(y),
 				this.getZWithOffset(x, z));
 	}
 
 	@Override
-	public Vector getWorldCoordinates(final Vector v) {
-		return getWorldCoordinates(v.x, v.y, v.z);
+	public ChunkCoordinates getWorldCoordinates(final ChunkCoordinates v) {
+		return getWorldCoordinates(v.posX, v.posY, v.posZ);
 	}
 }

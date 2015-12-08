@@ -28,6 +28,7 @@ import org.blockartistry.mod.Restructured.world.FantasyIsland;
 
 import net.minecraft.block.Block;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.common.util.RotationHelper;
 
 public class SelectedBlock extends BlockHelper {
 	
@@ -65,12 +66,13 @@ public class SelectedBlock extends BlockHelper {
 		return this.meta;
 	}
 	
-	public void rotate(final ForgeDirection axis) {
+	public void rotate(final ForgeDirection axis, final int count) {
 		// Use our Fantasy to satisfy Minecraft so we can rotate
 		// the block without having to place it into the world.
 		// Should expose methods that don't rely on a world instance. :\
 		FantasyIsland.instance.meta = this.meta;
-		this.block.rotateBlock(FantasyIsland.instance, 0, 0, 0, axis);
+		for(int i = 0; i < count; i++)
+			RotationHelper.rotateVanillaBlock(this.block, FantasyIsland.instance, 0, 0, 0, axis);
 		this.meta = FantasyIsland.instance.meta;
 	}
 	

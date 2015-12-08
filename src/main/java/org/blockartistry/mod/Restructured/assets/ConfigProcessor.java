@@ -104,7 +104,7 @@ public final class ConfigProcessor {
 	public static class SchematicsConfigFilter implements Predicate<ZipEntry> {
 		@Override
 		public boolean apply(final ZipEntry t) {
-			return t.getName().contains("schematics.cfg");
+			return t.getName().contains("SCHEMATICS.cfg");
 		}
 	}
 
@@ -153,7 +153,7 @@ public final class ConfigProcessor {
 	}
 
 	/**
-	 * Processes a schematics.cfg file from a Zip file.
+	 * Processes a SCHEMATICS.cfg file from a Zip file.
 	 */
 	public static class SchematicsConfigProcess implements Predicate<Object[]> {
 
@@ -252,7 +252,7 @@ public final class ConfigProcessor {
 			props.chestContents = target.getString(OPTION_CHEST_CONTENTS, category, DEFAULT_CHEST_CONTENTS,
 					"What chest generation hook to use when filling chests");
 			
-			// Possible if using schematics without ZIPs.  Can occur
+			// Possible if using SCHEMATICS without ZIPs.  Can occur
 			// if the player is building a schematic pack.
 			if(props.chestContents.startsWith("^"))
 				props.chestContents = StringUtils.removeStart(props.chestContents, "^");
