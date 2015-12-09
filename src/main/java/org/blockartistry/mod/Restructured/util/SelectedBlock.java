@@ -27,6 +27,7 @@ package org.blockartistry.mod.Restructured.util;
 import org.blockartistry.mod.Restructured.world.FantasyIsland;
 
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.common.util.RotationHelper;
 
@@ -55,11 +56,14 @@ public class SelectedBlock extends BlockHelper {
 	protected SelectedBlock() {
 		this(null, 0);
 	}
+
+	public SelectedBlock(final Block block) {
+		this(block, 0);
+	}
 	
 	public SelectedBlock(final Block block, final int meta) {
 		super(block);
-		
-		this.meta = meta;
+		this.meta = (block == Blocks.air) ? 0 : meta;
 	}
 	
 	public int getMeta() {

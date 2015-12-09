@@ -38,7 +38,7 @@ import org.blockartistry.mod.Restructured.component.IStructureBuilder;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
-import org.blockartistry.mod.Restructured.world.BoxHelper.RegionStats;
+import org.blockartistry.mod.Restructured.world.RegionHelper.RegionStats;
 import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
@@ -177,7 +177,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 	protected boolean prepare(final StructureBoundingBox box) {
 
-		final RegionStats stats = BoxHelper.getRegionStatsWithVariance(world, boundingBox);
+		final RegionStats stats = RegionHelper.getRegionStatsWithVariance(world, boundingBox);
 		
 		// If there is too much variance return false.  Can't stand
 		// structures on dirt pillars.

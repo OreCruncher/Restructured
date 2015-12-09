@@ -266,19 +266,19 @@ public final class ConfigProcessor {
 
 			boolean asBlackList = target.getBoolean(OPTION_BIOME_LIST_TYPE, category, DEFAULT_BIOME_LIST_TYPE,
 					"Treat the biome list as a blacklist vs. whitelist");
-			String def = MyUtils.join(";", DEFAULT_BIOME_LIST);
+			String def = StringUtils.join(DEFAULT_BIOME_LIST, ';');
 			String list = target.getString(OPTION_BIOME_LIST, category, def, "List of biome IDs");
 
 			try {
 				props.biomes = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
-						MyUtils.split(";", list));
+						MyUtils.splitToInts(list, ';'));
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 
 			asBlackList = target.getBoolean(OPTION_DIMENSION_LIST_TYPE, category, DEFAULT_DIMENSION_LIST_TYPE,
 					"Treat the dimension list as a blacklist vs. whitelist");
-			def = MyUtils.join(";", DEFAULT_DIMENSION_LIST);
+			def = StringUtils.join(DEFAULT_DIMENSION_LIST, ';');
 			list = target.getString(OPTION_DIMENSION_LIST, category, def, "List of dimension IDs");
 
 			String options = target.getString(OPTION_OPTIONS, category, DEFAULT_OPTIONS, "Options for generation");
@@ -288,7 +288,7 @@ public final class ConfigProcessor {
 
 			try {
 				props.dimensions = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
-						MyUtils.split(";", list));
+						MyUtils.splitToInts(list, ';'));
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}

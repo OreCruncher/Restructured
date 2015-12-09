@@ -23,36 +23,24 @@
 
 package org.blockartistry.mod.Restructured.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 public final class MyUtils {
 
-	public static int[] split(final String split, final String list) throws Exception {
-	
-		if(list == null || list.isEmpty())
-			return new int[] {};
-		
-		final String[] tokens = list.split(split);
-		if(tokens == null || tokens.length == 0)
-			return new int[] { };
-		
-		final int[] result = new int[tokens.length];
-		for(int i = 0; i < tokens.length; i++) {
-			Integer v = Integer.parseInt(tokens[i]);
-			result[i] = v;
-		}
-		
-		return result;
+	private MyUtils() {
 	}
-	
-	public static String join(String joiner, int[] list) {
-		final StringBuilder builder = new StringBuilder();
-		boolean seenOne = false;
-		for (int e : list) {
-			if (seenOne)
-				builder.append(joiner);
-			else
-				seenOne = true;
-			builder.append(e);
+
+	public static int[] splitToInts(final String str, final char splitChar) {
+
+		final String[] tokens = StringUtils.split(str, splitChar);
+		if (tokens == null || tokens.length == 0)
+			return new int[] {};
+
+		final int[] result = new int[tokens.length];
+		for (int i = 0; i < tokens.length; i++) {
+			result[i] = Integer.parseInt(tokens[i]);
 		}
-		return builder.toString();
+
+		return result;
 	}
 }

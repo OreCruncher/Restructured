@@ -39,7 +39,12 @@ import net.minecraft.tileentity.TileEntity;
 
 import java.util.List;
 
+import org.blockartistry.mod.Restructured.util.SelectedBlock;
+
 public interface ISchematic {
+	
+	SelectedBlock getBlockEx(final int x, final int y, final int z);
+	
 	/**
 	 * Gets a block at a given location within the schematic. Requesting a block
 	 * outside of those bounds returns Air.
@@ -52,7 +57,7 @@ public interface ISchematic {
 	 *            the Z coord in world space.
 	 * @return the block at the requested location.
 	 */
-	Block getBlock(int x, int y, int z);
+	Block getBlock(final int x, final int y, final int z);
 
 	/**
 	 * Gets the Tile Entity at the requested location. If no tile entity exists
@@ -66,7 +71,7 @@ public interface ISchematic {
 	 *            the Z coord in world space.
 	 * @return the located tile entity.
 	 */
-	TileEntity getTileEntity(int x, int y, int z);
+	TileEntity getTileEntity(final int x, final int y, final int z);
 
 	/**
 	 * Returns a list of all tile entities in the schematic.
@@ -86,7 +91,7 @@ public interface ISchematic {
 	 *            the Z coord in world space.
 	 * @return the Metadata Value
 	 */
-	int getBlockMetadata(int x, int y, int z);
+	int getBlockMetadata(final int x, final int y, final int z);
 
 	/**
 	 * Returns a list of all entities in the schematic.

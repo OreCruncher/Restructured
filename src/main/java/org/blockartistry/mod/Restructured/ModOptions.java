@@ -49,7 +49,7 @@ public final class ModOptions {
 	protected static final String CONFIG_VILLAGE_DENSITY = "Village Density";
 	protected static int villageDensity = 0;
 
-	public static void load(Configuration config) {
+	public static void load(final Configuration config) {
 
 		String comment;
 
@@ -63,10 +63,10 @@ public final class ModOptions {
 				enableDebugLogging, "Enables/disables debug logging of the mod");
 
 		// CATEGORY_GENERATION
-		String list = config.getString(CONFIG_ADDITIONAL_VILLAGE_BIOMES, CATEGORY_GENERATION, "",
+		final String list = config.getString(CONFIG_ADDITIONAL_VILLAGE_BIOMES, CATEGORY_GENERATION, "",
 				"Additional biomes to enable village generation");
 		try {
-			additionalVillageBiomes = MyUtils.split(";", list);
+			additionalVillageBiomes = MyUtils.splitToInts(list, ';');
 		} catch (Exception e) {
 			ModLog.warn("Bad biome information for additional biome village generation");
 		}

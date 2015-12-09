@@ -38,21 +38,16 @@ import net.minecraftforge.event.terraingen.InitMapGenEvent.EventType;
 
 public class TerrainEventBusHandler {
 
-	//private static Field terrainType;
 	private static Field density;
 	private static Field minDistance;
 	
 	static {
 		
 		try {
-			
-			//terrainType = ReflectionHelper.findField(MapGenVillage.class, "terrainType", "field_75054_f");
 			density = ReflectionHelper.findField(MapGenVillage.class, "field_82665_g");
 			minDistance = ReflectionHelper.findField(MapGenVillage.class, "field_82666_h");
-			
 		} catch(final Exception t) {
 			ModLog.warn("Unable to hook MapGenVillage parameters");
-			//terrainType = null;
 			density = null;
 			minDistance = null;
 		}

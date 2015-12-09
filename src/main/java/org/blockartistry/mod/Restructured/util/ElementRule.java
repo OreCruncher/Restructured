@@ -24,31 +24,26 @@
 
 package org.blockartistry.mod.Restructured.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class ElementRule {
 
 	public static enum Rule {
 		MUST_BE_IN, MUST_NOT_BE_IN
 	}
 
-	private final List<Integer> elements = new ArrayList<Integer>();
+	private final int[] elements;
 	private final boolean contains;
 
-	public ElementRule(Rule rule, int[] list) {
+	public ElementRule(final Rule rule, final int[] list) {
 		this.contains = rule == Rule.MUST_BE_IN;
-		
-		for(int i: list)
-			add(i);
+		this.elements = new int[list.length];
+		System.arraycopy(list, 0, this.elements, 0, list.length);
 	}
 
-	public void add(Integer e) {
-		elements.add(e);
-	}
-
-	public boolean isOk(Integer e) {
-		final boolean isContained = elements.contains(e);
-		return contains && isContained || !contains && !isContained;
+	public boolean isOk(final int e) {
+		final int len = elements.length;
+		for(int i = 0; i < len; i++)
+			if(elements[i] == e)
+				return contains;
+		return !contains;
 	}
 }

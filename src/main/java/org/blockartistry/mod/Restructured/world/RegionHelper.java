@@ -27,9 +27,9 @@ package org.blockartistry.mod.Restructured.world;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
-public final class BoxHelper {
+public final class RegionHelper {
 	
-	private BoxHelper() {}
+	private RegionHelper() {}
 
 	public static class RegionStats {
 
@@ -91,6 +91,6 @@ public final class BoxHelper {
 				total += Math.max(world.getTopSolidOrLiquidBlock(x, z), avgGroundLevel);
 			}
 
-		return Math.round(total / area);
+		return total / area;
 	}
 }

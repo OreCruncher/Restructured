@@ -27,7 +27,7 @@ package org.blockartistry.mod.Restructured.component;
 import java.util.Random;
 
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
-import org.blockartistry.mod.Restructured.world.BoxHelper;
+import org.blockartistry.mod.Restructured.world.RegionHelper;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -95,9 +95,8 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 
 			if (averageGroundLevel == -1) {
 				// Ignore the region clipping - want to get a true picture of
-				// the
-				// region.
-				final int temp = BoxHelper.getRegionAverageGroundLevel(world, boundingBox);
+				// the region.
+				final int temp = RegionHelper.getRegionAverageGroundLevel(world, boundingBox);
 				if (averageGroundLevel == -1) {
 					averageGroundLevel = temp;
 
