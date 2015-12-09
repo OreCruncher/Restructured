@@ -94,7 +94,7 @@ public class SchematicAlpha extends SchematicFormat {
 			}
 		}
 
-		final Schematic schematic = new Schematic(null, width, height, length);
+		final Schematic schematic = new Schematic(width, height, length);
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				for (int z = 0; z < length; z++) {

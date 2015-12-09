@@ -49,20 +49,20 @@ public final class ModOptions {
 	protected static final String CONFIG_VILLAGE_DENSITY = "Village Density";
 	protected static int villageDensity = 0;
 	protected static final String CONFIG_GENERATION_CHANCE = "Generation Chance";
-	protected static int generationChance = 80;
+	protected static int generationChance = 65;
 
 	public static void load(final Configuration config) {
-
-		String comment;
 
 		// CATEGORY_GLOBAL
 
 		// CATEGORY_LOGGING_CONTROL
+		String comment = "Enables/disables online version checking";
 		enableOnlineVersionCheck = config.getBoolean(CONFIG_ENABLE_ONLINE_VERSION_CHECK, CATEGORY_LOGGING_CONTROL,
-				enableOnlineVersionCheck, "Enables/disables online version checking");
+				enableOnlineVersionCheck, comment );
 
+		comment = "Enables/disables debug logging of the mod";
 		enableDebugLogging = config.getBoolean(CONFIG_ENABLE_DEBUG_LOGGING, CATEGORY_LOGGING_CONTROL,
-				enableDebugLogging, "Enables/disables debug logging of the mod");
+				enableDebugLogging, comment);
 
 		// CATEGORY_GENERATION
 		final String list = config.getString(CONFIG_ADDITIONAL_VILLAGE_BIOMES, CATEGORY_GENERATION, "",
@@ -81,7 +81,7 @@ public final class ModOptions {
 		villageDensity = config.getInt(CONFIG_VILLAGE_DENSITY, CATEGORY_GENERATION, villageDensity, 0,
 				Integer.MAX_VALUE, comment);
 
-		comment = "1-in-N chance of generating a world feature per chunk";
+		comment = "1-in-N chance of generating a world feature per chunk (lower more frequent; 0 disable)";
 		generationChance = config.getInt(CONFIG_GENERATION_CHANCE, CATEGORY_GENERATION, generationChance, 0,
 				Integer.MAX_VALUE, comment);
 }

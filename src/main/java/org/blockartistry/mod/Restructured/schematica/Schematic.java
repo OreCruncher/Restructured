@@ -40,7 +40,6 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 
 import java.util.ArrayList;
@@ -67,7 +66,7 @@ public class Schematic implements ISchematic {
 	private final int widthOffset;
 	private final int heightOffset;
 
-	public Schematic(final ItemStack icon, final int width, final int height, final int length) {
+	public Schematic(final int width, final int height, final int length) {
 
 		this.data = new int[width * height * length];
 
@@ -82,7 +81,7 @@ public class Schematic implements ISchematic {
 	}
 
 	protected int getDataIndex(int x, int y, int z) {
-		return x * widthOffset + y * heightOffset + z;
+		return x * this.widthOffset + y * this.heightOffset + z;
 	}
 
 	@Override
@@ -90,7 +89,7 @@ public class Schematic implements ISchematic {
 		if (!isValid(x, y, z))
 			return new SelectedBlock(Blocks.air);
 
-		int d = data[getDataIndex(x, y, z)];
+		final int d = this.data[getDataIndex(x, y, z)];
 		return new SelectedBlock(BLOCK_REGISTRY.getObjectById(d >> BLOCK_SHIFT), d & META_MASK);
 	}
 
@@ -100,8 +99,7 @@ public class Schematic implements ISchematic {
 			return Blocks.air;
 		}
 
-		int d = data[getDataIndex(x, y, z)] >> BLOCK_SHIFT;
-
+		final int d = this.data[getDataIndex(x, y, z)] >> BLOCK_SHIFT;
 		return BLOCK_REGISTRY.getObjectById(d);
 	}
 
@@ -119,7 +117,7 @@ public class Schematic implements ISchematic {
 			return false;
 		}
 
-		data[getDataIndex(x, y, z)] = id << BLOCK_SHIFT | (metadata & META_MASK);
+		this.data[getDataIndex(x, y, z)] = id << BLOCK_SHIFT | (metadata & META_MASK);
 		return true;
 	}
 
@@ -168,7 +166,7 @@ public class Schematic implements ISchematic {
 			return 0;
 		}
 
-		return data[getDataIndex(x, y, z)] & META_MASK;
+		return this.data[getDataIndex(x, y, z)] & META_MASK;
 	}
 
 	public boolean setBlockMetadata(final int x, final int y, final int z, final int metadata) {
@@ -176,8 +174,8 @@ public class Schematic implements ISchematic {
 			return false;
 		}
 
-		int sub = getDataIndex(x, y, z);
-		data[sub] = (data[sub] & ~META_MASK) | (metadata & META_MASK);
+		final int sub = getDataIndex(x, y, z);
+		this.data[sub] = (this.data[sub] & ~META_MASK) | (metadata & META_MASK);
 		return true;
 	}
 
@@ -210,6 +208,7 @@ public class Schematic implements ISchematic {
 			final Entity e = iterator.next();
 			if (entity.getUniqueID().equals(e.getUniqueID())) {
 				iterator.remove();
+				return;
 			}
 		}
 	}
