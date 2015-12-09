@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.assets.SchematicWeightItem;
@@ -36,6 +37,7 @@ import org.blockartistry.mod.Restructured.util.WeightTable;
 
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.village.Village;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -44,12 +46,12 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class SchematicWorldGenHandler implements IWorldGenerator {
 
-	private static final int CHUNK_SIZE = 16;
+	private static final int ONE_IN_N_CHANCE = ModOptions.getGenerationChance();
 	private static final int MINIMUM_SPAWN_DISTANCE = 4; // chunks
-	private static final int MINIMUM_VILLAGE_DISTANCE_SQUARED = 8 * 8 * CHUNK_SIZE * CHUNK_SIZE; // blocks
-	private static final int MINIMUM_GEN_DISTANCE_SQUARED = 16; // chunks
+	private static final int MINIMUM_VILLAGE_DISTANCE_SQUARED = 64; // chunks
+	private static final int MINIMUM_GEN_DISTANCE_SQUARED = 64; // chunks
 
-	private static Set<ChunkCoordinates> activeGeneration = new HashSet<ChunkCoordinates>();
+	private static final Set<ChunkCoordIntPair> activeGeneration = new HashSet<ChunkCoordIntPair>();
 
 	private static ChunkCoordinates getRandomStart(final Random rand, final int chunkX, final int chunkZ) {
 		final int x = (chunkX << 4) + 3 + rand.nextInt(8);
@@ -57,17 +59,27 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 		return new ChunkCoordinates(x, 0, z);
 	}
 
-	private static boolean tooCloseToOtherGen(ChunkCoordinates loc) {
+	private static long distanceSq(final ChunkCoordIntPair pt1, final ChunkCoordIntPair pt2) {
+		final long dX = pt1.chunkXPos - pt2.chunkXPos;
+		final long dZ = pt1.chunkZPos - pt2.chunkZPos;
+		return dX * dX + dZ * dZ;
+	}
+
+	private static long distanceSq(final ChunkCoordinates pt1, final ChunkCoordinates pt2) {
+		final long dX = (pt1.posX - pt2.posX) >> 4;
+		final long dZ = (pt1.posZ - pt2.posZ) >> 4;
+		return dX * dX + dZ * dZ;
+	}
+
+	private static boolean tooCloseToOtherGen(final ChunkCoordIntPair loc) {
 
 		synchronized (activeGeneration) {
 			if (activeGeneration.isEmpty())
 				return false;
 
-			for (final ChunkCoordinates a : activeGeneration) {
-				int distance = (int) loc.getDistanceSquaredToChunkCoordinates(a);
-				if (distance <= MINIMUM_GEN_DISTANCE_SQUARED)
+			for (final ChunkCoordIntPair a : activeGeneration)
+				if (distanceSq(loc, a) <= MINIMUM_GEN_DISTANCE_SQUARED)
 					return true;
-			}
 		}
 
 		return false;
@@ -77,36 +89,31 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 		GameRegistry.registerWorldGenerator(this, 200);
 	}
 
-	private static boolean anyVillagesTooClose(World world, ChunkCoordinates loc) {
+	private static boolean anyVillagesTooClose(final World world, final ChunkCoordinates loc) {
 
 		// Sometimes it can be null during initial map start
 		if (world.villageCollectionObj == null)
 			return false;
 
-		List<?> villageList = world.villageCollectionObj.getVillageList();
+		@SuppressWarnings("unchecked")
+		final List<Village> villageList = world.villageCollectionObj.getVillageList();
 
-		for (final Object o : villageList) {
-			final ChunkCoordinates coords = ((Village) o).getCenter();
-			coords.posY = loc.posY;
-			final int distance = (int) coords.getDistanceSquaredToChunkCoordinates(loc);
-			if (distance < MINIMUM_VILLAGE_DISTANCE_SQUARED)
+		for (final Village v : villageList)
+			if (distanceSq(loc, v.getCenter()) < MINIMUM_VILLAGE_DISTANCE_SQUARED)
 				return true;
-		}
 
 		return false;
 	}
 
-	private static boolean tooCloseToSpawn(World world, ChunkCoordinates loc) {
-		final ChunkCoordinates coords = world.getSpawnPoint();
-		coords.posY = loc.posY;
-		return (int) coords.getDistanceSquaredToChunkCoordinates(loc) < MINIMUM_SPAWN_DISTANCE;
+	private static boolean tooCloseToSpawn(final World world, final ChunkCoordinates loc) {
+		return distanceSq(loc, world.getSpawnPoint()) < MINIMUM_SPAWN_DISTANCE;
 	}
 
 	@Override
-	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator,
-			IChunkProvider chunkProvider) {
+	public void generate(final Random random, final int chunkX, final int chunkZ, final World world,
+			final IChunkProvider chunkGenerator, final IChunkProvider chunkProvider) {
 
-		// Not sure this can happen, but...
+		// Saftey check...
 		if (world.isRemote)
 			return;
 
@@ -114,31 +121,30 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 		if (!world.getWorldInfo().isMapFeaturesEnabled())
 			return;
 
+		// Chance to even go forward with gen
+		if(ONE_IN_N_CHANCE < 1 || random.nextInt(ONE_IN_N_CHANCE) > 0)
+			return;
+		
 		// See if there is some other gen occuring close by. This
 		// gen can be forcing other chunks to initialize thus triggering
 		// generation attempts. We don't want to step on each other.
-		ChunkCoordinates currentGen = new ChunkCoordinates(chunkX, 0, chunkZ);
-		if (tooCloseToOtherGen(currentGen))
-			return;
-
-		// Leave our bread crumb
+		final ChunkCoordIntPair currentGen = new ChunkCoordIntPair(chunkX, chunkZ);
 		synchronized (activeGeneration) {
-			activeGeneration.add(currentGen);
+			if (tooCloseToOtherGen(currentGen) || !activeGeneration.add(currentGen))
+				return;
 		}
 
 		try {
-			// set our random
-			random = world.setRandomSeed(chunkX, chunkZ, 0xdeadbeef);
-
-			// Figure the x and z in the current chunk
+			// Figure the x and z in the target chunk
 			final ChunkCoordinates start = getRandomStart(random, chunkX, chunkZ);
 
 			// See if we are too close to a village or to world spawn
 			if (anyVillagesTooClose(world, start) || tooCloseToSpawn(world, start))
 				return;
 
+			// Obtain parameters for matching possible schematics for the area
 			final int dimension = world.provider.dimensionId;
-			final BiomeGenBase biome = BiomeHelper.chunkBiomeSurvey(world, chunkGenerator.provideChunk(chunkX, chunkZ));
+			final BiomeGenBase biome = BiomeHelper.chunkBiomeSurvey(world, chunkGenerator.provideChunk(chunkX, chunkZ), random);
 
 			// Find applicable structures for this attempt. If there aren't
 			// any return.
@@ -146,23 +152,11 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 			if (structs.size() == 0)
 				return;
 
-			// Only 1 in 100 chunks will have a chance. Add a no
-			// spawn sentinel at 99 times the total weight of the current
-			// weight table.
-			final SchematicProperties noSpawn = new SchematicProperties();
-			noSpawn.worldWeight = structs.getTotalWeight() * 99;
-			structs.add(new SchematicWeightItem(noSpawn, false));
-
-			// Assuming we get here are are going for it
+			// Pick a schematic and build it
 			final SchematicProperties props = structs.next().properties;
-			if (props == noSpawn)
-				return;
-
-			// Get a random orientation and build the structure
-			final int direction = random.nextInt(4);
-
-			final SchematicWorldGenStructure structure = new SchematicWorldGenStructure(world, biome, direction, start.posX,
-					start.posZ, props);
+			final int orientation = random.nextInt(4);
+			final SchematicWorldGenStructure structure = new SchematicWorldGenStructure(world, biome, orientation,
+					start.posX, start.posZ, props);
 			structure.build();
 
 		} finally {

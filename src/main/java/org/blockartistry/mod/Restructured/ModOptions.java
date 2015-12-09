@@ -48,6 +48,8 @@ public final class ModOptions {
 	protected static int minimumVillageDistance = 0;
 	protected static final String CONFIG_VILLAGE_DENSITY = "Village Density";
 	protected static int villageDensity = 0;
+	protected static final String CONFIG_GENERATION_CHANCE = "Generation Chance";
+	protected static int generationChance = 80;
 
 	public static void load(final Configuration config) {
 
@@ -78,7 +80,11 @@ public final class ModOptions {
 		comment = "Village Density (0 = Minecraft default)";
 		villageDensity = config.getInt(CONFIG_VILLAGE_DENSITY, CATEGORY_GENERATION, villageDensity, 0,
 				Integer.MAX_VALUE, comment);
-	}
+
+		comment = "1-in-N chance of generating a world feature per chunk";
+		generationChance = config.getInt(CONFIG_GENERATION_CHANCE, CATEGORY_GENERATION, generationChance, 0,
+				Integer.MAX_VALUE, comment);
+}
 
 	public static boolean getOnlineVersionChecking() {
 		return true;
@@ -98,5 +104,9 @@ public final class ModOptions {
 	
 	public static int getVillageDensity() {
 		return villageDensity;
+	}
+	
+	public static int getGenerationChance() {
+		return generationChance;
 	}
 }

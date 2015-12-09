@@ -24,16 +24,21 @@
 
 package org.blockartistry.mod.Restructured.world;
 
+import java.util.Random;
+
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 
 public final class BiomeHelper {
+
+	// Horseshoes and hand grenades...
+	private final static int SAMPLES = 32;
 	
 	private BiomeHelper() {}
 	
 	/**
-	 * Analyze the chunk to determine the predominant biome that is present. The
+	 * Analyze the chunk to estimate the predominant biome that is present. The
 	 * predominant biome will be used to filter the weight list and make further
 	 * decisions.
 	 * 
@@ -41,16 +46,30 @@ public final class BiomeHelper {
 	 * 
 	 * @param world Current world
 	 * @param chunk The chunk to analyze
-	 * @return Predominant biome in the indicated chunk
+	 * @return Estimated predominant biome in the indicated chunk
 	 */
-	public static BiomeGenBase chunkBiomeSurvey(World world, Chunk chunk) {
+	public static BiomeGenBase chunkBiomeSurvey(final World world, final Chunk chunk, final Random rand) {
 
 		final byte[] biomes = chunk.getBiomeArray();
 		final int[] counts = new int[biomes.length];
 
 		int highIndex = BiomeGenBase.plains.biomeID;
 		int highCount = -1;
+		
+		for(int i = 0; i < SAMPLES; i++) {
+			final int id = biomes[rand.nextInt(biomes.length)] & 255;
+			
+			// -1 in byte terms
+			if( id == 255)
+				continue;
+			
+			if (++counts[id] > highCount) {
+				highIndex = id;
+				highCount = counts[id];
+			}
+		}
 
+		/*
 		for (int i = 0; i < biomes.length; i++) {
 			int id = biomes[i] & 255;
 			
@@ -65,10 +84,10 @@ public final class BiomeHelper {
 				// exists in at least half the chunk.  It's gonna
 				// win so terminate early.
 				if (highCount >= 128)
-					return BiomeGenBase.getBiome(highIndex);
+					break;
 			}
 		}
-
+*/
 		return BiomeGenBase.getBiome(highIndex);
 	}
 }
