@@ -44,28 +44,24 @@ import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
 	protected static final SelectedBlock DIRT_BLOCK = new SelectedBlock(Blocks.dirt, 0);
-	
+
 	protected static final int VARIANCE_THRESHOLD = 3;
-	
+
 	protected final World world;
 	protected int direction;
 	protected final SchematicProperties properties;
 	protected StructureBoundingBox boundingBox;
 	protected final BiomeGenBase biome;
-	//protected final VillageTheme theme;
 
-	public SchematicWorldGenStructure(final World world, final BiomeGenBase biome,
-			final int direction, final int x, final int z, final SchematicProperties properties) {
+	public SchematicWorldGenStructure(final World world, final BiomeGenBase biome, final int direction, final int x,
+			final int z, final SchematicProperties properties) {
 		final Dimensions size = properties.schematic.getDimensions();
 		this.world = world;
 		this.direction = direction;
 		this.properties = properties;
 		this.biome = biome;
-		this.boundingBox = StructureBoundingBox.getComponentToAddBoundingBox(x,
-				1, z, 0, 0, 0, size.width, size.height, size.length,
-				direction);
-		
-		//this.theme = VillageTheme.find(this.biome);
+		this.boundingBox = StructureBoundingBox.getComponentToAddBoundingBox(x, 1, z, 0, 0, 0, size.width, size.height,
+				size.length, direction);
 	}
 
 	@Override
@@ -81,8 +77,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 	@Override
 	public ChunkCoordinates getWorldCoordinates(final int x, final int y, final int z) {
-		return new ChunkCoordinates(this.getXWithOffset(x, z), this.getYWithOffset(y),
-				this.getZWithOffset(x, z));
+		return new ChunkCoordinates(this.getXWithOffset(x, z), this.getYWithOffset(y), this.getZWithOffset(x, z));
 	}
 
 	@Override
@@ -91,15 +86,16 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	}
 
 	@Override
-	public void placeBlock(final World world, final SelectedBlock block, final int x, final int y,
-			final int z, final StructureBoundingBox box) {
+	public void placeBlock(final World world, final SelectedBlock block, final int x, final int y, final int z,
+			final StructureBoundingBox box) {
 
 		int i1 = this.getXWithOffset(x, z);
 		int j1 = this.getYWithOffset(y);
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			final SelectedBlock blockToPlace = VillageTheme.findReplacement(this.biome, block, properties.suppressMonsterEgg);
+			final SelectedBlock blockToPlace = VillageTheme.findReplacement(this.biome, block,
+					properties.suppressMonsterEgg);
 			world.setBlock(i1, j1, k1, blockToPlace.getBlock(), blockToPlace.getMeta(), 2);
 		}
 	}
@@ -135,7 +131,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 			return z;
 		}
 	}
-	
+
 	/**
 	 * Deletes all continuous blocks from selected position upwards. Stops at
 	 * hitting air.
@@ -163,11 +159,11 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 			do {
 				BlockHelper helper = new BlockHelper(world.getBlock(i1, j1, k1));
-				if(helper.isAir() || helper.isLiquid() || !helper.isSolid())
+				if (helper.isAir() || helper.isLiquid() || !helper.isSolid())
 					world.setBlock(i1, j1--, k1, block, meta, 2);
 				else
 					break;
-			} while( j1 > 1);
+			} while (j1 > 1);
 		}
 	}
 
@@ -176,12 +172,12 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		// This calculation can result in additional chunk load/creates.
 		// The size of the structure could cause it to span chunks.
 		final RegionStats stats = RegionHelper.getRegionStatsWithVariance(world, boundingBox);
-		
-		// If there is too much variance return false.  Can't stand
+
+		// If there is too much variance return false. Can't stand
 		// structures on dirt pillars.
-		if(stats.variance > VARIANCE_THRESHOLD)
+		if (stats.variance > VARIANCE_THRESHOLD)
 			return false;
-		
+
 		// Based on the terrain in the region adjust
 		// the Y to an appropriate level
 		final int offset = properties.groundOffset;
@@ -190,7 +186,8 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
-		final SelectedBlock blockToPlace = VillageTheme.findReplacement(this.biome, DIRT_BLOCK, properties.suppressMonsterEgg);
+		final SelectedBlock blockToPlace = VillageTheme.findReplacement(this.biome, DIRT_BLOCK,
+				properties.suppressMonsterEgg);
 		final Dimensions size = getDimensions();
 		for (int xx = 0; xx < size.width; xx++) {
 			for (int zz = 0; zz < size.length; zz++) {
@@ -198,20 +195,19 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 				clearDownwards(blockToPlace.getBlock(), blockToPlace.getMeta(), xx, -1, zz, box);
 			}
 		}
-		
+
 		return true;
 	}
 
 	public void build() {
-		
-		final StructureBoundingBox box = new StructureBoundingBox(boundingBox.minX,
-				1, boundingBox.minZ, boundingBox.maxX, 512, boundingBox.maxZ);
 
-		if(!prepare(box))
+		final StructureBoundingBox box = new StructureBoundingBox(boundingBox.minX, 1, boundingBox.minZ,
+				boundingBox.maxX, 512, boundingBox.maxZ);
+
+		if (!prepare(box))
 			return;
-		
-		final CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
-				direction, properties, this);
+
+		final CopyStructureBuilder builder = new CopyStructureBuilder(world, box, direction, properties, this);
 		builder.generate();
 	}
 }

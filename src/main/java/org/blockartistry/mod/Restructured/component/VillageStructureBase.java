@@ -38,8 +38,6 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 
 	protected static final Random rand = new Random();
 
-	protected int averageGroundLevel = -1;
-
 	public VillageStructureBase(final StructureVillagePieces.Start start, final int componentType, final Random random,
 			final StructureBoundingBox myBox, final int orientation) {
 		super(start, componentType);
@@ -81,8 +79,7 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 			this.field_143015_k = this.getAverageGroundLevel(world, box);
 			if (this.field_143015_k < 0)
 				return true;
-			boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
-					+ size.height - getGroundOffset() - 1, 0);
+			boundingBox.offset(0, this.field_143015_k - boundingBox.maxY + size.height - getGroundOffset() - 1, 0);
 		}
 
 		// Ensure a platform for the structure

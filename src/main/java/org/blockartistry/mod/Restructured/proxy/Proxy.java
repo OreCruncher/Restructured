@@ -81,7 +81,8 @@ public class Proxy {
 		}
 		
 		// Initialize themes
-		VillageBlockReplacement.initialize();
+		if(ModOptions.getEnableTheming())
+			VillageBlockReplacement.initialize();
 	}
 
 	@EventHandler

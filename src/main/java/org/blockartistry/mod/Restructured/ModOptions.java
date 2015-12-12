@@ -50,6 +50,8 @@ public final class ModOptions {
 	protected static int villageDensity = 0;
 	protected static final String CONFIG_GENERATION_CHANCE = "Generation Chance";
 	protected static int generationChance = 65;
+	protected static final String CONFIG_ENABLE_THEMING = "Enable Theming";
+	protected static boolean enableTheming = true;
 
 	public static void load(final Configuration config) {
 
@@ -84,7 +86,11 @@ public final class ModOptions {
 		comment = "1-in-N chance of generating a world feature per chunk (lower more frequent; 0 disable)";
 		generationChance = config.getInt(CONFIG_GENERATION_CHANCE, CATEGORY_GENERATION, generationChance, 0,
 				Integer.MAX_VALUE, comment);
-}
+
+		comment = "Enables/disables biome theming of structures";
+		enableTheming = config.getBoolean(CONFIG_ENABLE_THEMING, CATEGORY_GENERATION,
+				enableTheming, comment);
+	}
 
 	public static boolean getOnlineVersionChecking() {
 		return true;
@@ -108,5 +114,9 @@ public final class ModOptions {
 	
 	public static int getGenerationChance() {
 		return generationChance;
+	}
+	
+	public static boolean getEnableTheming() {
+		return enableTheming;
 	}
 }

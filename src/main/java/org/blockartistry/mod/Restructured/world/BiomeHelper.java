@@ -34,9 +34,10 @@ public final class BiomeHelper {
 
 	// Horseshoes and hand grenades...
 	private final static int SAMPLES = 32;
-	
-	private BiomeHelper() {}
-	
+
+	private BiomeHelper() {
+	}
+
 	/**
 	 * Analyze the chunk to estimate the predominant biome that is present. The
 	 * predominant biome will be used to filter the weight list and make further
@@ -44,8 +45,10 @@ public final class BiomeHelper {
 	 * 
 	 * Check ChunkProviderGenerate for some detail as to the chunk biome array.
 	 * 
-	 * @param world Current world
-	 * @param chunk The chunk to analyze
+	 * @param world
+	 *            Current world
+	 * @param chunk
+	 *            The chunk to analyze
 	 * @return Estimated predominant biome in the indicated chunk
 	 */
 	public static BiomeGenBase chunkBiomeSurvey(final World world, final Chunk chunk, final Random rand) {
@@ -55,39 +58,19 @@ public final class BiomeHelper {
 
 		int highIndex = BiomeGenBase.plains.biomeID;
 		int highCount = -1;
-		
-		for(int i = 0; i < SAMPLES; i++) {
-			final int id = biomes[rand.nextInt(biomes.length)] & 255;
-			
-			// -1 in byte terms
-			if( id == 255)
-				continue;
-			
-			if (++counts[id] > highCount) {
-				highIndex = id;
-				highCount = counts[id];
-			}
-		}
 
-		/*
-		for (int i = 0; i < biomes.length; i++) {
-			int id = biomes[i] & 255;
-			
-			if( id == 255) {
+		for (int i = 0; i < SAMPLES; i++) {
+			final int id = biomes[rand.nextInt(biomes.length)] & 255;
+
+			// -1 in byte terms
+			if (id == 255)
 				continue;
-			}
-			
+
 			if (++counts[id] > highCount) {
 				highIndex = id;
 				highCount = counts[id];
-				// If the high count is >= 128 it means that biome
-				// exists in at least half the chunk.  It's gonna
-				// win so terminate early.
-				if (highCount >= 128)
-					break;
 			}
 		}
-*/
 		return BiomeGenBase.getBiome(highIndex);
 	}
 }

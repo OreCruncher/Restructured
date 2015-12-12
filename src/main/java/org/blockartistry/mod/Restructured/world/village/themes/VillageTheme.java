@@ -92,12 +92,6 @@ public class VillageTheme {
 	}
 
 	protected Block biomeBlockReplace(SelectedBlock block) {
-		/*
-		 * final BiomeEvent.GetVillageBlockID event = new
-		 * BiomeEvent.GetVillageBlockID( biome, block.getBlock(),
-		 * block.getMeta()); MinecraftForge.TERRAIN_GEN_BUS.post(event); if
-		 * (event.getResult() == Result.DENY) return event.replacement;
-		 */
 		Block replace = null;
 		Integer code = blockReplacements.get(block.getBlock());
 		if (code != null)
@@ -107,12 +101,6 @@ public class VillageTheme {
 	}
 
 	protected int biomeMetaReplace(SelectedBlock block) {
-		/*
-		 * final BiomeEvent.GetVillageBlockMeta event = new
-		 * BiomeEvent.GetVillageBlockMeta( biome, block.getBlock(),
-		 * block.getMeta()); MinecraftForge.TERRAIN_GEN_BUS.post(event); if
-		 * (event.getResult() == Result.DENY) return event.replacement;
-		 */
 		int replace = META_MASK;
 		final Integer code = blockReplacements.get(block.getBlock());
 		if (code != null)
