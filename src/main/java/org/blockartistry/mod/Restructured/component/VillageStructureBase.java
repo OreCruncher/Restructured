@@ -27,8 +27,6 @@ package org.blockartistry.mod.Restructured.component;
 import java.util.Random;
 
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
-import org.blockartistry.mod.Restructured.world.RegionHelper;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ChunkCoordinates;
@@ -79,37 +77,12 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 
 		final ChunkCoordinates size = getDimensions();
 
-		// The region stat gathering below differs than
-		// the logic vanilla uses. We need a clear picture of
-		// the entire region, not just a narrow chunk. Because
-		// of this the getRegionStats() routine could trigger
-		// additional chunk generations, which in turn will
-		// trigger this routine to be called *again*. It will
-		// funnel through and do another getRegionStats() call.
-		// To guard against polluting boundingBox we store
-		// the region stats in a temp and check the instance
-		// stats variable to see if it was set by a recursive
-		// invocation. If it has already be set we discard
-		// the results and soldier on.
 		if (this.field_143015_k < 0) {
-
-			if (averageGroundLevel == -1) {
-				// Ignore the region clipping - want to get a true picture of
-				// the region.
-				final int temp = RegionHelper.getRegionAverageGroundLevel(world, boundingBox);
-				if (averageGroundLevel == -1) {
-					averageGroundLevel = temp;
-
-					this.field_143015_k = averageGroundLevel;
-
-					boundingBox.offset(0, averageGroundLevel - boundingBox.maxY + size.posY - getGroundOffset() - 1, 0);
-				} else
-					this.field_143015_k = averageGroundLevel;
-			} else
-				this.field_143015_k = averageGroundLevel;
-
+			this.field_143015_k = this.getAverageGroundLevel(world, box);
 			if (this.field_143015_k < 0)
 				return true;
+			boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
+					+ size.posY - getGroundOffset() - 1, 0);
 		}
 
 		// Ensure a platform for the structure
