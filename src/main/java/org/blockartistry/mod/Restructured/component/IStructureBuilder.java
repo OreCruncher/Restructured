@@ -28,6 +28,7 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
+import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 public interface IStructureBuilder {
@@ -38,7 +39,7 @@ public interface IStructureBuilder {
 	 * 
 	 * @return
 	 */
-	ChunkCoordinates getDimensions();
+	Dimensions getDimensions();
 
 	/**
 	 * Determines if the location is within the bounding boxes of the region.

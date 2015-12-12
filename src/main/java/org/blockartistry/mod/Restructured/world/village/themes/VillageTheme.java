@@ -35,6 +35,7 @@ import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.biome.BiomeGenMutated;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.BiomeEvent;
 
@@ -48,88 +49,92 @@ public class VillageTheme {
 	public static final VillageTheme DEFAULT_THEME = new VillageTheme(BiomeGenBase.plains);
 
 	protected static void register(BiomeGenBase biome, VillageTheme theme) {
+		// Register biome
 		themes.put(biome, theme);
+
+		// Check for mutation
+		final BiomeGenBase mutation = BiomeGenBase.getBiome(biome.biomeID + 128);
+		if (mutation instanceof BiomeGenMutated)
+			themes.put(mutation, theme);
 	}
-	
+
 	public static VillageTheme find(BiomeGenBase biome) {
 		final VillageTheme vt = themes.get(biome);
 		return vt == null ? DEFAULT_THEME : vt;
 	}
-	
+
 	protected static int encode(Block block, int meta) {
 		return BLOCK_REGISTRY.getId(block) << BLOCK_SHIFT | (meta & META_MASK);
 	}
-	
+
 	protected static Block decodeBlock(int code) {
 		return BLOCK_REGISTRY.getObjectById(code >> BLOCK_SHIFT);
 	}
-	
+
 	protected static int decodeMeta(int code) {
 		return code & META_MASK;
 	}
 
 	protected final Map<Block, Integer> blockReplacements;
 	protected final BiomeGenBase biome;
-	
+
 	protected VillageTheme(BiomeGenBase biome) {
 		this(biome, new HashMap<Block, Integer>());
 	}
-	
+
 	protected VillageTheme(BiomeGenBase biome, Map<Block, Integer> replacements) {
 		this.biome = biome;
 		this.blockReplacements = replacements;
 	}
-	
+
 	public BiomeGenBase getBiome() {
 		return this.biome;
 	}
-	
-	protected Block biomeBlockReplace(SelectedBlock block) {
 
-		final BiomeEvent.GetVillageBlockID event = new BiomeEvent.GetVillageBlockID(
-				biome, block.getBlock(), block.getMeta());
-		MinecraftForge.TERRAIN_GEN_BUS.post(event);
-		if (event.getResult() == Result.DENY)
-			return event.replacement;
-		
+	protected Block biomeBlockReplace(SelectedBlock block) {
+		/*
+		 * final BiomeEvent.GetVillageBlockID event = new
+		 * BiomeEvent.GetVillageBlockID( biome, block.getBlock(),
+		 * block.getMeta()); MinecraftForge.TERRAIN_GEN_BUS.post(event); if
+		 * (event.getResult() == Result.DENY) return event.replacement;
+		 */
 		Block replace = null;
 		Integer code = blockReplacements.get(block.getBlock());
-		if(code != null)
+		if (code != null)
 			replace = decodeBlock(code);
-		
+
 		return (replace == null) ? block.getBlock() : replace;
 	}
-	
-	protected int biomeMetaReplace(SelectedBlock block) {
 
-		final BiomeEvent.GetVillageBlockMeta event = new BiomeEvent.GetVillageBlockMeta(
-				biome, block.getBlock(), block.getMeta());
-		MinecraftForge.TERRAIN_GEN_BUS.post(event);
-		if (event.getResult() == Result.DENY)
-			return event.replacement;
-		
+	protected int biomeMetaReplace(SelectedBlock block) {
+		/*
+		 * final BiomeEvent.GetVillageBlockMeta event = new
+		 * BiomeEvent.GetVillageBlockMeta( biome, block.getBlock(),
+		 * block.getMeta()); MinecraftForge.TERRAIN_GEN_BUS.post(event); if
+		 * (event.getResult() == Result.DENY) return event.replacement;
+		 */
 		int replace = META_MASK;
 		final Integer code = blockReplacements.get(block.getBlock());
-		if(code != null)
+		if (code != null)
 			replace = decodeMeta(code);
 
-		if(replace != META_MASK) {
+		if (replace != META_MASK) {
 			// Preserve slab orientation
-			if(block.isSlab())
+			if (block.isSlab())
 				replace |= (block.getMeta() & 8);
 			// Preserve log orientation
-			else if(block.isLog())
+			else if (block.isLog())
 				replace |= (block.getMeta() & 12);
 		}
 
 		return replace != META_MASK ? replace : block.getMeta();
 	}
-	
+
 	protected static SelectedBlock scrubEggs(final SelectedBlock block) {
-		
-		if(block.getBlock() != Blocks.monster_egg)
+
+		if (block.getBlock() != Blocks.monster_egg)
 			return block;
-		
+
 		Block b = null;
 		int meta = 0;
 		switch (block.getMeta()) {
@@ -159,31 +164,43 @@ public class VillageTheme {
 		default:
 			;
 		}
-		
+
 		return new SelectedBlock(b, meta);
 	}
 
-	public SelectedBlock findReplacement(SelectedBlock block, boolean scrubEggs) {
-		
-		if(scrubEggs)
+	public static SelectedBlock findReplacement(final BiomeGenBase biome, SelectedBlock block, final boolean scrubEggs) {
+
+		if (scrubEggs)
 			block = scrubEggs(block);
 
-		final Block b = biomeBlockReplace(block);
-		final int m = biomeMetaReplace(block);
-		return new SelectedBlock(b, m);
+		Block theBlock = block.getBlock();
+		int meta = block.getMeta();
+
+		final BiomeEvent.GetVillageBlockID event1 = new BiomeEvent.GetVillageBlockID(biome, theBlock, meta);
+		MinecraftForge.TERRAIN_GEN_BUS.post(event1);
+		if (event1.getResult() == Result.DENY)
+			theBlock = event1.replacement;
+
+		final BiomeEvent.GetVillageBlockMeta event2 = new BiomeEvent.GetVillageBlockMeta(biome, block.getBlock(),
+				block.getMeta());
+		MinecraftForge.TERRAIN_GEN_BUS.post(event2);
+		if (event2.getResult() == Result.DENY)
+			meta = event2.replacement;
+
+		return new SelectedBlock(theBlock, meta);
 	}
-	
-	public Block findReplacementBlock(SelectedBlock block, boolean scrubEggs) {
-		
-		if(scrubEggs)
+
+	Block findReplacementBlock(SelectedBlock block, boolean scrubEggs) {
+
+		if (scrubEggs)
 			block = scrubEggs(block);
 
 		return biomeBlockReplace(block);
 	}
-	
-	public int findReplacementMeta(SelectedBlock block, boolean scrubEggs) {
-		
-		if(scrubEggs)
+
+	int findReplacementMeta(SelectedBlock block, boolean scrubEggs) {
+
+		if (scrubEggs)
 			block = scrubEggs(block);
 
 		return biomeMetaReplace(block);

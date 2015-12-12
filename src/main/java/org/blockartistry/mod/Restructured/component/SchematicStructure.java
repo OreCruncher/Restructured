@@ -30,10 +30,9 @@ import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
-import org.blockartistry.mod.Restructured.util.SelectedBlock;
+import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
 
-import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChunkCoordinates;
@@ -95,22 +94,10 @@ public class SchematicStructure extends VillageStructureBase implements
 		
 		theme = VillageTheme.find(biome);
 	}
-	
-	@Override
-	protected Block func_151558_b(final Block block, final int meta) {
-		// Completely override vanilla processing
-		return theme.findReplacementBlock(SelectedBlock.fly(block, meta), properties.suppressMonsterEgg);
-	}
 
 	@Override
-    protected int func_151557_c(final Block block, final int meta) {
-		// Completely override vanilla processing
-		return theme.findReplacementMeta(SelectedBlock.fly(block, meta), properties.suppressMonsterEgg);
-	}
-
-	@Override
-	public ChunkCoordinates getDimensions() {
-		return fromSchematic(properties.schematic);
+	public Dimensions getDimensions() {
+		return properties.schematic.getDimensions();
 	}
 
 	@Override

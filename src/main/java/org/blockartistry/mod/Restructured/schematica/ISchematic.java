@@ -39,10 +39,12 @@ import net.minecraft.tileentity.TileEntity;
 
 import java.util.List;
 
+import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 public interface ISchematic {
 	
+	Dimensions getDimensions();
 	SelectedBlock getBlockEx(final int x, final int y, final int z);
 	
 	/**

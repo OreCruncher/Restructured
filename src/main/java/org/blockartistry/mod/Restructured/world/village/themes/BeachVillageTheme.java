@@ -31,28 +31,12 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.BiomeGenBase;
 
-public class DesertVillageTheme extends VillageTheme {
-	
+public class BeachVillageTheme  extends VillageTheme {
 
 	public static void initialize() {
 		
-		final HashMap<Block, Integer> mappings = new HashMap<Block, Integer>();
+		HashMap<Block, Integer> mappings = new HashMap<Block, Integer>();
 
-		mappings.put(Blocks.log, encode(Blocks.sandstone, 0));
-		mappings.put(Blocks.log2, encode(Blocks.sandstone, 0));
-		mappings.put(Blocks.cobblestone, encode(Blocks.sandstone, 0));
-		mappings.put(Blocks.planks, encode(Blocks.sandstone, 2));
-		mappings.put(Blocks.oak_stairs, encode(Blocks.sandstone_stairs, -1));
-		mappings.put(Blocks.stone_stairs, encode(Blocks.sandstone_stairs, -1));
-		mappings.put(Blocks.spruce_stairs, encode(Blocks.sandstone_stairs, -1));
-		mappings.put(Blocks.birch_stairs, encode(Blocks.sandstone_stairs, -1));
-		mappings.put(Blocks.dark_oak_stairs, encode(Blocks.sandstone_stairs, -1));
-		mappings.put(Blocks.acacia_stairs, encode(Blocks.sandstone_stairs, -1));
-		mappings.put(Blocks.gravel, encode(Blocks.sandstone, -1));
-		mappings.put(Blocks.wooden_slab, encode(Blocks.stone_slab, 1));
-		mappings.put(Blocks.stone_slab, encode(Blocks.stone_slab, 1));
-		mappings.put(Blocks.double_wooden_slab, encode(Blocks.sandstone, 0));
-		mappings.put(Blocks.double_stone_slab, encode(Blocks.sandstone, 0));
 		mappings.put(Blocks.dirt, encode(Blocks.sand, 0));
 		mappings.put(Blocks.grass, encode(Blocks.sand, 0));
 		mappings.put(Blocks.red_flower, encode(Blocks.deadbush, 0));
@@ -62,11 +46,21 @@ public class DesertVillageTheme extends VillageTheme {
 		mappings.put(Blocks.double_plant, encode(Blocks.air, 0));
 		mappings.put(Blocks.tallgrass, encode(Blocks.air, 0));
 		
-		register(BiomeGenBase.desert, new DesertVillageTheme(BiomeGenBase.desert, mappings));
-		register(BiomeGenBase.desertHills, new DesertVillageTheme(BiomeGenBase.desertHills, mappings));
+		register(BiomeGenBase.beach, new BeachVillageTheme(BiomeGenBase.beach, mappings));
+		register(BiomeGenBase.coldBeach, new BeachVillageTheme(BiomeGenBase.coldBeach, mappings));
+
+		mappings = new HashMap<Block, Integer>();
+
+		mappings.put(Blocks.dirt, encode(Blocks.stone, 0));
+		mappings.put(Blocks.grass, encode(Blocks.stone, 0));
+		mappings.put(Blocks.red_flower, encode(Blocks.red_mushroom, 0));
+		mappings.put(Blocks.yellow_flower, encode(Blocks.brown_mushroom, 0));
+		mappings.put(Blocks.double_plant, encode(Blocks.air, 0));
+		mappings.put(Blocks.tallgrass, encode(Blocks.air, 0));
+		register(BiomeGenBase.stoneBeach, new BeachVillageTheme(BiomeGenBase.stoneBeach, mappings));
 	}
 	
-	protected DesertVillageTheme(BiomeGenBase biome, Map<Block, Integer> mapping) {
+	protected BeachVillageTheme(BiomeGenBase biome, Map<Block, Integer> mapping) {
 		super(biome, mapping);
 	}
 }

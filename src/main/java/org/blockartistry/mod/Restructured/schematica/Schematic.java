@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 public class Schematic implements ISchematic {
@@ -65,6 +66,8 @@ public class Schematic implements ISchematic {
 
 	private final int widthOffset;
 	private final int heightOffset;
+	
+	private final Dimensions dim;
 
 	public Schematic(final int width, final int height, final int length) {
 
@@ -73,11 +76,18 @@ public class Schematic implements ISchematic {
 		this.width = width;
 		this.height = height;
 		this.length = length;
+		
+		this.dim = new Dimensions(width, height, length);
 
 		// int[dimX][dimY][dimZ] : 1-D array index [i * dimY*dimZ + j * dimZ +
 		// k]
 		this.widthOffset = height * length;
 		this.heightOffset = length;
+	}
+	
+	@Override
+	public Dimensions getDimensions() {
+		return this.dim;
 	}
 
 	protected int getDataIndex(int x, int y, int z) {

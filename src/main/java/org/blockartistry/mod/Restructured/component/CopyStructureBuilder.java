@@ -50,6 +50,7 @@ import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
+import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 import cpw.mods.fml.relauncher.ReflectionHelper;
@@ -102,13 +103,13 @@ public class CopyStructureBuilder {
 	public void generate() {
 
 		final ISchematic schematic = properties.schematic;
-		final ChunkCoordinates size = structure.getDimensions();
+		final Dimensions size = structure.getDimensions();
 
 		// Scan from the ground up. This is important when
 		// replacing crops.
-		for (int y = 0; y < size.posY; y++)
-			for (int x = 0; x < size.posX; x++)
-				for (int z = 0; z < size.posZ; z++) {
+		for (int y = 0; y < size.height; y++)
+			for (int x = 0; x < size.width; x++)
+				for (int z = 0; z < size.length; z++) {
 
 					if (isVecInside(x, y, z, box)) {
 

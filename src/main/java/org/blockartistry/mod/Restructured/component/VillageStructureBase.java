@@ -26,10 +26,10 @@ package org.blockartistry.mod.Restructured.component;
 
 import java.util.Random;
 
+import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureVillagePieces;
@@ -47,7 +47,7 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 		this.boundingBox = myBox;
 	}
 
-	public abstract ChunkCoordinates getDimensions();
+	public abstract Dimensions getDimensions();
 
 	public abstract int getGroundOffset();
 
@@ -75,19 +75,19 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 	@Override
 	public boolean addComponentParts(final World world, final Random rand, final StructureBoundingBox box) {
 
-		final ChunkCoordinates size = getDimensions();
+		final Dimensions size = getDimensions();
 
 		if (this.field_143015_k < 0) {
 			this.field_143015_k = this.getAverageGroundLevel(world, box);
 			if (this.field_143015_k < 0)
 				return true;
 			boundingBox.offset(0, this.field_143015_k - boundingBox.maxY
-					+ size.posY - getGroundOffset() - 1, 0);
+					+ size.height - getGroundOffset() - 1, 0);
 		}
 
 		// Ensure a platform for the structure
-		for (int xx = 0; xx < size.posX; xx++) {
-			for (int zz = 0; zz < size.posZ; zz++) {
+		for (int xx = 0; xx < size.width; xx++) {
+			for (int zz = 0; zz < size.length; zz++) {
 				clearCurrentPositionBlocksUpwards(world, xx, 0, zz, box);
 				func_151554_b(world, Blocks.dirt, 0, xx, -1, zz, box);
 			}
