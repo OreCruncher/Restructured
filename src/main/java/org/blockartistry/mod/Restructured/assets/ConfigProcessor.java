@@ -104,7 +104,7 @@ public final class ConfigProcessor {
 	public static class SchematicsConfigFilter implements Predicate<ZipEntry> {
 		@Override
 		public boolean apply(final ZipEntry t) {
-			return t.getName().contains("SCHEMATICS.cfg");
+			return t.getName().contains("schematics.cfg");
 		}
 	}
 

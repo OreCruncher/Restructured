@@ -67,6 +67,7 @@ public final class VersionCheck implements Runnable {
 		public final int revision;
 		public final int patch;
 		public final boolean isAlpha;
+		public final boolean isBeta;
 
 		public SoftwareVersion() {
 			this.major = 0;
@@ -74,6 +75,7 @@ public final class VersionCheck implements Runnable {
 			this.revision = 0;
 			this.patch = 0;
 			this.isAlpha = false;
+			this.isBeta = false;
 		}
 
 		public SoftwareVersion(String versionString) {
@@ -85,6 +87,7 @@ public final class VersionCheck implements Runnable {
 				this.revision = 0;
 				this.patch = 0;
 				this.isAlpha = false;
+				this.isBeta = false;
 				return;
 			}
 
@@ -94,6 +97,10 @@ public final class VersionCheck implements Runnable {
 			isAlpha = StringUtils.containsIgnoreCase(versionString, "ALPHA");
 			if (isAlpha)
 				versionString = StringUtils.remove(versionString, "ALPHA");
+
+			isBeta = StringUtils.containsIgnoreCase(versionString, "BETA");
+			if(isBeta)
+				versionString = StringUtils.remove(versionString, "BETA");
 
 			final String[] parts = StringUtils.split(versionString, ".");
 			final int numComponents = parts.length;
@@ -118,6 +125,8 @@ public final class VersionCheck implements Runnable {
 				builder.append('.').append(this.patch);
 			if (this.isAlpha)
 				builder.append("ALPHA");
+			if (this.isBeta)
+				builder.append("BETA");
 			return builder.toString();
 		}
 

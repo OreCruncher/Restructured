@@ -66,7 +66,7 @@ public final class Assets {
 
 	// Editable configuration
 	private static final File accessPath = Restructured.dataDirectory();
-	private static Configuration config = new Configuration(new File(accessPath, "SCHEMATICS.cfg"));
+	private static Configuration config = new Configuration(new File(accessPath, "schematics.cfg"));
 	private static Configuration chests = new Configuration(new File(accessPath, "chests.cfg"));
 
 	private static final WeightTable<SchematicWeightItem> villageSchematics = new WeightTable<SchematicWeightItem>();
@@ -80,10 +80,12 @@ public final class Assets {
 		if (!ZipProcessor.areZipsPresent(accessPath) && !ZipProcessor.areSchematicsPresent(accessPath)) {
 			ModLog.info("Extracting %s to configuration directory", STANDARD_PACK);
 			try {
-				final InputStream input = ClassLoader.getSystemResourceAsStream("assets/recycling/" + STANDARD_PACK);
+				final InputStream input = Assets.class.getResourceAsStream("/assets/recycling/" + STANDARD_PACK);
 				if (input != null) {
 					StreamUtils.copy(input, new File(accessPath, STANDARD_PACK));
 					input.close();
+				} else {
+					ModLog.warn("Unable to obtain %s input stream from jar!", STANDARD_PACK);
 				}
 			} catch (final Exception ex) {
 				ex.printStackTrace();
