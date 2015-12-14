@@ -32,8 +32,6 @@ import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
-import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
-import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -43,10 +41,8 @@ import net.minecraftforge.event.terraingen.BiomeEvent;
 
 public final class BlockThemes {
 
-	protected static final HashMap<BiomeGenBase, HashMap<Block, SelectedBlock>> themes = new HashMap<BiomeGenBase, HashMap<Block, SelectedBlock>>();
-	protected static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData.getBlockRegistry();
-	protected static final int KEEP_META = -1;
-	
+	private static final HashMap<BiomeGenBase, HashMap<Block, SelectedBlock>> themes = new HashMap<BiomeGenBase, HashMap<Block, SelectedBlock>>();
+	private static final int KEEP_META = -1;
 	private static final SelectedBlock AIR = new SelectedBlock(Blocks.air);
 
 	protected static void register(final BiomeGenBase biome, final HashMap<Block, SelectedBlock> theme) {
@@ -309,6 +305,19 @@ public final class BlockThemes {
 		register(BiomeGenBase.megaTaigaHills, mappings);
 		register(BiomeGenBase.taiga, mappings);
 		register(BiomeGenBase.taigaHills, mappings);
+
+		// Mushroom
+		mappings = new HashMap<Block, SelectedBlock>();
+		mappings.put(Blocks.grass, new SelectedBlock(Blocks.mycelium));
+		mappings.put(Blocks.log, new SelectedBlock(Blocks.red_mushroom_block));
+		mappings.put(Blocks.log2, new SelectedBlock(Blocks.red_mushroom_block));
+		mappings.put(Blocks.planks, new SelectedBlock(Blocks.brown_mushroom_block));
+		mappings.put(Blocks.red_flower, new SelectedBlock(Blocks.red_mushroom));
+		mappings.put(Blocks.yellow_flower, new SelectedBlock(Blocks.brown_mushroom, 0));
+		mappings.put(Blocks.double_plant, AIR);
+		mappings.put(Blocks.tallgrass, AIR);
+		register(BiomeGenBase.mushroomIsland, mappings);
+		register(BiomeGenBase.mushroomIslandShore, mappings);
 
 		// Hook for block replacement
 		MinecraftForge.TERRAIN_GEN_BUS.register(new BlockThemes());
