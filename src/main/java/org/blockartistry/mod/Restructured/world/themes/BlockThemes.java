@@ -24,7 +24,7 @@
 
 package org.blockartistry.mod.Restructured.world.themes;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
@@ -41,7 +41,7 @@ import net.minecraftforge.event.terraingen.BiomeEvent;
 
 public final class BlockThemes {
 
-	private static final HashMap<BiomeGenBase, HashMap<Block, SelectedBlock>> themes = new HashMap<BiomeGenBase, HashMap<Block, SelectedBlock>>();
+	private static final Map<BiomeGenBase, Map<Block, SelectedBlock>> themes = new IdentityHashMap<BiomeGenBase, Map<Block, SelectedBlock>>();
 	private static final int KEEP_META = -1;
 	private static final SelectedBlock AIR = new SelectedBlock(Blocks.air);
 
@@ -50,7 +50,7 @@ public final class BlockThemes {
 			new SelectedBlock(Blocks.stonebrick, 1), new SelectedBlock(Blocks.stonebrick, 2),
 			new SelectedBlock(Blocks.stonebrick, 3) };
 
-	private static void register(final BiomeGenBase biome, final HashMap<Block, SelectedBlock> theme) {
+	private static void register(final BiomeGenBase biome, final Map<Block, SelectedBlock> theme) {
 		// Register biome
 		themes.put(biome, theme);
 
@@ -139,7 +139,7 @@ public final class BlockThemes {
 	public static void initialize() {
 
 		// Beaches
-		HashMap<Block, SelectedBlock> mappings = new HashMap<Block, SelectedBlock>();
+		Map<Block, SelectedBlock> mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.dirt, new SelectedBlock(Blocks.sand, 0));
 		mappings.put(Blocks.grass, new SelectedBlock(Blocks.sand, 0));
 		mappings.put(Blocks.red_flower, new SelectedBlock(Blocks.deadbush, 0));
@@ -151,7 +151,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.beach, mappings);
 		register(BiomeGenBase.coldBeach, mappings);
 
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.dirt, new SelectedBlock(Blocks.stone, 0));
 		mappings.put(Blocks.grass, new SelectedBlock(Blocks.stone, 0));
 		mappings.put(Blocks.red_flower, new SelectedBlock(Blocks.red_mushroom, 0));
@@ -161,7 +161,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.stoneBeach, mappings);
 
 		// Birch Forest
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 2));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log, 2));
 		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 2));
@@ -176,7 +176,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.birchForestHills, mappings);
 
 		// Desert
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.sandstone, 0));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.sandstone, 0));
 		mappings.put(Blocks.cobblestone, new SelectedBlock(Blocks.sandstone, 0));
@@ -204,7 +204,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.desertHills, mappings);
 
 		// Forest
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 0));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log, 0));
 		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 0));
@@ -219,7 +219,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.forestHills, mappings);
 
 		// Jungle
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 3));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log, 3));
 		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 3));
@@ -235,7 +235,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.jungleHills, mappings);
 
 		// Roofed Forest (Dark Oak)
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log2, 1));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log2, 1));
 		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 5));
@@ -249,7 +249,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.roofedForest, mappings);
 
 		// Savanna
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log2, 0));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log2, 0));
 		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 4));
@@ -264,7 +264,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.savannaPlateau, mappings);
 
 		// Taiga
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 1));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log, 1));
 		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 1));
@@ -283,7 +283,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.taigaHills, mappings);
 
 		// Mushroom
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.grass, new SelectedBlock(Blocks.mycelium));
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.red_mushroom_block));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.red_mushroom_block));
@@ -296,7 +296,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.mushroomIslandShore, mappings);
 
 		// Swamp
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 0));
 		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log, 0));
 		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 0));
@@ -312,7 +312,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.swampland, mappings);
 
 		// Mesa
-		mappings = new HashMap<Block, SelectedBlock>();
+		mappings = new IdentityHashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.dirt, new SelectedBlock(Blocks.sand, 1));
 		mappings.put(Blocks.grass, new SelectedBlock(Blocks.sand, 1));
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 0));
