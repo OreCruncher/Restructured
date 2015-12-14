@@ -39,7 +39,7 @@ import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.world.RegionHelper.RegionStats;
-import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
+import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
@@ -94,7 +94,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			final SelectedBlock blockToPlace = VillageTheme.findReplacement(this.biome, block,
+			final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, block,
 					properties.suppressMonsterEgg);
 			world.setBlock(i1, j1, k1, blockToPlace.getBlock(), blockToPlace.getMeta(), 2);
 		}
@@ -186,7 +186,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
-		final SelectedBlock blockToPlace = VillageTheme.findReplacement(this.biome, DIRT_BLOCK,
+		final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, DIRT_BLOCK,
 				properties.suppressMonsterEgg);
 		final Dimensions size = getDimensions();
 		for (int xx = 0; xx < size.width; xx++) {

@@ -31,8 +31,6 @@ import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.ISchematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import org.blockartistry.mod.Restructured.world.village.themes.VillageTheme;
-
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChunkCoordinates;
@@ -46,7 +44,6 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	protected SchematicProperties properties;
 	protected BiomeGenBase biome;
-	protected VillageTheme theme;
 
 	private static ChunkCoordinates fromSchematic(final ISchematic schem) {
 		return new ChunkCoordinates(schem.getWidth(), schem.getHeight(), schem.getLength());
@@ -61,7 +58,6 @@ public class SchematicStructure extends VillageStructureBase implements
 		super(start, type, rand, box, direction);
 		
 		this.biome = start.biome;
-		this.theme = VillageTheme.find(biome);
 	}
 
 	public void setProperties(final SchematicProperties props) {
@@ -91,8 +87,6 @@ public class SchematicStructure extends VillageStructureBase implements
 			biome = BiomeGenBase.plains;
 		else
 			biome = BiomeGenBase.getBiome(b);
-		
-		theme = VillageTheme.find(biome);
 	}
 
 	@Override

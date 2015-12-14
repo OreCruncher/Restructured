@@ -33,7 +33,7 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
-import org.blockartistry.mod.Restructured.world.village.themes.VillageBlockReplacement;
+import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 import org.blockartistry.mod.Restructured.VersionCheck;
 
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -82,7 +82,7 @@ public class Proxy {
 		
 		// Initialize themes
 		if(ModOptions.getEnableTheming())
-			VillageBlockReplacement.initialize();
+			BlockThemes.initialize();
 	}
 
 	@EventHandler
