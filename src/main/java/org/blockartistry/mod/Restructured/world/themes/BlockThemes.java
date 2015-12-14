@@ -45,7 +45,12 @@ public final class BlockThemes {
 	private static final int KEEP_META = -1;
 	private static final SelectedBlock AIR = new SelectedBlock(Blocks.air);
 
-	protected static void register(final BiomeGenBase biome, final HashMap<Block, SelectedBlock> theme) {
+	private static final SelectedBlock[] monsterBlockMap = new SelectedBlock[] { new SelectedBlock(Blocks.stone),
+			new SelectedBlock(Blocks.cobblestone), new SelectedBlock(Blocks.stonebrick),
+			new SelectedBlock(Blocks.stonebrick, 1), new SelectedBlock(Blocks.stonebrick, 2),
+			new SelectedBlock(Blocks.stonebrick, 3) };
+
+	private static void register(final BiomeGenBase biome, final HashMap<Block, SelectedBlock> theme) {
 		// Register biome
 		themes.put(biome, theme);
 
@@ -55,23 +60,23 @@ public final class BlockThemes {
 			themes.put(mutation, theme);
 	}
 
-	protected static Block biomeBlockReplace(final BiomeGenBase biome, final SelectedBlock block) {
+	private static Block biomeBlockReplace(final BiomeGenBase biome, final SelectedBlock block) {
 		final Map<Block, SelectedBlock> replacements = themes.get(biome);
-		if(replacements == null)
+		if (replacements == null)
 			return block.getBlock();
 		final SelectedBlock code = replacements.get(block.getBlock());
 		return code != null ? code.getBlock() : block.getBlock();
 	}
 
-	protected static int biomeMetaReplace(final BiomeGenBase biome, final SelectedBlock block) {
+	private static int biomeMetaReplace(final BiomeGenBase biome, final SelectedBlock block) {
 		final Map<Block, SelectedBlock> replacements = themes.get(biome);
-		if(replacements == null)
+		if (replacements == null)
 			return block.getMeta();
 
 		final SelectedBlock code = replacements.get(block.getBlock());
-		if(code == null || code.getMeta() == KEEP_META)
+		if (code == null || code.getMeta() == KEEP_META)
 			return block.getMeta();
-		
+
 		int replace = code.getMeta();
 
 		// Preserve slab orientation
@@ -84,52 +89,38 @@ public final class BlockThemes {
 		return replace;
 	}
 
-	protected static SelectedBlock scrubEggs(final SelectedBlock block) {
-
+	/**
+	 * Provides an alternative block if the input block is a
+	 * monster egg.
+	 */
+	public static SelectedBlock scrubEggs(final SelectedBlock block) {
 		if (block.getBlock() != Blocks.monster_egg)
 			return block;
-
-		Block b = null;
-		int meta = 0;
-		switch (block.getMeta()) {
-		case 0:
-			b = Blocks.stone;
-			meta = 0;
-			break;
-		case 1:
-			b = Blocks.cobblestone;
-			meta = 0;
-			break;
-		case 2:
-			b = Blocks.stonebrick;
-			meta = 0;
-			break;
-		case 3:
-			b = Blocks.stonebrick;
-			meta = 1;
-			break;
-		case 4:
-			b = Blocks.stonebrick;
-			meta = 2;
-		case 5:
-			b = Blocks.stonebrick;
-			meta = 3;
-			break;
-		default:
-			;
-		}
-
-		return new SelectedBlock(b, meta);
+		final int idx = block.getMeta();
+		if (idx >= monsterBlockMap.length)
+			return block;
+		return monsterBlockMap[idx];
+	}
+	
+	/**
+	 * Provides an alternative block if the input block is a
+	 * fire source (can cause fire spread).
+	 */
+	public static SelectedBlock scrubFireSource(final SelectedBlock block) {
+		if(block.isFireSource())
+			return (SelectedBlock) AIR.clone();
+		return block;
 	}
 
-	public static SelectedBlock findReplacement(final BiomeGenBase biome, SelectedBlock block, final boolean scrubEggs) {
-
-		if (scrubEggs)
-			block = scrubEggs(block);
-
+	/**
+	 * Invokes the Forge events to figure out any block replacements due to themes.
+	 */
+	public static SelectedBlock findReplacement(final BiomeGenBase biome, final SelectedBlock block) {
+		
 		Block theBlock = block.getBlock();
 		int meta = block.getMeta();
 
+		// Ask subscribers if they want to replace
 		final BiomeEvent.GetVillageBlockID event1 = new BiomeEvent.GetVillageBlockID(biome, theBlock, meta);
 		MinecraftForge.TERRAIN_GEN_BUS.post(event1);
 		if (event1.getResult() == Result.DENY)
@@ -141,27 +132,12 @@ public final class BlockThemes {
 		if (event2.getResult() == Result.DENY)
 			meta = event2.replacement;
 
+		// Return back the new selected block
 		return new SelectedBlock(theBlock, meta);
 	}
 
-	private static Block findReplacementBlock(final BiomeGenBase biome, SelectedBlock block, final boolean scrubEggs) {
-
-		if (scrubEggs)
-			block = scrubEggs(block);
-
-		return biomeBlockReplace(biome, block);
-	}
-
-	private static int findReplacementMeta(final BiomeGenBase biome, SelectedBlock block, final boolean scrubEggs) {
-
-		if (scrubEggs)
-			block = scrubEggs(block);
-
-		return biomeMetaReplace(biome, block);
-	}
-
 	public static void initialize() {
-		
+
 		// Beaches
 		HashMap<Block, SelectedBlock> mappings = new HashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.dirt, new SelectedBlock(Blocks.sand, 0));
@@ -257,7 +233,7 @@ public final class BlockThemes {
 		register(BiomeGenBase.jungle, mappings);
 		register(BiomeGenBase.jungleEdge, mappings);
 		register(BiomeGenBase.jungleHills, mappings);
-		
+
 		// Roofed Forest (Dark Oak)
 		mappings = new HashMap<Block, SelectedBlock>();
 		mappings.put(Blocks.log, new SelectedBlock(Blocks.log2, 1));
@@ -319,27 +295,71 @@ public final class BlockThemes {
 		register(BiomeGenBase.mushroomIsland, mappings);
 		register(BiomeGenBase.mushroomIslandShore, mappings);
 
+		// Swamp
+		mappings = new HashMap<Block, SelectedBlock>();
+		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 0));
+		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log, 0));
+		mappings.put(Blocks.planks, new SelectedBlock(Blocks.planks, 0));
+		mappings.put(Blocks.spruce_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.birch_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.dark_oak_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.jungle_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.acacia_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.wooden_slab, new SelectedBlock(Blocks.wooden_slab, 0));
+		mappings.put(Blocks.double_wooden_slab, new SelectedBlock(Blocks.double_wooden_slab, 0));
+		mappings.put(Blocks.red_flower, new SelectedBlock(Blocks.red_flower, 1));
+		mappings.put(Blocks.yellow_flower, new SelectedBlock(Blocks.brown_mushroom, 0));
+		register(BiomeGenBase.swampland, mappings);
+
+		// Mesa
+		mappings = new HashMap<Block, SelectedBlock>();
+		mappings.put(Blocks.dirt, new SelectedBlock(Blocks.sand, 1));
+		mappings.put(Blocks.grass, new SelectedBlock(Blocks.sand, 1));
+		mappings.put(Blocks.log, new SelectedBlock(Blocks.log, 0));
+		mappings.put(Blocks.log2, new SelectedBlock(Blocks.log, 0));
+		mappings.put(Blocks.planks, new SelectedBlock(Blocks.hardened_clay));
+		mappings.put(Blocks.spruce_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.birch_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.dark_oak_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.jungle_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.acacia_stairs, new SelectedBlock(Blocks.oak_stairs, KEEP_META));
+		mappings.put(Blocks.wooden_slab, new SelectedBlock(Blocks.wooden_slab, 0));
+		mappings.put(Blocks.double_wooden_slab, new SelectedBlock(Blocks.double_wooden_slab, 0));
+		mappings.put(Blocks.red_flower, new SelectedBlock(Blocks.deadbush));
+		mappings.put(Blocks.yellow_flower, new SelectedBlock(Blocks.deadbush));
+		mappings.put(Blocks.red_mushroom, AIR);
+		mappings.put(Blocks.brown_mushroom, AIR);
+		mappings.put(Blocks.double_plant, AIR);
+		mappings.put(Blocks.tallgrass, AIR);
+		register(BiomeGenBase.mesa, mappings);
+		register(BiomeGenBase.mesaPlateau, mappings);
+
 		// Hook for block replacement
 		MinecraftForge.TERRAIN_GEN_BUS.register(new BlockThemes());
 	}
 
+	// Forge Event listener for block replacement.  Low priority because
+	// we give other mods a chance to replace before we intercept.  This
+	// routine is most commonly called during village generation, though
+	// there isn't a restriction saying this is the only time a replace
+	// request can be made.
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public void blockReplaceEvent(final BiomeEvent.GetVillageBlockID event) {
-		if(event.getResult() == Result.DENY)
+		if (event.getResult() == Result.DENY)
 			return;
-		final Block replace = findReplacementBlock(event.biome, new SelectedBlock(event.original, event.type), true);
-		if(replace != event.original) {
+		final Block replace = biomeBlockReplace(event.biome, SelectedBlock.fly(event.original, event.type));
+		if (replace != event.original) {
 			event.replacement = replace;
 			event.setResult(Result.DENY);
 		}
 	}
-	
+
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public void blockMetaReplaceEvent(final BiomeEvent.GetVillageBlockMeta event) {
-		if(event.getResult() == Result.DENY)
+		if (event.getResult() == Result.DENY)
 			return;
-		final int replace = findReplacementMeta(event.biome, new SelectedBlock(event.original, event.type), true);
-		if(replace != event.type) {
+		final int replace = biomeMetaReplace(event.biome, SelectedBlock.fly(event.original, event.type));
+		if (replace != event.type) {
 			event.replacement = replace;
 			event.setResult(Result.DENY);
 		}

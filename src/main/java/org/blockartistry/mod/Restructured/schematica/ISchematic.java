@@ -44,6 +44,8 @@ import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 public interface ISchematic {
 	
+	void scrubFireSources();
+	void scrubEggs();
 	Dimensions getDimensions();
 	SelectedBlock getBlockEx(final int x, final int y, final int z);
 	

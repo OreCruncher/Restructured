@@ -45,6 +45,7 @@ import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import org.apache.commons.lang3.StringUtils;
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
@@ -89,11 +90,10 @@ public class CopyStructureBuilder {
 		this.structure = structure;
 		this.properties = properties;
 	}
-
-	public void place(final Block block, final int meta, final int x, final int y, final int z) {
-		final SelectedBlock b = SelectedBlock.fly(block, meta);
-		handleRotation(b);
-		structure.placeBlock(world, b, x, y, z, box);
+	
+	public void place(final SelectedBlock block, final int x, final int y, final int z) {
+		handleRotation(block);
+		structure.placeBlock(world, block, x, y, z, box);
 	}
 
 	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
@@ -113,11 +113,11 @@ public class CopyStructureBuilder {
 
 					if (isVecInside(x, y, z, box)) {
 
-						BlockHelper block = new BlockHelper(schematic.getBlock(x, y, z));
+						SelectedBlock block = schematic.getBlockEx(x, y, z);
 						final ChunkCoordinates v = new ChunkCoordinates(x, y, z);
 
 						// Do we skip placement?
-						if (doSkipFireSource(block) || doSkipSpawnerPlacement(block, v))
+						if (doSkipSpawnerPlacement(block, v))
 							continue;
 
 						// Delay placing things that don't like being
@@ -127,27 +127,14 @@ public class CopyStructureBuilder {
 							continue;
 						}
 
-						// If this is a crop, and we are randomizing crops,
-						// need to do the appropriate replacement.
-						int meta = 0;
-						Block replacement = replaceCrop(block, x, y, z);
-						if (replacement != null) {
-							block = new BlockHelper(replacement);
-							meta = rand.nextInt(7);
-						} else {
-							meta = schematic.getBlockMetadata(x, y, z);
-						}
-
-						// Fall through case - just place the block
-						place(block.getBlock(), meta, x, y, z);
+						place(replaceCrop(block, x, y, z), x, y, z);
 					}
 				}
 
 		if (!waitToPlace.isEmpty()) {
 			for (final ChunkCoordinates v : waitToPlace) {
-				final Block block = schematic.getBlock(v.posX, v.posY, v.posZ);
-				final int meta = schematic.getBlockMetadata(v.posX, v.posY, v.posZ);
-				place(block, meta, v.posX, v.posY, v.posZ);
+				final SelectedBlock block = schematic.getBlockEx(v.posX, v.posY, v.posZ);
+				place(block, v.posX, v.posY, v.posZ);
 			}
 		}
 
@@ -218,14 +205,14 @@ public class CopyStructureBuilder {
 		}
 	}
 
-	protected Block replaceCrop(final BlockHelper block, final int x, final int y, final int z) {
+	protected SelectedBlock replaceCrop(final SelectedBlock block, final int x, final int y, final int z) {
 
-		if (!properties.randomizeCrops || !block.isCrop())
-			return null;
+		if (!block.isCrop() || !properties.randomizeCrops)
+			return block;
 
 		final List<ItemSeeds> seeds = Assets.getSeeds();
 		if (seeds == null || seeds.size() == 0)
-			return null;
+			return block;
 
 		Block result = null;
 		try {
@@ -242,7 +229,7 @@ public class CopyStructureBuilder {
 			;
 		}
 
-		return result;
+		return result != null ? new SelectedBlock(result, rand.nextInt(7)) : block;
 	}
 
 	protected void generateChestContents(final IInventory inventory, final String category, final int count) {
@@ -254,11 +241,7 @@ public class CopyStructureBuilder {
 	}
 
 	protected boolean doFillChestContents(final BlockHelper helper) {
-		return helper.isChest() && properties.chestContents != null && !properties.chestContents.isEmpty();
-	}
-
-	protected boolean doSkipFireSource(final BlockHelper helper) {
-		return helper.isFireSource() && properties.suppressFire;
+		return helper.isChest() && StringUtils.isNotEmpty(properties.chestContents);
 	}
 
 	protected boolean doSkipSpawnerPlacement(final BlockHelper helper, final ChunkCoordinates v) {

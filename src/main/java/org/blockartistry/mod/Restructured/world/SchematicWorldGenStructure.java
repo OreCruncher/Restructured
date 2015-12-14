@@ -94,8 +94,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		int k1 = this.getZWithOffset(x, z);
 
 		if (box.isVecInside(i1, j1, k1)) {
-			final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, block,
-					properties.suppressMonsterEgg);
+			final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, block);
 			world.setBlock(i1, j1, k1, blockToPlace.getBlock(), blockToPlace.getMeta(), 2);
 		}
 	}
@@ -186,8 +185,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
-		final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, DIRT_BLOCK,
-				properties.suppressMonsterEgg);
+		final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, DIRT_BLOCK);
 		final Dimensions size = getDimensions();
 		for (int xx = 0; xx < size.width; xx++) {
 			for (int zz = 0; zz < size.length; zz++) {

@@ -34,8 +34,6 @@
 
 package org.blockartistry.mod.Restructured.schematica;
 
-import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
-import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -48,15 +46,11 @@ import java.util.List;
 
 import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
+import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 
 public class Schematic implements ISchematic {
 
-	private static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData.getBlockRegistry();
-
-	private static final int META_MASK = 0xFF;
-	private static final int BLOCK_SHIFT = 8;
-
-	private final int[] data;
+	private final SelectedBlock[] data;
 
 	private final List<TileEntity> tileEntities = new ArrayList<TileEntity>();
 	private final List<Entity> entities = new ArrayList<Entity>();
@@ -66,17 +60,17 @@ public class Schematic implements ISchematic {
 
 	private final int widthOffset;
 	private final int heightOffset;
-	
+
 	private final Dimensions dim;
 
 	public Schematic(final int width, final int height, final int length) {
 
-		this.data = new int[width * height * length];
+		this.data = new SelectedBlock[width * height * length];
 
 		this.width = width;
 		this.height = height;
 		this.length = length;
-		
+
 		this.dim = new Dimensions(width, height, length);
 
 		// int[dimX][dimY][dimZ] : 1-D array index [i * dimY*dimZ + j * dimZ +
@@ -85,6 +79,18 @@ public class Schematic implements ISchematic {
 		this.heightOffset = length;
 	}
 	
+	@Override
+	public void scrubFireSources() {
+		for(int i = 0; i < this.data.length; i++)
+			this.data[i] = BlockThemes.scrubFireSource(this.data[i]);
+	}
+	
+	@Override
+	public void scrubEggs() {
+		for(int i = 0; i < this.data.length; i++)
+			this.data[i] = BlockThemes.scrubEggs(this.data[i]);
+	}
+
 	@Override
 	public Dimensions getDimensions() {
 		return this.dim;
@@ -98,19 +104,14 @@ public class Schematic implements ISchematic {
 	public SelectedBlock getBlockEx(final int x, final int y, final int z) {
 		if (!isValid(x, y, z))
 			return new SelectedBlock(Blocks.air);
-
-		final int d = this.data[getDataIndex(x, y, z)];
-		return new SelectedBlock(BLOCK_REGISTRY.getObjectById(d >> BLOCK_SHIFT), d & META_MASK);
+		return (SelectedBlock) this.data[getDataIndex(x, y, z)].clone();
 	}
 
 	@Override
 	public Block getBlock(final int x, final int y, final int z) {
-		if (!isValid(x, y, z)) {
+		if (!isValid(x, y, z))
 			return Blocks.air;
-		}
-
-		final int d = this.data[getDataIndex(x, y, z)] >> BLOCK_SHIFT;
-		return BLOCK_REGISTRY.getObjectById(d);
+		return this.data[getDataIndex(x, y, z)].getBlock();
 	}
 
 	public boolean setBlock(final int x, final int y, final int z, final Block block) {
@@ -118,16 +119,9 @@ public class Schematic implements ISchematic {
 	}
 
 	public boolean setBlock(final int x, final int y, final int z, final Block block, final int metadata) {
-		if (!isValid(x, y, z)) {
+		if (!isValid(x, y, z))
 			return false;
-		}
-
-		final int id = BLOCK_REGISTRY.getId(block);
-		if (id == -1) {
-			return false;
-		}
-
-		this.data[getDataIndex(x, y, z)] = id << BLOCK_SHIFT | (metadata & META_MASK);
+		this.data[getDataIndex(x, y, z)] = new SelectedBlock(block, metadata);
 		return true;
 	}
 
@@ -176,17 +170,7 @@ public class Schematic implements ISchematic {
 			return 0;
 		}
 
-		return this.data[getDataIndex(x, y, z)] & META_MASK;
-	}
-
-	public boolean setBlockMetadata(final int x, final int y, final int z, final int metadata) {
-		if (!isValid(x, y, z)) {
-			return false;
-		}
-
-		final int sub = getDataIndex(x, y, z);
-		this.data[sub] = (this.data[sub] & ~META_MASK) | (metadata & META_MASK);
-		return true;
+		return this.data[getDataIndex(x, y, z)].getMeta();
 	}
 
 	@Override

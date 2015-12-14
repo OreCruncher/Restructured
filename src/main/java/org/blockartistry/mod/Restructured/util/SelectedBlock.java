@@ -31,7 +31,7 @@ import net.minecraft.init.Blocks;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.common.util.RotationHelper;
 
-public class SelectedBlock extends BlockHelper {
+public class SelectedBlock extends BlockHelper implements Cloneable {
 	
 	// The cached key is used by the various framework routines where a temporary
 	// key is generated just to index an internal table.  It's thread local so
@@ -82,5 +82,10 @@ public class SelectedBlock extends BlockHelper {
 	
 	public ForgeDirection getOrientation() {
 		return BlockType.getOrientation(this);
+	}
+	
+	@Override
+	public Object clone() {
+		return new SelectedBlock(this.block, this.meta);
 	}
 }

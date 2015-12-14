@@ -305,8 +305,13 @@ public final class ConfigProcessor {
 				}
 			}
 
-			if (props.schematic != null)
+			if (props.schematic != null) {
+				if(props.suppressMonsterEgg)
+					props.schematic.scrubEggs();
+				if(props.suppressFire)
+					props.schematic.scrubFireSources();
 				schematicList.add(props);
+			}
 
 			return true;
 		}
