@@ -73,7 +73,6 @@ public final class ConfigProcessor {
 	private static final String OPTION_OPTIONS = "generationOptions";
 	private static final String OPTION_OPTIONS_SUPPRESS_FIRE = "suppressFire";
 	private static final String OPTION_OPTIONS_SUPPRESS_EGGS = "suppressEggs";
-	private static final String OPTION_OPTIONS_RANDOM_CROPS = "randomCrops";
 
 	private static final String OPTION_VILLAGE_WEIGHT = "villageWeight";
 	private static final String OPTION_WORLD_WEIGHT = "worldWeight";
@@ -284,7 +283,6 @@ public final class ConfigProcessor {
 			String options = target.getString(OPTION_OPTIONS, category, DEFAULT_OPTIONS, "Options for generation");
 			props.suppressFire = options.contains(OPTION_OPTIONS_SUPPRESS_FIRE);
 			props.suppressMonsterEgg = options.contains(OPTION_OPTIONS_SUPPRESS_EGGS);
-			props.randomizeCrops = options.contains(OPTION_OPTIONS_RANDOM_CROPS);
 
 			try {
 				props.dimensions = new ElementRule(asBlackList ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,

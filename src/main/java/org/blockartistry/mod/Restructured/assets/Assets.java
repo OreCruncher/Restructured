@@ -32,9 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.minecraft.block.Block;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemSeeds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -54,15 +51,12 @@ import org.blockartistry.mod.Restructured.util.StreamUtils;
 import org.blockartistry.mod.Restructured.util.WeightTable;
 import org.blockartistry.mod.Restructured.world.SchematicWorldGenHandler;
 
-import cpw.mods.fml.common.registry.GameData;
-
 public final class Assets {
 
 	private static final String STANDARD_PACK = "StandardPack.zip";
 
 	private static final List<SchematicProperties> schematicList = new ArrayList<SchematicProperties>();
 	private static List<ChestGenHooks> chestHooks = null;
-	private static List<ItemSeeds> seeds = null;
 
 	// Editable configuration
 	private static final File accessPath = Restructured.dataDirectory();
@@ -75,7 +69,7 @@ public final class Assets {
 	static {
 		ModLog.info("Schematic ZIPs present: %s", Boolean.toString(ZipProcessor.areZipsPresent(accessPath)));
 		ModLog.info("Schematic Files present: %s", Boolean.toString(ZipProcessor.areSchematicsPresent(accessPath)));
-		// If there are no zips or SCHEMATICS present extract the standard
+		// If there are no zips or schematics present extract the standard
 		// archive into the folder.
 		if (!ZipProcessor.areZipsPresent(accessPath) && !ZipProcessor.areSchematicsPresent(accessPath)) {
 			ModLog.info("Extracting %s to configuration directory", STANDARD_PACK);
@@ -205,19 +199,6 @@ public final class Assets {
 		return table;
 	}
 
-	public static List<ItemSeeds> getSeeds() {
-
-		if (seeds != null)
-			return seeds;
-
-		seeds = new ArrayList<ItemSeeds>();
-		for (final Item i : GameData.getItemRegistry().typeSafeIterable())
-			if ((i instanceof ItemSeeds) && i != Items.pumpkin_seeds && i != Items.melon_seeds)
-				seeds.add((ItemSeeds) i);
-
-		return seeds;
-	}
-
 	protected static void dumpBiomeList() {
 
 		ModLog.info("Detected biomes:");
@@ -253,7 +234,6 @@ public final class Assets {
 
 		// Make initial calls to get the lists filled
 		getChestGenerationHooks();
-		getSeeds();
 
 		// Save the configs so the player can edit
 		config.save();

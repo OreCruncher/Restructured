@@ -35,25 +35,58 @@
 package org.blockartistry.mod.Restructured.schematica;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 
-public class Schematic implements ISchematic {
+public class Schematic {
+
+	public static class SchematicTileEntity {
+
+		public final ChunkCoordinates coords;
+		public final NBTTagCompound nbt;
+
+		public SchematicTileEntity(final NBTTagCompound nbt, final int x, final int y, final int z) {
+			this.coords = new ChunkCoordinates(x, y, z);
+			this.nbt = nbt;
+		}
+		
+		public Object getInstance(final World world) {
+			return TileEntity.createAndLoadEntity(nbt);
+		}
+	}
+	
+	public static class SchematicEntity extends SchematicTileEntity {
+		
+		public final UUID id;
+		
+		public SchematicEntity(final UUID id, final NBTTagCompound nbt, final int x, final int y, final int z) {
+			super(nbt, x, y, z);
+			this.id = id;
+		}
+		
+		@Override
+		public Object getInstance(final World world) {
+			return EntityList.createEntityFromNBT(nbt, world);
+		}
+	}
 
 	private final SelectedBlock[] data;
 
-	private final List<TileEntity> tileEntities = new ArrayList<TileEntity>();
-	private final List<Entity> entities = new ArrayList<Entity>();
+	private final List<SchematicTileEntity> tileEntities = new ArrayList<SchematicTileEntity>();
+	private final List<SchematicEntity> entities = new ArrayList<SchematicEntity>();
 	private final int width;
 	private final int height;
 	private final int length;
@@ -78,20 +111,17 @@ public class Schematic implements ISchematic {
 		this.widthOffset = height * length;
 		this.heightOffset = length;
 	}
-	
-	@Override
+
 	public void scrubFireSources() {
-		for(int i = 0; i < this.data.length; i++)
+		for (int i = 0; i < this.data.length; i++)
 			this.data[i] = BlockThemes.scrubFireSource(this.data[i]);
 	}
-	
-	@Override
+
 	public void scrubEggs() {
-		for(int i = 0; i < this.data.length; i++)
+		for (int i = 0; i < this.data.length; i++)
 			this.data[i] = BlockThemes.scrubEggs(this.data[i]);
 	}
 
-	@Override
 	public Dimensions getDimensions() {
 		return this.dim;
 	}
@@ -100,22 +130,16 @@ public class Schematic implements ISchematic {
 		return x * this.widthOffset + y * this.heightOffset + z;
 	}
 
-	@Override
 	public SelectedBlock getBlockEx(final int x, final int y, final int z) {
 		if (!isValid(x, y, z))
 			return new SelectedBlock(Blocks.air);
 		return (SelectedBlock) this.data[getDataIndex(x, y, z)].clone();
 	}
 
-	@Override
 	public Block getBlock(final int x, final int y, final int z) {
 		if (!isValid(x, y, z))
 			return Blocks.air;
 		return this.data[getDataIndex(x, y, z)].getBlock();
-	}
-
-	public boolean setBlock(final int x, final int y, final int z, final Block block) {
-		return setBlock(x, y, z, block, 0);
 	}
 
 	public boolean setBlock(final int x, final int y, final int z, final Block block, final int metadata) {
@@ -125,46 +149,43 @@ public class Schematic implements ISchematic {
 		return true;
 	}
 
-	@Override
-	public TileEntity getTileEntity(final int x, final int y, final int z) {
-		for (final TileEntity tileEntity : this.tileEntities) {
-			if (tileEntity.xCoord == x && tileEntity.yCoord == y && tileEntity.zCoord == z) {
-				return tileEntity;
+	public SchematicTileEntity getTileEntity(final int x, final int y, final int z) {
+		for (final SchematicTileEntity entry : this.tileEntities) {
+			final ChunkCoordinates coords = entry.coords;
+			if (coords.posX == x && coords.posY == y && coords.posZ == z) {
+				return entry;
 			}
 		}
 
 		return null;
 	}
 
-	@Override
-	public List<TileEntity> getTileEntities() {
+	public List<SchematicTileEntity> getTileEntities() {
 		return this.tileEntities;
 	}
 
-	public void setTileEntity(final int x, final int y, final int z, final TileEntity tileEntity) {
+	public void addTileEntity(final int x, final int y, final int z, final NBTTagCompound nbt) {
 		if (!isValid(x, y, z)) {
 			return;
 		}
 
 		this.removeTileEntity(x, y, z);
 
-		if (tileEntity != null) {
-			this.tileEntities.add(tileEntity);
+		if (nbt != null) {
+			this.tileEntities.add(new SchematicTileEntity(nbt, x, y, z));
 		}
 	}
 
 	public void removeTileEntity(final int x, final int y, final int z) {
-		final Iterator<TileEntity> iterator = this.tileEntities.iterator();
+		final Iterator<SchematicTileEntity> iterator = this.tileEntities.iterator();
 
 		while (iterator.hasNext()) {
-			final TileEntity tileEntity = iterator.next();
-			if (tileEntity.xCoord == x && tileEntity.yCoord == y && tileEntity.zCoord == z) {
+			final ChunkCoordinates coord = iterator.next().coords;
+			if (coord.posX == x && coord.posY == y && coord.posZ == z)
 				iterator.remove();
-			}
 		}
 	}
 
-	@Override
 	public int getBlockMetadata(final int x, final int y, final int z) {
 		if (!isValid(x, y, z)) {
 			return 0;
@@ -173,51 +194,28 @@ public class Schematic implements ISchematic {
 		return this.data[getDataIndex(x, y, z)].getMeta();
 	}
 
-	@Override
-	public List<Entity> getEntities() {
+	public List<SchematicEntity> getEntities() {
 		return this.entities;
 	}
 
-	public void addEntity(final Entity entity) {
-		if (entity == null || entity.getUniqueID() == null || entity instanceof EntityPlayer) {
-			return;
-		}
-
-		for (final Entity e : this.entities) {
-			if (entity.getUniqueID().equals(e.getUniqueID())) {
+	public void addEntity(final UUID id, final NBTTagCompound nbt, final int x, final int y, final int z) {
+		for (final SchematicEntity e : this.entities) {
+			if (id.equals(e.id)) {
 				return;
 			}
 		}
 
-		this.entities.add(entity);
+		this.entities.add(new SchematicEntity(id, nbt, x, y, z));
 	}
 
-	public void removeEntity(final Entity entity) {
-		if (entity == null || entity.getUniqueID() == null) {
-			return;
-		}
-
-		final Iterator<Entity> iterator = this.entities.iterator();
-		while (iterator.hasNext()) {
-			final Entity e = iterator.next();
-			if (entity.getUniqueID().equals(e.getUniqueID())) {
-				iterator.remove();
-				return;
-			}
-		}
-	}
-
-	@Override
 	public int getWidth() {
 		return this.width;
 	}
 
-	@Override
 	public int getLength() {
 		return this.length;
 	}
 
-	@Override
 	public int getHeight() {
 		return this.height;
 	}

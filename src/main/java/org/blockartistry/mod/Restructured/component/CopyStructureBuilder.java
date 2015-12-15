@@ -24,18 +24,13 @@
 
 package org.blockartistry.mod.Restructured.component;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
-import net.minecraft.entity.EntityList;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemSeeds;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.Direction;
@@ -47,30 +42,17 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import org.apache.commons.lang3.StringUtils;
 import org.blockartistry.mod.Restructured.ModLog;
-import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
-import org.blockartistry.mod.Restructured.schematica.ISchematic;
+import org.blockartistry.mod.Restructured.schematica.Schematic;
+import org.blockartistry.mod.Restructured.schematica.Schematic.SchematicEntity;
+import org.blockartistry.mod.Restructured.schematica.Schematic.SchematicTileEntity;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
-import cpw.mods.fml.relauncher.ReflectionHelper;
-
 public class CopyStructureBuilder {
 
 	protected static final Random rand = new Random();
-
-	private static Field soilBlockID = null;
-	private static Field cropBlock = null;
-
-	static {
-		try {
-			soilBlockID = ReflectionHelper.findField(ItemSeeds.class, "soilBlockID", "field_77838_b");
-			cropBlock = ReflectionHelper.findField(ItemSeeds.class, "field_150925_a");
-		} catch (final Exception t) {
-			ModLog.warn("Unable to hook ItemSeeds.soilBlockId");
-		}
-	}
 
 	protected final IStructureBuilder structure;
 	protected final World world;
@@ -78,8 +60,8 @@ public class CopyStructureBuilder {
 	protected final int orientation;
 	protected final SchematicProperties properties;
 
-	protected final List<ChunkCoordinates> waitToPlace = new ArrayList<ChunkCoordinates>();
-	protected final List<ChunkCoordinates> blockList = new ArrayList<ChunkCoordinates>();
+	protected final Set<ChunkCoordinates> waitToPlace = new HashSet<ChunkCoordinates>();
+	protected final Set<ChunkCoordinates> blockList = new HashSet<ChunkCoordinates>();
 
 	public CopyStructureBuilder(final World world, final StructureBoundingBox box, final int orientation,
 			final SchematicProperties properties, final IStructureBuilder structure) {
@@ -102,7 +84,7 @@ public class CopyStructureBuilder {
 
 	public void generate() {
 
-		final ISchematic schematic = properties.schematic;
+		final Schematic schematic = properties.schematic;
 		final Dimensions size = structure.getDimensions();
 
 		// Scan from the ground up. This is important when
@@ -113,7 +95,7 @@ public class CopyStructureBuilder {
 
 					if (isVecInside(x, y, z, box)) {
 
-						SelectedBlock block = schematic.getBlockEx(x, y, z);
+						final SelectedBlock block = schematic.getBlockEx(x, y, z);
 						final ChunkCoordinates v = new ChunkCoordinates(x, y, z);
 
 						// Do we skip placement?
@@ -127,7 +109,7 @@ public class CopyStructureBuilder {
 							continue;
 						}
 
-						place(replaceCrop(block, x, y, z), x, y, z);
+						place(block, x, y, z);
 					}
 				}
 
@@ -138,19 +120,18 @@ public class CopyStructureBuilder {
 			}
 		}
 
-		for (final TileEntity e : schematic.getTileEntities()) {
-			if (!isVecInside(e.xCoord, e.yCoord, e.zCoord, box))
+		for (final SchematicTileEntity e : schematic.getTileEntities()) {
+			final ChunkCoordinates coords = e.coords;
+			if (!isVecInside(coords.posX, coords.posY, coords.posZ, box))
 				continue;
 
 			// If the block location is black listed we don't want
 			// to create the tile entity at the location
-			if (blockList.contains(new ChunkCoordinates(e.xCoord, e.yCoord, e.zCoord)))
+			if (blockList.contains(coords))
 				continue;
 
 			try {
-				// Clone it - we don't want to use the master copy because
-				// it will be used for other buildings.
-				final TileEntity entity = cloneTileEntity(e);
+				final TileEntity entity = (TileEntity) e.getInstance(world);
 				entity.validate();
 
 				// Update the entity with the proper state.
@@ -172,17 +153,14 @@ public class CopyStructureBuilder {
 			}
 		}
 
-		for (final Entity e : schematic.getEntities()) {
-			final int x = (int) Math.floor(e.posX);
-			final int y = (int) Math.floor(e.posY);
-			final int z = (int) Math.floor(e.posZ);
+		for (final SchematicEntity e : schematic.getEntities()) {
+			final ChunkCoordinates ec = e.coords;
 
-			if (!isVecInside(x, y, z, box))
+			if (!isVecInside(ec.posX, ec.posY, ec.posZ, box))
 				continue;
 
 			try {
-				// Place it into the world
-				final Entity entity = cloneEntity(e);
+				final Entity entity = (Entity) e.getInstance(world);
 
 				if (entity instanceof EntityHanging) {
 					final EntityHanging howsIt = (EntityHanging) entity;
@@ -194,7 +172,7 @@ public class CopyStructureBuilder {
 					// Calls setPosition() internally
 					howsIt.setDirection(translateDirection(howsIt.hangingDirection));
 				} else {
-					final ChunkCoordinates coord = structure.getWorldCoordinates(x, y, z);
+					final ChunkCoordinates coord = structure.getWorldCoordinates(ec.posX, ec.posY, ec.posZ);
 					entity.setPosition(coord.posX + 0.5D, coord.posY + 0.5D, coord.posZ + 0.5D);
 				}
 
@@ -203,33 +181,6 @@ public class CopyStructureBuilder {
 				ModLog.warn("Unable to place entity");
 			}
 		}
-	}
-
-	protected SelectedBlock replaceCrop(final SelectedBlock block, final int x, final int y, final int z) {
-
-		if (!block.isCrop() || !properties.randomizeCrops)
-			return block;
-
-		final List<ItemSeeds> seeds = Assets.getSeeds();
-		if (seeds == null || seeds.size() == 0)
-			return block;
-
-		Block result = null;
-		try {
-			// Get our new seed and what it can be planted on
-			final ItemSeeds s = seeds.get(rand.nextInt(seeds.size()));
-			final Block newHostBlock = (Block) soilBlockID.get(s);
-
-			// If the block at y-1 can support, yay! If not
-			// return null.
-			if (properties.schematic.getBlock(x, y - 1, z) == newHostBlock)
-				result = (Block) cropBlock.get(s);
-
-		} catch (final Exception t) {
-			;
-		}
-
-		return result != null ? new SelectedBlock(result, rand.nextInt(7)) : block;
 	}
 
 	protected void generateChestContents(final IInventory inventory, final String category, final int count) {
@@ -313,17 +264,5 @@ public class CopyStructureBuilder {
 		}
 
 		block.rotate(ForgeDirection.UP, getRotationCount(direction));
-	}
-
-	protected TileEntity cloneTileEntity(final TileEntity source) {
-		final NBTTagCompound nbt = new NBTTagCompound();
-		source.writeToNBT(nbt);
-		return TileEntity.createAndLoadEntity(nbt);
-	}
-
-	protected Entity cloneEntity(final Entity entity) {
-		final NBTTagCompound nbt = new NBTTagCompound();
-		entity.writeToNBTOptional(nbt);
-		return EntityList.createEntityFromNBT(nbt, world);
 	}
 }

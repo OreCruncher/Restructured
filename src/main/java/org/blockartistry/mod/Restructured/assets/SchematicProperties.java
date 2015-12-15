@@ -31,7 +31,7 @@ import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 
-import org.blockartistry.mod.Restructured.schematica.ISchematic;
+import org.blockartistry.mod.Restructured.schematica.Schematic;
 import org.blockartistry.mod.Restructured.util.ElementRule;
 
 public final class SchematicProperties implements Cloneable {
@@ -41,10 +41,9 @@ public final class SchematicProperties implements Cloneable {
 	public int worldWeight;
 	public int limit;
 	public int groundOffset;
-	public ISchematic schematic;
+	public Schematic schematic;
 	public boolean suppressFire;
 	public boolean suppressMonsterEgg;
-	public boolean randomizeCrops;
 	public int villagerCount;
 	public int villagerProfession;
 	public String chestContents;
@@ -93,8 +92,8 @@ public final class SchematicProperties implements Cloneable {
 		final StringBuilder builder = new StringBuilder();
 		builder.append(String.format("[%s] (village: %d; world: %d)", name,
 				villageWeight, worldWeight));
-		builder.append(String.format(" (offset: %d; noFire: %s; noEgg: %s, randCrops: %s)", groundOffset,
-				Boolean.valueOf(suppressFire), Boolean.valueOf(suppressMonsterEgg), Boolean.valueOf(randomizeCrops)));
+		builder.append(String.format(" (offset: %d; noFire: %s; noEgg: %s)", groundOffset,
+				Boolean.valueOf(suppressFire), Boolean.valueOf(suppressMonsterEgg)));
 		builder.append(String.format(" (villagers: %d; profession: %d)",
 				villagerCount, villagerProfession));
 		builder.append(String.format(" (chest: %s, count: %d)",

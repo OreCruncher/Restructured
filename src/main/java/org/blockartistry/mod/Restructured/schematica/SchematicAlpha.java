@@ -43,6 +43,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.HashMap;
@@ -53,11 +54,10 @@ import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.world.FantasyIsland;
 
 public class SchematicAlpha extends SchematicFormat {
-	private static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData
-			.getBlockRegistry();
+	private static final FMLControlledNamespacedRegistry<Block> BLOCK_REGISTRY = GameData.getBlockRegistry();
 
 	@Override
-	public ISchematic readFromNBT(NBTTagCompound tagCompound) {
+	public Schematic readFromNBT(NBTTagCompound tagCompound) {
 
 		final byte localBlocks[] = tagCompound.getByteArray(Names.NBT.BLOCKS);
 		final byte localMetadata[] = tagCompound.getByteArray(Names.NBT.DATA);
@@ -74,8 +74,7 @@ public class SchematicAlpha extends SchematicFormat {
 			}
 		} else if (tagCompound.hasKey(Names.NBT.ADD_BLOCKS_SCHEMATICA)) {
 			extra = true;
-			extraBlocks = tagCompound
-					.getByteArray(Names.NBT.ADD_BLOCKS_SCHEMATICA);
+			extraBlocks = tagCompound.getByteArray(Names.NBT.ADD_BLOCKS_SCHEMATICA);
 		}
 
 		final short width = tagCompound.getShort(Names.NBT.WIDTH);
@@ -84,13 +83,11 @@ public class SchematicAlpha extends SchematicFormat {
 
 		final Map<Short, Short> oldToNew = new HashMap<Short, Short>();
 		if (tagCompound.hasKey(Names.NBT.MAPPING_SCHEMATICA)) {
-			final NBTTagCompound mapping = tagCompound
-					.getCompoundTag(Names.NBT.MAPPING_SCHEMATICA);
+			final NBTTagCompound mapping = tagCompound.getCompoundTag(Names.NBT.MAPPING_SCHEMATICA);
 			@SuppressWarnings("unchecked")
 			final Set<String> names = mapping.func_150296_c();
 			for (final String name : names) {
-				oldToNew.put(mapping.getShort(name),
-						(short) BLOCK_REGISTRY.getId(name));
+				oldToNew.put(mapping.getShort(name), (short) BLOCK_REGISTRY.getId(name));
 			}
 		}
 
@@ -99,8 +96,7 @@ public class SchematicAlpha extends SchematicFormat {
 			for (int y = 0; y < height; y++) {
 				for (int z = 0; z < length; z++) {
 					final int index = x + (y * length + z) * width;
-					int blockID = (localBlocks[index] & 0xFF)
-							| (extra ? ((extraBlocks[index] & 0xFF) << 8) : 0);
+					int blockID = (localBlocks[index] & 0xFF) | (extra ? ((extraBlocks[index] & 0xFF) << 8) : 0);
 					final int meta = localMetadata[index] & 0xFF;
 
 					Short id = null;
@@ -108,23 +104,23 @@ public class SchematicAlpha extends SchematicFormat {
 						blockID = id;
 					}
 
-					schematic.setBlock(x, y, z,
-							BLOCK_REGISTRY.getObjectById(blockID), meta);
+					schematic.setBlock(x, y, z, BLOCK_REGISTRY.getObjectById(blockID), meta);
 				}
 			}
 		}
 
-		if(tagCompound.hasKey(Names.NBT.TILE_ENTITIES)) {
-			final NBTTagList tileEntitiesList = tagCompound.getTagList(
-					Names.NBT.TILE_ENTITIES, Constants.NBT.TAG_COMPOUND);
-	
+		if (tagCompound.hasKey(Names.NBT.TILE_ENTITIES)) {
+			final NBTTagList tileEntitiesList = tagCompound.getTagList(Names.NBT.TILE_ENTITIES,
+					Constants.NBT.TAG_COMPOUND);
+
 			for (int i = 0; i < tileEntitiesList.tagCount(); i++) {
 				try {
+					// Attempt to load the entity.  If it loads add the tag
+					// compound to the list.
 					final NBTTagCompound tc = tileEntitiesList.getCompoundTagAt(i);
 					final TileEntity tileEntity = TileEntity.createAndLoadEntity(tc);
 					if (tileEntity != null) {
-						schematic.setTileEntity(tileEntity.xCoord,
-								tileEntity.yCoord, tileEntity.zCoord, tileEntity);
+						schematic.addTileEntity(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, tc);
 					}
 				} catch (final Exception e) {
 					ModLog.error("TileEntity failed to load properly!", e);
@@ -132,8 +128,7 @@ public class SchematicAlpha extends SchematicFormat {
 			}
 		}
 
-		if (tagCompound.hasKey("WEOriginX") && tagCompound.hasKey("WEOriginY")
-				&& tagCompound.hasKey("WEOriginZ")) {
+		if (tagCompound.hasKey("WEOriginX") && tagCompound.hasKey("WEOriginY") && tagCompound.hasKey("WEOriginZ")) {
 
 			// Get WorldEdit origin information so we can offset the entities
 			// properly.
@@ -141,26 +136,32 @@ public class SchematicAlpha extends SchematicFormat {
 			final int originY = tagCompound.getInteger("WEOriginY");
 			final int originZ = tagCompound.getInteger("WEOriginZ");
 
-			final NBTTagList entitiesList = tagCompound.getTagList(
-					Names.NBT.ENTITIES, Constants.NBT.TAG_COMPOUND);
-			
+			final NBTTagList entitiesList = tagCompound.getTagList(Names.NBT.ENTITIES, Constants.NBT.TAG_COMPOUND);
+
 			for (int i = 0; i < entitiesList.tagCount(); i++) {
 				try {
+					// Attempt to load the entity.  If it loads alter the
+					// location information based on the origin and repack
+					// into NBT.  Store the NBT in the internal list.
 					final NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
 					final Entity entity = EntityList.createEntityFromNBT(cp, FantasyIsland.instance);
-					
+
 					entity.posX = entity.posX - originX;
 					entity.posY = entity.posY - originY;
 					entity.posZ = entity.posZ - originZ;
-					
-					if(entity instanceof EntityHanging) {
+
+					if (entity instanceof EntityHanging) {
 						final EntityHanging howsIt = (EntityHanging) entity;
 						howsIt.field_146063_b -= originX;
 						howsIt.field_146064_c -= originY;
 						howsIt.field_146062_d -= originZ;
 					}
+					
+					final NBTTagCompound repack = new NBTTagCompound();
+					entity.writeToNBTOptional(repack);
 
-					schematic.addEntity(entity);
+					schematic.addEntity(entity.getUniqueID(), repack, MathHelper.floor_double(entity.posX),
+							MathHelper.floor_double(entity.posY), MathHelper.floor_double(entity.posZ));
 				} catch (final Exception e) {
 					ModLog.error("Entity failed to load properly!", e);
 				}

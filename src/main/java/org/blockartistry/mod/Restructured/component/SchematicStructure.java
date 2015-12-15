@@ -28,7 +28,7 @@ import java.util.Random;
 
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
-import org.blockartistry.mod.Restructured.schematica.ISchematic;
+import org.blockartistry.mod.Restructured.schematica.Schematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
 import net.minecraft.init.Blocks;
@@ -44,10 +44,6 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	protected SchematicProperties properties;
 	protected BiomeGenBase biome;
-
-	private static ChunkCoordinates fromSchematic(final ISchematic schem) {
-		return new ChunkCoordinates(schem.getWidth(), schem.getHeight(), schem.getLength());
-	}
 
 	public SchematicStructure() {
 		super(null, 0, null, null, 0);
@@ -114,13 +110,13 @@ public class SchematicStructure extends VillageStructureBase implements
 	protected ChunkCoordinates getSafeVillagerLocation() {
 
 		// Initialize starting point
-		final ChunkCoordinates size = fromSchematic(properties.schematic);
-		int x = size.posX >> 1;
-		int z = size.posZ >> 1;
+		final Dimensions size = properties.schematic.getDimensions();
+		int x = size.width >> 1;
+		int z = size.length >> 1;
 		int y = properties.groundOffset;
 
 		// Try several times finding a suitable spot
-		final ISchematic s = properties.schematic;
+		final Schematic s = properties.schematic;
 		for (int i = 0; i < 4; i++) {
 			final BlockHelper block = new BlockHelper(s.getBlock(
 					x, y + 1, z));

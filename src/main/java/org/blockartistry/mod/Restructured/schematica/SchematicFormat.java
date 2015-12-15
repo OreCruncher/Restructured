@@ -47,9 +47,9 @@ public abstract class SchematicFormat {
 	public static final Map<String, SchematicFormat> FORMATS = new HashMap<String, SchematicFormat>();
 	public static String FORMAT_DEFAULT;
 
-	public abstract ISchematic readFromNBT(NBTTagCompound tagCompound);
+	public abstract Schematic readFromNBT(NBTTagCompound tagCompound);
 
-	public static ISchematic readFromStream(InputStream stream) {
+	public static Schematic readFromStream(InputStream stream) {
 		try {
 			final NBTTagCompound tagCompound = SchematicUtil
 					.readTagCompoundFromStream(stream);
@@ -68,7 +68,7 @@ public abstract class SchematicFormat {
 		return null;
 	}
 
-	public static ISchematic readFromFile(File file) {
+	public static Schematic readFromFile(File file) {
 		try {
 			final NBTTagCompound tagCompound = SchematicUtil
 					.readTagCompoundFromFile(file);
@@ -87,7 +87,7 @@ public abstract class SchematicFormat {
 		return null;
 	}
 
-	public static ISchematic readFromFile(File directory, String filename) {
+	public static Schematic readFromFile(File directory, String filename) {
 		return readFromFile(new File(directory, filename));
 	}
 

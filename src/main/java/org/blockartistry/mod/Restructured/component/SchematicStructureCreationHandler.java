@@ -30,9 +30,8 @@ import java.util.Random;
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
-import org.blockartistry.mod.Restructured.schematica.ISchematic;
+import org.blockartistry.mod.Restructured.util.Dimensions;
 
-import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.gen.structure.MapGenStructureIO;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureComponent;
@@ -48,12 +47,7 @@ public class SchematicStructureCreationHandler implements
 		MapGenStructureIO.func_143031_a(SchematicStructure.class, "reSS");
 	}
 
-	private static ChunkCoordinates fromSchematic(final ISchematic schem) {
-		return new ChunkCoordinates(schem.getWidth(), schem.getHeight(), schem.getLength());
-	}
-
 	public SchematicStructureCreationHandler() {
-
 		VillagerRegistry.instance().registerVillageCreationHandler(this);
 	}
 
@@ -87,10 +81,10 @@ public class SchematicStructureCreationHandler implements
 			return null;
 
 		// Bound it out
-		final ChunkCoordinates size = fromSchematic(props.schematic);
+		final Dimensions size = props.schematic.getDimensions();
 		final StructureBoundingBox _boundingBox = StructureBoundingBox
-				.getComponentToAddBoundingBox(x, y, z, 0, 0, 0, size.posX,
-						size.posY, size.posZ, orientation);
+				.getComponentToAddBoundingBox(x, y, z, 0, 0, 0, size.width,
+						size.height, size.length, orientation);
 
 		// Check to see if the region is OK, and if so return back
 		// a SchematicStructure surrogate for the schematic.
