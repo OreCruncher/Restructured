@@ -93,6 +93,13 @@ processResources
     }
 }
 
+jar {
+    
+    manifest {
+        	attributes 'FMLAT': 'restructured_at.cfg'
+    }
+}
+
 def parseConfig(File config) {
     config.withReader {
         def prop = new Properties()
@@ -104,6 +111,10 @@ def parseConfig(File config) {
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     classifier = 'dev'
+    
+        manifest {
+        	attributes 'FMLAT': 'restructured_at.cfg'
+    }
 }
 
 artifacts {

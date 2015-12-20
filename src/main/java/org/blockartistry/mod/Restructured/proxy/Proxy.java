@@ -32,6 +32,7 @@ import net.minecraft.world.gen.structure.MapGenVillage;
 
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
+import org.blockartistry.mod.Restructured.world.MobControl;
 import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
 import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 import org.blockartistry.mod.Restructured.VersionCheck;
@@ -83,6 +84,8 @@ public class Proxy {
 		// Initialize themes
 		if(ModOptions.getEnableTheming())
 			BlockThemes.initialize();
+
+		MobControl.initialize();
 	}
 
 	@EventHandler

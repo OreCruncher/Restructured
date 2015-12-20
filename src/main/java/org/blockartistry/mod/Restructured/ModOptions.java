@@ -53,6 +53,22 @@ public final class ModOptions {
 	protected static final String CONFIG_ENABLE_THEMING = "Enable Theming";
 	protected static boolean enableTheming = true;
 
+	protected static final String CATEGORY_MOB_CONTROL = "mobcontrol";
+	protected static final String CONFIG_BLOCK_CREEPER_EXPLOSION = "Block Creeper Explosion";
+	protected static boolean blockCreeperExplosion = false;
+	protected static final String CONFIG_BLOCK_ENDERMAN_GRIEFING = "Block Enderman Griefing";
+	protected static boolean blockEndermanGriefing = false;
+	
+	protected static final String CATEGORY_MOB_SPAWN_FACTORS = "mobcontrol.spawn";
+	protected static final String CONFIG_MOB_SPAWN_MOB_FACTOR = "Monsters";
+	protected static int mobSpawnMobFactor = 0;
+	protected static final String CONFIG_MOB_SPAWN_ANIMAL_FACTOR = "Animals";
+	protected static int mobSpawnAnimalFactor = 0;
+	protected static final String CONFIG_MOB_SPAWN_AMBIENT_FACTOR = "Ambient";
+	protected static int mobSpawnAmbientFactor = 0;
+	protected static final String CONFIG_MOB_SPAWN_WATER_FACTOR = "Water Critters";
+	protected static int mobSpawnWaterFactor = 0;
+
 	public static void load(final Configuration config) {
 
 		// CATEGORY_GLOBAL
@@ -60,7 +76,7 @@ public final class ModOptions {
 		// CATEGORY_LOGGING_CONTROL
 		String comment = "Enables/disables online version checking";
 		enableOnlineVersionCheck = config.getBoolean(CONFIG_ENABLE_ONLINE_VERSION_CHECK, CATEGORY_LOGGING_CONTROL,
-				enableOnlineVersionCheck, comment );
+				enableOnlineVersionCheck, comment);
 
 		comment = "Enables/disables debug logging of the mod";
 		enableDebugLogging = config.getBoolean(CONFIG_ENABLE_DEBUG_LOGGING, CATEGORY_LOGGING_CONTROL,
@@ -88,8 +104,33 @@ public final class ModOptions {
 				Integer.MAX_VALUE, comment);
 
 		comment = "Enables/disables biome theming of structures";
-		enableTheming = config.getBoolean(CONFIG_ENABLE_THEMING, CATEGORY_GENERATION,
-				enableTheming, comment);
+		enableTheming = config.getBoolean(CONFIG_ENABLE_THEMING, CATEGORY_GENERATION, enableTheming, comment);
+
+		// CATEGORY_MOB_CONTROL
+		comment = "Prevent block destruction due to Creeper explosions";
+		blockCreeperExplosion = config.getBoolean(CONFIG_BLOCK_CREEPER_EXPLOSION, CATEGORY_MOB_CONTROL,
+				blockCreeperExplosion, comment);
+
+		comment = "Prevent Enderman from picking up blocks";
+		blockEndermanGriefing = config.getBoolean(CONFIG_BLOCK_ENDERMAN_GRIEFING, CATEGORY_MOB_CONTROL,
+				blockEndermanGriefing, comment);
+
+		// CATEGORY_MOB_SPAWN_FACTORS
+		comment = "Spawn factor for monsters (0 use Vanilla)";
+		mobSpawnMobFactor = config.getInt(CONFIG_MOB_SPAWN_MOB_FACTOR, CATEGORY_MOB_SPAWN_FACTORS, mobSpawnMobFactor, 0,
+				Integer.MAX_VALUE, comment);
+
+		comment = "Spawn factor for animals (0 use Vanilla)";
+		mobSpawnAnimalFactor = config.getInt(CONFIG_MOB_SPAWN_ANIMAL_FACTOR, CATEGORY_MOB_SPAWN_FACTORS,
+				mobSpawnAnimalFactor, 0, Integer.MAX_VALUE, comment);
+
+		comment = "Spawn factor for ambient creatures (0 use Vanilla)";
+		mobSpawnAmbientFactor = config.getInt(CONFIG_MOB_SPAWN_AMBIENT_FACTOR, CATEGORY_MOB_SPAWN_FACTORS,
+				mobSpawnAmbientFactor, 0, Integer.MAX_VALUE, comment);
+
+		comment = "Spawn factor for water creatures - GO SQUIDS! (0 use Vanilla)";
+		mobSpawnWaterFactor = config.getInt(CONFIG_MOB_SPAWN_WATER_FACTOR, CATEGORY_MOB_SPAWN_FACTORS,
+				mobSpawnWaterFactor, 0, Integer.MAX_VALUE, comment);
 	}
 
 	public static boolean getOnlineVersionChecking() {
@@ -103,20 +144,44 @@ public final class ModOptions {
 	public static int[] getAdditionalVillageBiomes() {
 		return additionalVillageBiomes;
 	}
-	
+
 	public static int getMinimumVillageDistance() {
 		return minimumVillageDistance;
 	}
-	
+
 	public static int getVillageDensity() {
 		return villageDensity;
 	}
-	
+
 	public static int getGenerationChance() {
 		return generationChance;
 	}
-	
+
 	public static boolean getEnableTheming() {
 		return enableTheming;
+	}
+
+	public static boolean getBlockCreeperExplosion() {
+		return blockCreeperExplosion;
+	}
+	
+	public static boolean getBlockEndermanGriefing() {
+		return blockEndermanGriefing;
+	}
+	
+	public static int getMobSpawnMobFactor() {
+		return mobSpawnMobFactor;
+	}
+
+	public static int getMobSpawnAnimalFactor() {
+		return mobSpawnAnimalFactor;
+	}
+
+	public static int getMobSpawnAmbientFactor() {
+		return mobSpawnAmbientFactor;
+	}
+
+	public static int getMobSpawnWaterFactor() {
+		return mobSpawnWaterFactor;
 	}
 }
