@@ -36,12 +36,13 @@ public final class RegionHelper {
 		public int area;
 		public int mean;
 		public int variance;
+		public int water;
 
 		@Override
 		public String toString() {
 			return String.format(
-					"[area: %d; mean: %d; variance: %d]", area,
-					mean, variance);
+					"[area: %d; mean: %d; variance: %d, water: %d]", area,
+					mean, variance, water);
 		}
 	};
 
@@ -63,6 +64,8 @@ public final class RegionHelper {
 				int val = Math.max(world.getTopSolidOrLiquidBlock(x, z), avgGroundLevel); 
 				total += val;
 				data[index++] = val;
+				if(world.getBlock(x, val - 1, z).getMaterial().isLiquid())
+					result.water++;
 			}
 
 		result.mean = Math.round((float) total / (float) index);

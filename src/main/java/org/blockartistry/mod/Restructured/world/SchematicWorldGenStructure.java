@@ -43,9 +43,9 @@ import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
-	protected static final SelectedBlock DIRT_BLOCK = new SelectedBlock(Blocks.dirt, 0);
-
-	protected static final int VARIANCE_THRESHOLD = 3;
+	private static final SelectedBlock DIRT_BLOCK = new SelectedBlock(Blocks.dirt, 0);
+	private static final int VARIANCE_THRESHOLD = 3;
+	private static final int WATER_RATIO_THRESHOLD = 35;
 
 	protected final World world;
 	protected int direction;
@@ -175,6 +175,10 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		// If there is too much variance return false. Can't stand
 		// structures on dirt pillars.
 		if (stats.variance > VARIANCE_THRESHOLD)
+			return false;
+
+		// If there is too much surface water in the region return
+		if (stats.water > 0 && (stats.area * 100) / stats.water > WATER_RATIO_THRESHOLD)
 			return false;
 
 		// Based on the terrain in the region adjust
