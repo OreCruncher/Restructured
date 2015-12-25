@@ -58,6 +58,8 @@ public final class ModOptions {
 	protected static boolean blockCreeperExplosion = false;
 	protected static final String CONFIG_BLOCK_ENDERMAN_GRIEFING = "Block Enderman Griefing";
 	protected static boolean blockEndermanGriefing = false;
+	protected static final String CONFIG_BLOCK_TREE_SPAWN = "Block spawning in/on trees";
+	protected static boolean blockMobsSpawningInTrees = true;
 	
 	protected static final String CATEGORY_MOB_SPAWN_FACTORS = "mobcontrol.spawn";
 	protected static final String CONFIG_MOB_SPAWN_MOB_FACTOR = "Monsters";
@@ -115,6 +117,10 @@ public final class ModOptions {
 		blockEndermanGriefing = config.getBoolean(CONFIG_BLOCK_ENDERMAN_GRIEFING, CATEGORY_MOB_CONTROL,
 				blockEndermanGriefing, comment);
 
+		comment = "Prevent mobs spawning in or on trees";
+		blockMobsSpawningInTrees = config.getBoolean(CONFIG_BLOCK_TREE_SPAWN, CATEGORY_MOB_CONTROL,
+				blockMobsSpawningInTrees, comment);
+
 		// CATEGORY_MOB_SPAWN_FACTORS
 		comment = "Spawn factor for monsters (0 use Vanilla)";
 		mobSpawnMobFactor = config.getInt(CONFIG_MOB_SPAWN_MOB_FACTOR, CATEGORY_MOB_SPAWN_FACTORS, mobSpawnMobFactor, 0,
@@ -167,6 +173,10 @@ public final class ModOptions {
 	
 	public static boolean getBlockEndermanGriefing() {
 		return blockEndermanGriefing;
+	}
+	
+	public static boolean getBlockMobsSpawningInTrees() {
+		return blockMobsSpawningInTrees;
 	}
 	
 	public static int getMobSpawnMobFactor() {

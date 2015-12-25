@@ -32,16 +32,22 @@ import org.blockartistry.mod.Restructured.ModOptions;
 
 import com.google.common.collect.ImmutableList;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntityEnderman;
+import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 
 public final class MobControl {
+	
+	private static final boolean BLOCK_CREEPER_BLOCK_DAMAGE = ModOptions.getBlockCreeperExplosion();
+	private static final boolean BLOCK_MOB_TREE_SPAWNING = ModOptions.getBlockMobsSpawningInTrees();
 
 	private MobControl() {
 	}
@@ -58,8 +64,11 @@ public final class MobControl {
 		setup(EnumCreatureType.monster, ModOptions.getMobSpawnMobFactor());
 		setup(EnumCreatureType.waterCreature, ModOptions.getMobSpawnWaterFactor());
 
-		if (ModOptions.getBlockCreeperExplosion()) {
-			ModLog.info("Blocking Creeper block damage");
+		if (BLOCK_CREEPER_BLOCK_DAMAGE || BLOCK_MOB_TREE_SPAWNING) {
+			if(BLOCK_CREEPER_BLOCK_DAMAGE)
+				ModLog.info("Blocking Creeper block damage");
+			if(BLOCK_MOB_TREE_SPAWNING)
+				ModLog.info("Blocking mob tree spawning");
 			MinecraftForge.EVENT_BUS.register(new MobControl());
 		}
 
@@ -78,8 +87,21 @@ public final class MobControl {
 
 	@SubscribeEvent
 	public void onExplosion(final ExplosionEvent.Detonate event) {
-		if (event.explosion.exploder instanceof EntityCreeper) {
+		if(!BLOCK_CREEPER_BLOCK_DAMAGE)
+			return;
+		if (event.explosion.exploder instanceof EntityCreeper)
 			event.explosion.affectedBlockPositions = ImmutableList.of();
-		}
+	}
+
+	@SubscribeEvent
+	public void onMobSpawn(final LivingSpawnEvent.CheckSpawn event) {
+		if(!BLOCK_MOB_TREE_SPAWNING)
+			return;
+		final int x = MathHelper.floor_float(event.x);
+		final int y = MathHelper.floor_float(event.y) - 1;
+		final int z = MathHelper.floor_float(event.z);
+		final Block block = event.world.getBlock(x, y, z); 
+		if (block.canSustainLeaves(event.world, x, y, z))
+			event.setResult(Event.Result.DENY);
 	}
 }
