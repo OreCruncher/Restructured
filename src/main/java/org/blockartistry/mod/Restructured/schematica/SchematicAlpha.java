@@ -36,7 +36,6 @@ package org.blockartistry.mod.Restructured.schematica;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -149,21 +148,6 @@ public class SchematicAlpha extends SchematicFormat {
 					entity.posX = entity.posX - originX;
 					entity.posY = entity.posY - originY;
 					entity.posZ = entity.posZ - originZ;
-					
-					//entity.lastTickPosX = entity.prevPosX = entity.posX;
-					//entity.lastTickPosY = entity.prevPosY = entity.posY;
-					//entity.lastTickPosZ = entity.prevPosZ = entity.posZ;
-
-					/*
-					if (entity instanceof EntityHanging) {
-						final EntityHanging howsIt = (EntityHanging) entity;
-						
-						// TODO: Need to check this out!
-						howsIt.posX -= originX;
-						howsIt.posY -= originY;
-						howsIt.posZ -= originZ;
-					}
-					*/
 					
 					final NBTTagCompound repack = new NBTTagCompound();
 					entity.writeToNBTOptional(repack);

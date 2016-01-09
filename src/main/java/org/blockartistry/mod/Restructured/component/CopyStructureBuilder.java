@@ -163,23 +163,10 @@ public class CopyStructureBuilder {
 
 			try {
 				final Entity entity = (Entity) e.getInstance(world);
-
-				// TODO: Looks like another mess
-				/*
-				 * if (entity instanceof EntityHanging) { final EntityHanging
-				 * howsIt = (EntityHanging) entity; final BlockPos coord =
-				 * structure.getWorldCoordinates(howsIt.getPosition());
-				 * howsIt.setPosition(coord.getX(), coord.getY(), coord.getZ());
-				 * // Calls setPosition() internally // TODO: This is a direct
-				 * assignment - not sure if the // entity // is properly updated
-				 * to hang howsIt.facingDirection =
-				 * translateDirection(howsIt.facingDirection); } else {
-				 */
-
 				final BlockPos coord = structure.getWorldCoordinates(ec);
-				final double spawnX = coord.getX();// + entity.posX % 1;
-				final double spawnY = coord.getY();// + entity.posY % 1;
-				final double spawnZ = coord.getZ();// + entity.posZ % 1;
+				final double spawnX = coord.getX();
+				final double spawnY = coord.getY();
+				final double spawnZ = coord.getZ();
 				entity.setPosition(spawnX, spawnY, spawnZ);
 
 				if (entity instanceof EntityHanging) {
