@@ -35,7 +35,6 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -166,20 +165,28 @@ public class CopyStructureBuilder {
 				final Entity entity = (Entity) e.getInstance(world);
 
 				// TODO: Looks like another mess
+				/*
+				 * if (entity instanceof EntityHanging) { final EntityHanging
+				 * howsIt = (EntityHanging) entity; final BlockPos coord =
+				 * structure.getWorldCoordinates(howsIt.getPosition());
+				 * howsIt.setPosition(coord.getX(), coord.getY(), coord.getZ());
+				 * // Calls setPosition() internally // TODO: This is a direct
+				 * assignment - not sure if the // entity // is properly updated
+				 * to hang howsIt.facingDirection =
+				 * translateDirection(howsIt.facingDirection); } else {
+				 */
+
+				final BlockPos coord = structure.getWorldCoordinates(ec);
+				final double spawnX = coord.getX();// + entity.posX % 1;
+				final double spawnY = coord.getY();// + entity.posY % 1;
+				final double spawnZ = coord.getZ();// + entity.posZ % 1;
+				entity.setPosition(spawnX, spawnY, spawnZ);
+
 				if (entity instanceof EntityHanging) {
 					final EntityHanging howsIt = (EntityHanging) entity;
-					final BlockPos coord = structure.getWorldCoordinates(howsIt.getPosition());
-					howsIt.setPosition(coord.getX(), coord.getY(), coord.getZ());
-					// Calls setPosition() internally
-					// TODO: This is a direct assignment - not sure if the
-					// entity
-					// is properly updated to hang
-					howsIt.facingDirection = translateDirection(howsIt.facingDirection);
-				} else {
-					final BlockPos coord = structure.getWorldCoordinates(ec);
-					entity.setPosition(coord.getX() + 0.5D, coord.getY() + 0.5D, coord.getZ() + 0.5D);
+					howsIt.updateFacingWithBoundingBox(translateDirection(howsIt.facingDirection));
+					ModLog.info(entity.getName() + " x:" + spawnX + ", y:" + spawnY + ", z:" + spawnZ);
 				}
-
 				world.spawnEntityInWorld(entity);
 			} catch (final Exception t) {
 				ModLog.warn("Unable to place entity");
@@ -213,14 +220,17 @@ public class CopyStructureBuilder {
 
 	protected EnumFacing translateDirection(final EnumFacing dir) {
 		final int count = getRotationCount(dir);
-		if (count == 1)
-			return dir.rotateAround(Axis.Y);
-		if (count == 2)
+		switch (count) {
+		case 1:
+			return dir.rotateY();
+		case 2:
 			return dir.getOpposite();
-		if (count == 3)
-			return dir.getOpposite().rotateAround(Axis.Y);
-
-		return dir;
+		case 3:
+			return dir.rotateYCCW();
+		case 0:
+		default:
+			return dir;
+		}
 	}
 
 	protected int getRotationCount(final EnumFacing dir) {
@@ -246,6 +256,6 @@ public class CopyStructureBuilder {
 		if (direction == null)
 			return;
 
-		block.rotate(Axis.Y, getRotationCount(direction));
+		block.rotate(getRotationCount(direction));
 	}
 }

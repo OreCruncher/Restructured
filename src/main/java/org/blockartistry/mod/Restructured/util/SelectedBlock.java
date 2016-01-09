@@ -57,7 +57,7 @@ public class SelectedBlock extends BlockHelper implements Cloneable {
 		return this.meta;
 	}
 
-	public void rotate(final EnumFacing.Axis axis, final int count) {
+	public void rotate(final int count) {
 
 		if (count == 0)
 			return;
@@ -66,11 +66,11 @@ public class SelectedBlock extends BlockHelper implements Cloneable {
 		// the block without having to place it into the world.
 		// Should expose methods that don't rely on a world instance. :\
 		EnumFacing current = getOrientation();
-		if (current == null)
+		if (current == null || current == EnumFacing.UP || current == EnumFacing.DOWN)
 			return;
 
 		for (int i = 0; i < count; i++)
-			current = current.rotateAround(axis);
+			current = current.rotateY();
 
 		final IBlockState updated = getBlockState().withProperty(FACING, current);
 		this.meta = updated.getBlock().getMetaFromState(updated);

@@ -149,7 +149,12 @@ public class SchematicAlpha extends SchematicFormat {
 					entity.posX = entity.posX - originX;
 					entity.posY = entity.posY - originY;
 					entity.posZ = entity.posZ - originZ;
+					
+					//entity.lastTickPosX = entity.prevPosX = entity.posX;
+					//entity.lastTickPosY = entity.prevPosY = entity.posY;
+					//entity.lastTickPosZ = entity.prevPosZ = entity.posZ;
 
+					/*
 					if (entity instanceof EntityHanging) {
 						final EntityHanging howsIt = (EntityHanging) entity;
 						
@@ -158,6 +163,7 @@ public class SchematicAlpha extends SchematicFormat {
 						howsIt.posY -= originY;
 						howsIt.posZ -= originZ;
 					}
+					*/
 					
 					final NBTTagCompound repack = new NBTTagCompound();
 					entity.writeToNBTOptional(repack);
