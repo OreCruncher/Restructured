@@ -74,7 +74,6 @@ public class CopyStructureBuilder {
 	}
 
 	public void place(final IBlockState state, final BlockPos pos) {
-		;
 		structure.placeBlock(world, handleRotation(state), pos, box);
 	}
 
@@ -134,13 +133,12 @@ public class CopyStructureBuilder {
 				final TileEntity entity = (TileEntity) e.getInstance(world);
 				entity.validate();
 
-				// Update the entity with the proper state.
-				final IBlockState state = schematic.getBlockState(entity.getPos());
-
 				// Place it into the world
-				final BlockPos coord = structure.getWorldCoordinates(entity.getPos());
-				world.setTileEntity(coord, entity);
+				final BlockPos worldCoord = structure.getWorldCoordinates(coords);
+				world.removeTileEntity(worldCoord);
+				world.setTileEntity(worldCoord, entity);
 
+				final IBlockState state = schematic.getBlockState(coords);
 				if (doFillChestContents(state)) {
 					generateChestContents((IInventory) entity, properties.chestContents, properties.chestContentsCount);
 				}
@@ -168,7 +166,7 @@ public class CopyStructureBuilder {
 				if (entity instanceof EntityHanging) {
 					final EntityHanging howsIt = (EntityHanging) entity;
 					howsIt.updateFacingWithBoundingBox(translateDirection(howsIt.facingDirection));
-					ModLog.info(entity.getName() + " x:" + spawnX + ", y:" + spawnY + ", z:" + spawnZ);
+					//ModLog.info(entity.getName() + " x:" + spawnX + ", y:" + spawnY + ", z:" + spawnZ);
 				}
 				world.spawnEntityInWorld(entity);
 			} catch (final Exception t) {
