@@ -31,7 +31,8 @@ import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.schematica.Schematic;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import net.minecraft.init.Blocks;
+
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -116,27 +117,22 @@ public class SchematicStructure extends VillageStructureBase implements
 		int z = size.length >> 1;
 		int y = properties.groundOffset;
 
+		BlockPos pos = new BlockPos(x, y + 1, z);
+
 		// Try several times finding a suitable spot
 		final Schematic s = properties.schematic;
 		for (int i = 0; i < 4; i++) {
-			final BlockHelper block = new BlockHelper(s.getBlock(
-					x, y + 1, z));
-			if (block.canBreath()) {
-				
-				// Bump up one in case he is standing in wood
-				// or something.
-				if(s.getBlock(x, y, z) != Blocks.air)
-					y += 1;
-				
+			
+			final IBlockState state = s.getBlockState(pos);
+			if (BlockHelper.canBreath(state)) {
 				break;
 			}
 
 			// No - won't cut it. Adjust.
-			x += 1 - rand.nextInt(3);
-			z += 1 - rand.nextInt(3);
+			pos = pos.add(1 - rand.nextInt(3), 0, 1 - rand.nextInt(3));
 		}
 
-		return new BlockPos(x, y, z);
+		return pos.down();
 	}
 
 	@Override
@@ -162,19 +158,14 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 
 	@Override
-	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
-		final BlockPos v = getWorldCoordinates(x, y, z);
+	public boolean isVecInside(final BlockPos pos, final StructureBoundingBox box) {
+		final BlockPos v = getWorldCoordinates(pos);
 		return box.isVecInside(v);
 	}
 
 	@Override
-	public BlockPos getWorldCoordinates(final int x, final int y, final int z) {
-		return new BlockPos(this.getXWithOffset(x, z), this.getYWithOffset(y),
-				this.getZWithOffset(x, z));
-	}
-
-	@Override
-	public BlockPos getWorldCoordinates(final BlockPos v) {
-		return getWorldCoordinates(v.getX(), v.getY(), v.getZ());
+	public BlockPos getWorldCoordinates(final BlockPos pos) {
+		return new BlockPos(this.getXWithOffset(pos.getX(), pos.getZ()), this.getYWithOffset(pos.getY()),
+				this.getZWithOffset(pos.getX(), pos.getZ()));
 	}
 }

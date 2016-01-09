@@ -30,6 +30,7 @@ import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
 
 import org.blockartistry.mod.Restructured.schematica.Schematic;
 import org.blockartistry.mod.Restructured.util.ElementRule;
@@ -67,7 +68,7 @@ public final class SchematicProperties implements Cloneable {
 		for (int x = 0; x < upperX; x++)
 			for (int y = 0; y < upperY; y++)
 				for (int z = 0; z < upperZ; z++) {
-					final Block block = schematic.getBlock(x, y, z);
+					final Block block = schematic.getBlockState(new BlockPos(x, y, z)).getBlock();
 					if (block != Blocks.air) {
 						Integer v = result.get(block);
 						if (v == null)

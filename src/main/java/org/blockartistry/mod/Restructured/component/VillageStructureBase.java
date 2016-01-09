@@ -27,9 +27,10 @@ package org.blockartistry.mod.Restructured.component;
 import java.util.Random;
 
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -62,9 +63,9 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 	 * @param z
 	 * @param boundingBox
 	 */
-	public void placeBlock(final World world, final SelectedBlock block, final int x, final int y, final int z,
+	public void placeBlock(final World world, final IBlockState state, final BlockPos pos,
 			final StructureBoundingBox box) {
-		setBlockState(world, block.getBlockState(), x, y, z, box);
+		setBlockState(world, state, pos.getX(), pos.getY(), pos.getZ(), box);
 	}
 
 	public int getMetaWithOffset(final Block block, final int meta) {

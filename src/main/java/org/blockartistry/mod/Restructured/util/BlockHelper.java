@@ -29,114 +29,231 @@ import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.block.IGrowable;
+import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.IPlantable;
 
 public class BlockHelper {
 
-	protected Block block;
+	private static final PropertyDirection FACING = PropertyDirection.create("facing");
 
-	public BlockHelper(final Block block) {
-		this.block = (block != null) ? block : Blocks.air;
+	private BlockHelper() { }
+	
+	public static boolean isAir(final IBlockState state) {
+		return isAir(state.getBlock());
 	}
-
-	public Block getBlock() {
-		return block;
-	}
-
-	public boolean isAir() {
+	
+	public static boolean isAir(final Block block) {
 		return block == Blocks.air;
 	}
 
-	public boolean canBreath() {
-		return isAir() || !block.getMaterial().isSolid();
+	public static boolean canBreath(final IBlockState state) {
+		return canBreath(state.getBlock());
+	}
+	
+	public static boolean canBreath(final Block block) {
+		return isAir(block) || !block.getMaterial().isSolid();
 	}
 
-	public boolean isChest() {
+	public static boolean isChest(final IBlockState state) {
+		return isChest(state.getBlock());
+	}
+	
+	public static boolean isChest(final Block block) {
 		return block == Blocks.chest || block == Blocks.ender_chest || block == Blocks.trapped_chest;
 	}
 
-	public boolean isAnvil() {
+	public static boolean isAnvil(final IBlockState state) {
+		return isAnvil(state.getBlock());
+	}
+	
+	public static boolean isAnvil(final Block block) {
 		return block == Blocks.anvil;
 	}
 	
-	public boolean isLadder() {
-		return block == Blocks.chest;
+	public static boolean isLadder(final IBlockState state) {
+		return isLadder(state.getBlock());
 	}
 	
-	public boolean isFurnace() {
+	public static boolean isLadder(final Block block) {
+		return block == Blocks.ladder;
+	}
+	
+	public static boolean isFurnace(final IBlockState state) {
+		return isFurnace(state.getBlock());
+	}
+	
+	public static boolean isFurnace(final Block block) {
 		return block == Blocks.furnace || block == Blocks.lit_furnace;
 	}
 	
-	public boolean isLava() {
+	public static boolean isLava(final IBlockState state) {
+		return isLava(state.getBlock());
+	}
+	
+	public static boolean isLava(final Block block) {
 		return block == Blocks.lava || block == Blocks.flowing_lava;
 	}
 
-	public boolean isWater() {
+	public static boolean isWater(final IBlockState state) {
+		return isWater(state.getBlock());
+	}
+	
+	public static boolean isWater(final Block block) {
 		return block == Blocks.water || block == Blocks.flowing_water;
 	}
 
-	public boolean isFire() {
+	public static boolean isFire(final IBlockState state) {
+		return isFire(state.getBlock());
+	}
+	
+	public static boolean isFire(final Block block) {
 		return block == Blocks.fire;
 	}
 
-	public boolean isFireSource() {
-		return isFire() || isLava();
+	public static boolean isFireSource(final IBlockState state) {
+		return isFireSource(state.getBlock());
 	}
-
-	public boolean isTorch() {
+	
+	public static boolean isFireSource(final Block block) {
+		return isFire(block) || isLava(block);
+	}
+	
+	public static boolean isTorch(final IBlockState state) {
+		return isTorch(state.getBlock());
+	}
+	
+	public static boolean isTorch(final Block block) {
 		return block == Blocks.torch || block == Blocks.redstone_torch;
 	}
 	
-	public boolean isLever() {
+	public static boolean isLever(final IBlockState state) {
+		return isLever(state.getBlock());
+	}
+	
+	public static boolean isLever(final Block block) {
 		return block == Blocks.lever;
 	}
 	
-	public boolean isButton() {
+	public static boolean isButton(final IBlockState state) {
+		return isButton(state.getBlock());
+	}
+	
+	public static boolean isButton(final Block block) {
 		return block == Blocks.stone_button || block == Blocks.wooden_button;
 	}
 	
-	public boolean isDoor() {
+	public static boolean isDoor(final IBlockState state) {
+		return isDoor(state.getBlock());
+	}
+	
+	public static boolean isDoor(final Block block) {
 		return block instanceof BlockDoor || block instanceof BlockTrapDoor;
 	}
 
-	public boolean isSpawner() {
+	public static boolean isSpawner(final IBlockState state) {
+		return isSpawner(state.getBlock());
+	}
+	
+	public static boolean isSpawner(final Block block) {
 		return block == Blocks.mob_spawner;
 	}
 
-	public boolean isMonsterEgg() {
+	public static boolean isMonsterEgg(final IBlockState state) {
+		return isMonsterEgg(state.getBlock());
+	}
+	
+	public static boolean isMonsterEgg(final Block block) {
 		return block == Blocks.monster_egg;
 	}
 	
-	public boolean isLiquid() {
+	public static boolean isLiquid(final IBlockState state) {
+		return isLiquid(state.getBlock());
+	}
+	
+	public static boolean isLiquid(final Block block) {
 		return block.getMaterial().isLiquid();
 	}
 	
-	public boolean isSolid() {
+	public static boolean isSolid(final IBlockState state) {
+		return isSolid(state.getBlock());
+	}
+	
+	public static boolean isSolid(final Block block) {
 		return block.getMaterial().isSolid();
 	}
 	
-	public boolean isPlantable() {
+	public static boolean isPlantable(final IBlockState state) {
+		return isPlantable(state.getBlock());
+	}
+	
+	public static boolean isPlantable(final Block block) {
 		return block instanceof IPlantable;
 	}
 	
-	public boolean isGrowable() {
+	public static boolean isGrowable(final IBlockState state) {
+		return isGrowable(state.getBlock());
+	}
+	
+	public static boolean isGrowable(final Block block) {
 		return block instanceof IGrowable;
 	}
 	
-	public boolean isCrop() {
+	public static boolean isCrop(final IBlockState state) {
+		return isCrop(state.getBlock());
+	}
+	
+	public static boolean isCrop(final Block block) {
 		return block instanceof BlockCrops;
 	}
 	
-	public boolean isSlab() {
+	public static boolean isSlab(final IBlockState state) {
+		return isSlab(state.getBlock());
+	}
+	
+	public static boolean isSlab(final Block block) {
 		return block == Blocks.wooden_slab || block == Blocks.stone_slab;
 	}
 	
-	public boolean isLog() {
+	public static boolean isLog(final IBlockState state) {
+		return isLog(state.getBlock());
+	}
+	
+	public static boolean isLog(final Block block) {
 		return block == Blocks.log || block == Blocks.log2;
 	}
 	
-	public boolean isPlank() {
+	public static boolean isPlank(final IBlockState state) {
+		return isPlank(state.getBlock());
+	}
+	
+	public static boolean isPlank(final Block block) {
 		return block == Blocks.planks;
+	}
+	
+	public static EnumFacing getOrientation(final IBlockState state) {
+		if (state.getPropertyNames().contains(FACING))
+			return state.getValue(FACING);
+		return null;
+	}
+
+	public static IBlockState rotate(final IBlockState state, final int count) {
+
+		if (count == 0)
+			return state;
+
+		// Use our Fantasy to satisfy Minecraft so we can rotate
+		// the block without having to place it into the world.
+		// Should expose methods that don't rely on a world instance. :\
+		EnumFacing current = getOrientation(state);
+		if (current == null || current == EnumFacing.UP || current == EnumFacing.DOWN)
+			return state;
+
+		for (int i = 0; i < count; i++)
+			current = current.rotateY();
+
+		return state.withProperty(FACING, current);
 	}
 }

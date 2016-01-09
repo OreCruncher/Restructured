@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.inventory.IInventory;
@@ -48,7 +49,6 @@ import org.blockartistry.mod.Restructured.schematica.Schematic.SchematicEntity;
 import org.blockartistry.mod.Restructured.schematica.Schematic.SchematicTileEntity;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 public class CopyStructureBuilder {
 
@@ -73,17 +73,13 @@ public class CopyStructureBuilder {
 		this.properties = properties;
 	}
 
-	public void place(final SelectedBlock block, final int x, final int y, final int z) {
-		handleRotation(block);
-		structure.placeBlock(world, block, x, y, z, box);
+	public void place(final IBlockState state, final BlockPos pos) {
+		;
+		structure.placeBlock(world, handleRotation(state), pos, box);
 	}
 
 	public boolean isVecInside(final BlockPos pos, final StructureBoundingBox box) {
-		return structure.isVecInside(pos.getX(), pos.getY(), pos.getZ(), box);
-	}
-
-	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
-		return structure.isVecInside(x, y, z, box);
+		return structure.isVecInside(pos, box);
 	}
 
 	public void generate() {
@@ -97,36 +93,36 @@ public class CopyStructureBuilder {
 			for (int x = 0; x < size.width; x++)
 				for (int z = 0; z < size.length; z++) {
 
-					if (isVecInside(x, y, z, box)) {
+					final BlockPos v = new BlockPos(x, y, z);
+					if (isVecInside(v, box)) {
 
-						final SelectedBlock block = schematic.getBlockEx(x, y, z);
-						final BlockPos v = new BlockPos(x, y, z);
+						final IBlockState state = schematic.getBlockState(v);
 
 						// Do we skip placement?
-						if (doSkipSpawnerPlacement(block, v))
+						if (doSkipSpawnerPlacement(state, v))
 							continue;
 
 						// Delay placing things that don't like being
 						// rotated or attached to blocks that change
-						if (waitToPlace(block)) {
+						if (waitToPlace(state)) {
 							waitToPlace.add(v);
 							continue;
 						}
 
-						place(block, x, y, z);
+						place(state, v);
 					}
 				}
 
 		if (!waitToPlace.isEmpty()) {
 			for (final BlockPos v : waitToPlace) {
-				final SelectedBlock block = schematic.getBlockEx(v.getX(), v.getY(), v.getZ());
-				place(block, v.getX(), v.getY(), v.getZ());
+				final IBlockState state = schematic.getBlockState(v);
+				place(state, v);
 			}
 		}
 
 		for (final SchematicTileEntity e : schematic.getTileEntities()) {
 			final BlockPos coords = e.coords;
-			if (!isVecInside(coords.getX(), coords.getY(), coords.getZ(), box))
+			if (!isVecInside(coords, box))
 				continue;
 
 			// If the block location is black listed we don't want
@@ -139,13 +135,13 @@ public class CopyStructureBuilder {
 				entity.validate();
 
 				// Update the entity with the proper state.
-				final BlockHelper helper = new BlockHelper(schematic.getBlock(entity.getPos()));
+				final IBlockState state = schematic.getBlockState(entity.getPos());
 
 				// Place it into the world
 				final BlockPos coord = structure.getWorldCoordinates(entity.getPos());
 				world.setTileEntity(coord, entity);
 
-				if (doFillChestContents(helper)) {
+				if (doFillChestContents(state)) {
 					generateChestContents((IInventory) entity, properties.chestContents, properties.chestContentsCount);
 				}
 
@@ -189,20 +185,21 @@ public class CopyStructureBuilder {
 			WeightedRandomChestContent.generateChestContents(rand, contents, inventory, count);
 	}
 
-	protected boolean doFillChestContents(final BlockHelper helper) {
-		return helper.isChest() && StringUtils.isNotEmpty(properties.chestContents);
+	protected boolean doFillChestContents(final IBlockState state) {
+		return BlockHelper.isChest(state) && StringUtils.isNotEmpty(properties.chestContents);
 	}
 
-	protected boolean doSkipSpawnerPlacement(final BlockHelper helper, final BlockPos v) {
-		if (helper.isSpawner() && rand.nextInt(100) >= properties.spawnerEnableChance) {
+	protected boolean doSkipSpawnerPlacement(final IBlockState state, final BlockPos v) {
+		if (BlockHelper.isSpawner(state) && rand.nextInt(100) >= properties.spawnerEnableChance) {
 			blockList.add(v);
 			return true;
 		}
 		return false;
 	}
 
-	protected boolean waitToPlace(final BlockHelper block) {
-		return block.isTorch() || block.isLever() || block.isButton() || block.isDoor();
+	protected boolean waitToPlace(final IBlockState state) {
+		return BlockHelper.isTorch(state) || BlockHelper.isLever(state) || BlockHelper.isButton(state)
+				|| BlockHelper.isDoor(state);
 	}
 
 	protected EnumFacing translateDirection(final EnumFacing dir) {
@@ -234,15 +231,15 @@ public class CopyStructureBuilder {
 		return count;
 	}
 
-	protected void handleRotation(final SelectedBlock block) {
+	protected IBlockState handleRotation(final IBlockState state) {
 
 		// Get it's current facing. If it is unknown
 		// just return - it is not handled or it's a
 		// basic block like dirt.
-		final EnumFacing direction = block.getOrientation();
+		final EnumFacing direction = BlockHelper.getOrientation(state);
 		if (direction == null)
-			return;
+			return state;
 
-		block.rotate(getRotationCount(direction));
+		return BlockHelper.rotate(state, getRotationCount(direction));
 	}
 }

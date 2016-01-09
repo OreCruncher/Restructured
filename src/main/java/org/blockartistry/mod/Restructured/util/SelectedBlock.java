@@ -25,15 +25,12 @@
 package org.blockartistry.mod.Restructured.util;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
 
-public class SelectedBlock extends BlockHelper implements Cloneable {
+public class SelectedBlock implements Cloneable {
 
-	private static final PropertyDirection FACING = PropertyDirection.create("facing");
-
+	protected Block block;
 	protected int meta;
 
 	protected SelectedBlock() {
@@ -45,46 +42,32 @@ public class SelectedBlock extends BlockHelper implements Cloneable {
 	}
 
 	public SelectedBlock(final Block block, final int meta) {
-		super(block);
+		this.block = block;
 		this.meta = (block == Blocks.air) ? 0 : meta;
 	}
 
 	public SelectedBlock(final IBlockState state) {
 		this(state.getBlock(), state.getBlock().getMetaFromState(state));
 	}
+	
+	public Block getBlock() {
+		return this.block;
+	}
 
 	public int getMeta() {
 		return this.meta;
 	}
 
-	public void rotate(final int count) {
-
-		if (count == 0)
-			return;
-
-		// Use our Fantasy to satisfy Minecraft so we can rotate
-		// the block without having to place it into the world.
-		// Should expose methods that don't rely on a world instance. :\
-		EnumFacing current = getOrientation();
-		if (current == null || current == EnumFacing.UP || current == EnumFacing.DOWN)
-			return;
-
-		for (int i = 0; i < count; i++)
-			current = current.rotateY();
-
-		final IBlockState updated = getBlockState().withProperty(FACING, current);
-		this.meta = updated.getBlock().getMetaFromState(updated);
-	}
-
-	public EnumFacing getOrientation() {
-		final IBlockState state = getBlockState();
-		if (state.getPropertyNames().contains(FACING))
-			return state.getValue(FACING);
-		return null;
-	}
-
 	public IBlockState getBlockState() {
 		return this.block.getStateFromMeta(this.meta);
+	}
+	
+	public boolean isSlab() {
+		return BlockHelper.isSlab(this.block);
+	}
+	
+	public boolean isLog() {
+		return BlockHelper.isLog(this.block);
 	}
 
 	@Override

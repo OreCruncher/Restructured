@@ -35,12 +35,13 @@
 package org.blockartistry.mod.Restructured.schematica;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.registry.FMLControlledNamespacedRegistry;
@@ -103,7 +104,9 @@ public class SchematicAlpha extends SchematicFormat {
 						blockID = id;
 					}
 
-					schematic.setBlock(x, y, z, BLOCK_REGISTRY.getObjectById(blockID), meta);
+					final BlockPos pos = new BlockPos(x, y, z);
+					final IBlockState state = BLOCK_REGISTRY.getObjectById(blockID).getStateFromMeta(meta);
+					schematic.setBlockState(pos, state);
 				}
 			}
 		}
@@ -114,7 +117,7 @@ public class SchematicAlpha extends SchematicFormat {
 
 			for (int i = 0; i < tileEntitiesList.tagCount(); i++) {
 				try {
-					// Attempt to load the entity.  If it loads add the tag
+					// Attempt to load the entity. If it loads add the tag
 					// compound to the list.
 					final NBTTagCompound tc = tileEntitiesList.getCompoundTagAt(i);
 					final TileEntity tileEntity = TileEntity.createAndLoadEntity(tc);
@@ -139,21 +142,21 @@ public class SchematicAlpha extends SchematicFormat {
 
 			for (int i = 0; i < entitiesList.tagCount(); i++) {
 				try {
-					// Attempt to load the entity.  If it loads alter the
+					// Attempt to load the entity. If it loads alter the
 					// location information based on the origin and repack
-					// into NBT.  Store the NBT in the internal list.
+					// into NBT. Store the NBT in the internal list.
 					final NBTTagCompound cp = entitiesList.getCompoundTagAt(i);
 					final Entity entity = EntityList.createEntityFromNBT(cp, FantasyIsland.instance);
 
 					entity.posX = entity.posX - originX;
 					entity.posY = entity.posY - originY;
 					entity.posZ = entity.posZ - originZ;
-					
+
 					final NBTTagCompound repack = new NBTTagCompound();
 					entity.writeToNBTOptional(repack);
 
-					schematic.addEntity(entity.getUniqueID(), repack, MathHelper.floor_double(entity.posX),
-							MathHelper.floor_double(entity.posY), MathHelper.floor_double(entity.posZ));
+					final BlockPos pos = new BlockPos(entity);
+					schematic.addEntity(entity.getUniqueID(), repack, pos);
 				} catch (final Exception e) {
 					ModLog.error("Entity failed to load properly!", e);
 				}

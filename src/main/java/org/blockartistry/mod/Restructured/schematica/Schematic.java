@@ -34,7 +34,7 @@
 
 package org.blockartistry.mod.Restructured.schematica;
 
-import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
@@ -48,42 +48,43 @@ import java.util.List;
 import java.util.UUID;
 
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 
 public class Schematic {
+	
+	private static final IBlockState AIR = Blocks.air.getDefaultState();
 
 	public static class SchematicTileEntity {
 
 		public final BlockPos coords;
 		public final NBTTagCompound nbt;
 
-		public SchematicTileEntity(final NBTTagCompound nbt, final int x, final int y, final int z) {
-			this.coords = new BlockPos(x, y, z);
+		public SchematicTileEntity(final NBTTagCompound nbt, final BlockPos pos) {
+			this.coords = new BlockPos(pos);
 			this.nbt = nbt;
 		}
-		
+
 		public Object getInstance(final World world) {
 			return TileEntity.createAndLoadEntity(nbt);
 		}
 	}
-	
+
 	public static class SchematicEntity extends SchematicTileEntity {
-		
+
 		public final UUID id;
-		
-		public SchematicEntity(final UUID id, final NBTTagCompound nbt, final int x, final int y, final int z) {
-			super(nbt, x, y, z);
+
+		public SchematicEntity(final UUID id, final NBTTagCompound nbt, final BlockPos pos) {
+			super(nbt, pos);
 			this.id = id;
 		}
-		
+
 		@Override
 		public Object getInstance(final World world) {
 			return EntityList.createEntityFromNBT(nbt, world);
 		}
 	}
 
-	private final SelectedBlock[] data;
+	private final IBlockState[] data;
 
 	private final List<SchematicTileEntity> tileEntities = new ArrayList<SchematicTileEntity>();
 	private final List<SchematicEntity> entities = new ArrayList<SchematicEntity>();
@@ -98,7 +99,7 @@ public class Schematic {
 
 	public Schematic(final int width, final int height, final int length) {
 
-		this.data = new SelectedBlock[width * height * length];
+		this.data = new IBlockState[width * height * length];
 
 		this.width = width;
 		this.height = height;
@@ -126,42 +127,21 @@ public class Schematic {
 		return this.dim;
 	}
 
-	protected int getDataIndex(int x, int y, int z) {
-		return x * this.widthOffset + y * this.heightOffset + z;
+	private int getDataIndex(final BlockPos pos) {
+		return pos.getX() * this.widthOffset + pos.getY() * this.heightOffset + pos.getZ();
 	}
 
-	public SelectedBlock getBlockEx(final int x, final int y, final int z) {
-		if (!isValid(x, y, z))
-			return new SelectedBlock(Blocks.air);
-		return (SelectedBlock) this.data[getDataIndex(x, y, z)].clone();
+	public IBlockState getBlockState(final BlockPos pos) {
+		if (!isValid(pos))
+			return AIR;
+		return this.data[getDataIndex(pos)];
 	}
 
-	public Block getBlock(final BlockPos pos) {
-		return getBlock(pos.getX(), pos.getY(), pos.getZ());
-	}
-	
-	public Block getBlock(final int x, final int y, final int z) {
-		if (!isValid(x, y, z))
-			return Blocks.air;
-		return this.data[getDataIndex(x, y, z)].getBlock();
-	}
-
-	public boolean setBlock(final int x, final int y, final int z, final Block block, final int metadata) {
-		if (!isValid(x, y, z))
+	public boolean setBlockState(final BlockPos pos, final IBlockState state) {
+		if (!isValid(pos))
 			return false;
-		this.data[getDataIndex(x, y, z)] = new SelectedBlock(block, metadata);
+		this.data[getDataIndex(pos)] = state;
 		return true;
-	}
-
-	public SchematicTileEntity getTileEntity(final int x, final int y, final int z) {
-		for (final SchematicTileEntity entry : this.tileEntities) {
-			final BlockPos coords = entry.coords;
-			if (coords.getX() == x && coords.getY() == y && coords.getZ() == z) {
-				return entry;
-			}
-		}
-
-		return null;
 	}
 
 	public List<SchematicTileEntity> getTileEntities() {
@@ -169,51 +149,39 @@ public class Schematic {
 	}
 
 	public void addTileEntity(final BlockPos pos, final NBTTagCompound nbt) {
-		addTileEntity(pos.getX(), pos.getY(), pos.getZ(), nbt);
-	}
-	
-	public void addTileEntity(final int x, final int y, final int z, final NBTTagCompound nbt) {
-		if (!isValid(x, y, z)) {
+		if (!isValid(pos)) {
 			return;
 		}
 
-		this.removeTileEntity(x, y, z);
+		this.removeTileEntity(pos);
 
 		if (nbt != null) {
-			this.tileEntities.add(new SchematicTileEntity(nbt, x, y, z));
+			this.tileEntities.add(new SchematicTileEntity(nbt, pos));
 		}
 	}
 
-	public void removeTileEntity(final int x, final int y, final int z) {
+	public void removeTileEntity(final BlockPos pos) {
 		final Iterator<SchematicTileEntity> iterator = this.tileEntities.iterator();
 
 		while (iterator.hasNext()) {
 			final BlockPos coord = iterator.next().coords;
-			if (coord.getX() == x && coord.getY() == y && coord.getZ() == z)
+			if (coord.equals(pos))
 				iterator.remove();
 		}
-	}
-
-	public int getBlockMetadata(final int x, final int y, final int z) {
-		if (!isValid(x, y, z)) {
-			return 0;
-		}
-
-		return this.data[getDataIndex(x, y, z)].getMeta();
 	}
 
 	public List<SchematicEntity> getEntities() {
 		return this.entities;
 	}
 
-	public void addEntity(final UUID id, final NBTTagCompound nbt, final int x, final int y, final int z) {
+	public void addEntity(final UUID id, final NBTTagCompound nbt, final BlockPos pos) {
 		for (final SchematicEntity e : this.entities) {
 			if (id.equals(e.id)) {
 				return;
 			}
 		}
 
-		this.entities.add(new SchematicEntity(id, nbt, x, y, z));
+		this.entities.add(new SchematicEntity(id, nbt, pos));
 	}
 
 	public int getWidth() {
@@ -228,7 +196,8 @@ public class Schematic {
 		return this.height;
 	}
 
-	private boolean isValid(final int x, final int y, final int z) {
-		return !(x < 0 || y < 0 || z < 0 || x >= this.width || y >= this.height || z >= this.length);
+	private boolean isValid(final BlockPos pos) {
+		return !(pos.getX() < 0 || pos.getY() < 0 || pos.getZ() < 0 || pos.getX() >= this.width
+				|| pos.getY() >= this.height || pos.getZ() >= this.length);
 	}
 }

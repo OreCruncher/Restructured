@@ -27,6 +27,7 @@ package org.blockartistry.mod.Restructured.world.themes;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 import net.minecraft.block.Block;
@@ -65,35 +66,35 @@ public final class BlockThemes {
 	 * Provides an alternative block if the input block is a
 	 * monster egg.
 	 */
-	public static SelectedBlock scrubEggs(final SelectedBlock block) {
-		if (block.getBlock() != Blocks.monster_egg)
-			return block;
-		final int idx = block.getMeta();
+	public static IBlockState scrubEggs(final IBlockState state) {
+		if (!BlockHelper.isMonsterEgg(state.getBlock()))
+			return state;
+		final int idx = state.getBlock().getMetaFromState(state);
 		if (idx >= monsterBlockMap.length)
-			return block;
-		return monsterBlockMap[idx];
+			return state;
+		return monsterBlockMap[idx].getBlockState();
 	}
 	
 	/**
 	 * Provides an alternative block if the input block is a
 	 * fire source (can cause fire spread).
 	 */
-	public static SelectedBlock scrubFireSource(final SelectedBlock block) {
-		if(block.isFireSource())
-			return (SelectedBlock) AIR.clone();
-		return block;
+	public static IBlockState scrubFireSource(final IBlockState state) {
+		if(BlockHelper.isFireSource(state.getBlock()))
+			return Blocks.air.getDefaultState();
+		return state;
 	}
 
 	/**
 	 * Invokes the Forge events to figure out any block replacements due to themes.
 	 */
-	public static SelectedBlock findReplacement(final BiomeGenBase biome, final SelectedBlock block) {
+	public static IBlockState findReplacement(final BiomeGenBase biome, final IBlockState state) {
 		// Ask subscribers if they want to replace
-		final BiomeEvent.GetVillageBlockID event1 = new BiomeEvent.GetVillageBlockID(biome, block.getBlockState());
+		final BiomeEvent.GetVillageBlockID event1 = new BiomeEvent.GetVillageBlockID(biome, state);
 		MinecraftForge.TERRAIN_GEN_BUS.post(event1);
 		if (event1.getResult() == Result.DENY)
-			return new SelectedBlock(event1.replacement);
-		return block;
+			return event1.replacement;
+		return state;
 	}
 
 	public static void initialize() {

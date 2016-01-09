@@ -24,7 +24,6 @@
 
 package org.blockartistry.mod.Restructured.world;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -39,13 +38,12 @@ import org.blockartistry.mod.Restructured.component.CopyStructureBuilder;
 import org.blockartistry.mod.Restructured.component.IStructureBuilder;
 import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import org.blockartistry.mod.Restructured.world.RegionHelper.RegionStats;
 import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 
 public class SchematicWorldGenStructure implements IStructureBuilder {
 
-	private static final SelectedBlock DIRT_BLOCK = new SelectedBlock(Blocks.dirt, 0);
+	private static final IBlockState DIRT_BLOCK = Blocks.dirt.getDefaultState();
 	private static final int VARIANCE_THRESHOLD = 3;
 	private static final int WATER_RATIO_THRESHOLD = 35;
 
@@ -72,41 +70,36 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	}
 
 	@Override
-	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
-		final BlockPos v = getWorldCoordinates(x, y, z);
+	public boolean isVecInside(final BlockPos pos, final StructureBoundingBox box) {
+		final BlockPos v = getWorldCoordinates(pos);
 		return box.isVecInside(v);
 	}
 
 	@Override
-	public BlockPos getWorldCoordinates(final int x, final int y, final int z) {
-		return new BlockPos(this.getXWithOffset(x, z), this.getYWithOffset(y), this.getZWithOffset(x, z));
-	}
-
-	@Override
 	public BlockPos getWorldCoordinates(final BlockPos v) {
-		return getWorldCoordinates(v.getX(), v.getY(), v.getZ());
+		return new BlockPos(this.getXWithOffset(v.getX(), v.getZ()), this.getYWithOffset(v.getY()),
+				this.getZWithOffset(v.getX(), v.getZ()));
 	}
 
 	@Override
-	public void placeBlock(final World world, final SelectedBlock block, final int x, final int y, final int z,
+	public void placeBlock(final World world, final IBlockState state, final BlockPos v,
 			final StructureBoundingBox box) {
 
-		int i1 = this.getXWithOffset(x, z);
-		int j1 = this.getYWithOffset(y);
-		int k1 = this.getZWithOffset(x, z);
-
+		final int i1 = this.getXWithOffset(v.getX(), v.getZ());
+		final int j1 = this.getYWithOffset(v.getY());
+		final int k1 = this.getZWithOffset(v.getX(), v.getZ());
 		final BlockPos pos = new BlockPos(i1, j1, k1);
 
 		if (box.isVecInside(pos)) {
-			final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, block);
-			world.setBlockState(pos, blockToPlace.getBlockState(), 2);
+			final IBlockState blockToPlace = BlockThemes.findReplacement(this.biome, state);
+			world.setBlockState(pos, blockToPlace, 2);
 		}
 	}
 
 	protected int getXWithOffset(final int x, final int z) {
-		if(this.direction == null)
+		if (this.direction == null)
 			return x;
-		
+
 		switch (this.direction) {
 		case NORTH:
 		case SOUTH:
@@ -125,9 +118,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	}
 
 	protected int getZWithOffset(final int x, final int z) {
-		if(this.direction == null)
+		if (this.direction == null)
 			return z;
-		
+
 		switch (this.direction) {
 		case SOUTH:
 			return this.boundingBox.minZ + z;
@@ -160,10 +153,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		}
 	}
 
-	protected void clearDownwards(final Block block, final int meta, final int x, final int y, final int z,
+	protected void clearDownwards(final IBlockState state, final int x, final int y, final int z,
 			final StructureBoundingBox box) {
 
-		final IBlockState replace = new SelectedBlock(block, meta).getBlockState();
 		final int i1 = getXWithOffset(x, z);
 		final int k1 = getZWithOffset(x, z);
 		int j1 = getYWithOffset(y);
@@ -173,9 +165,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		if (box.isVecInside(pos)) {
 
 			do {
-				final BlockHelper helper = new BlockHelper(world.getBlockState(pos).getBlock());
-				if (helper.isAir() || helper.isLiquid() || !helper.isSolid()) {
-					world.setBlockState(pos, replace, 2);
+				final IBlockState t = world.getBlockState(pos);
+				if (BlockHelper.isAir(t) || BlockHelper.isLiquid(t) || !BlockHelper.isSolid(t)) {
+					world.setBlockState(pos, state, 2);
 					pos.down();
 				} else
 					break;
@@ -206,12 +198,12 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		ModLog.debug(stats.toString());
 
 		// Ensure a platform for the structure
-		final SelectedBlock blockToPlace = BlockThemes.findReplacement(this.biome, DIRT_BLOCK);
+		final IBlockState blockToPlace = BlockThemes.findReplacement(this.biome, DIRT_BLOCK);
 		final Dimensions size = getDimensions();
 		for (int xx = 0; xx < size.width; xx++) {
 			for (int zz = 0; zz < size.length; zz++) {
 				clearUpwards(xx, 0, zz, box);
-				clearDownwards(blockToPlace.getBlock(), blockToPlace.getMeta(), xx, -1, zz, box);
+				clearDownwards(blockToPlace, xx, -1, zz, box);
 			}
 		}
 

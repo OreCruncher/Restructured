@@ -24,12 +24,12 @@
 
 package org.blockartistry.mod.Restructured.component;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
 public interface IStructureBuilder {
 
@@ -50,7 +50,8 @@ public interface IStructureBuilder {
 	 * @param boundingBox
 	 * @return
 	 */
-	boolean isVecInside(int x, int y, int z, StructureBoundingBox box);
+	//boolean isVecInside(int x, int y, int z, StructureBoundingBox box);
+	boolean isVecInside(final BlockPos pos, final StructureBoundingBox box);
 
 	/**
 	 * Gets the translated real world coordinates for the given location.
@@ -60,8 +61,8 @@ public interface IStructureBuilder {
 	 * @param z
 	 * @return
 	 */
-	BlockPos getWorldCoordinates(int x, int y, int z);
-	BlockPos getWorldCoordinates(BlockPos v);
+	//BlockPos getWorldCoordinates(int x, int y, int z);
+	BlockPos getWorldCoordinates(final BlockPos v);
 
 	/**
 	 * Places a block into the world. The underlying logic is responsible for
@@ -75,7 +76,6 @@ public interface IStructureBuilder {
 	 * @param z
 	 * @param boundingBox
 	 */
-	void placeBlock(World world, SelectedBlock block, int x, int y, int z,
-			StructureBoundingBox box);
-
+	void placeBlock(World world, final IBlockState state, final BlockPos pos,
+			final StructureBoundingBox box);
 }
