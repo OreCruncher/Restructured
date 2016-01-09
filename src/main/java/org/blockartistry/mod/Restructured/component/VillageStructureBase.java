@@ -30,6 +30,7 @@ import org.blockartistry.mod.Restructured.util.Dimensions;
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureVillagePieces;
@@ -39,9 +40,9 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 	protected static final Random rand = new Random();
 
 	public VillageStructureBase(final StructureVillagePieces.Start start, final int componentType, final Random random,
-			final StructureBoundingBox myBox, final int orientation) {
+			final StructureBoundingBox myBox, final EnumFacing i) {
 		super(start, componentType);
-		this.coordBaseMode = orientation;
+		this.coordBaseMode = i;
 		this.boundingBox = myBox;
 	}
 
@@ -63,7 +64,7 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 	 */
 	public void placeBlock(final World world, final SelectedBlock block, final int x, final int y, final int z,
 			final StructureBoundingBox box) {
-		placeBlockAtCurrentPosition(world, block.getBlock(), block.getMeta(), x, y, z, box);
+		setBlockState(world, block.getBlockState(), x, y, z, box);
 	}
 
 	public int getMetaWithOffset(final Block block, final int meta) {
@@ -86,7 +87,7 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 		for (int xx = 0; xx < size.width; xx++) {
 			for (int zz = 0; zz < size.length; zz++) {
 				clearCurrentPositionBlocksUpwards(world, xx, 0, zz, box);
-				func_151554_b(world, Blocks.dirt, 0, xx, -1, zz, box);
+				replaceAirAndLiquidDownwards(world, Blocks.dirt.getDefaultState(), xx, -1, zz, box);
 			}
 		}
 

@@ -34,8 +34,6 @@
 
 package org.blockartistry.mod.Restructured.schematica;
 
-import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
-import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
@@ -44,7 +42,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.common.registry.FMLControlledNamespacedRegistry;
+import net.minecraftforge.fml.common.registry.GameData;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,10 +85,9 @@ public class SchematicAlpha extends SchematicFormat {
 		final Map<Short, Short> oldToNew = new HashMap<Short, Short>();
 		if (tagCompound.hasKey(Names.NBT.MAPPING_SCHEMATICA)) {
 			final NBTTagCompound mapping = tagCompound.getCompoundTag(Names.NBT.MAPPING_SCHEMATICA);
-			@SuppressWarnings("unchecked")
-			final Set<String> names = mapping.func_150296_c();
+			final Set<String> names = mapping.getKeySet();
 			for (final String name : names) {
-				oldToNew.put(mapping.getShort(name), (short) BLOCK_REGISTRY.getId(name));
+				oldToNew.put(mapping.getShort(name), (short) BLOCK_REGISTRY.getId(new ResourceLocation(name)));
 			}
 		}
 
@@ -120,7 +120,7 @@ public class SchematicAlpha extends SchematicFormat {
 					final NBTTagCompound tc = tileEntitiesList.getCompoundTagAt(i);
 					final TileEntity tileEntity = TileEntity.createAndLoadEntity(tc);
 					if (tileEntity != null) {
-						schematic.addTileEntity(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, tc);
+						schematic.addTileEntity(tileEntity.getPos(), tc);
 					}
 				} catch (final Exception e) {
 					ModLog.error("TileEntity failed to load properly!", e);
@@ -152,9 +152,11 @@ public class SchematicAlpha extends SchematicFormat {
 
 					if (entity instanceof EntityHanging) {
 						final EntityHanging howsIt = (EntityHanging) entity;
-						howsIt.field_146063_b -= originX;
-						howsIt.field_146064_c -= originY;
-						howsIt.field_146062_d -= originZ;
+						
+						// TODO: Need to check this out!
+						howsIt.posX -= originX;
+						howsIt.posY -= originY;
+						howsIt.posZ -= originZ;
 					}
 					
 					final NBTTagCompound repack = new NBTTagCompound();

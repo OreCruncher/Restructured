@@ -58,11 +58,6 @@ public class SaveHandler implements ISaveHandler {
     public void saveWorldInfo(WorldInfo info) {}
 
     @Override
-    public IPlayerFileData getSaveHandler() {
-        return null;
-    }
-
-    @Override
     public void flush() {}
 
     @Override
@@ -79,4 +74,9 @@ public class SaveHandler implements ISaveHandler {
     public String getWorldDirectoryName() {
         return null;
     }
+
+	@Override
+	public IPlayerFileData getPlayerNBTManager() {
+		return null;
+	}
 }

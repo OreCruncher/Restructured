@@ -29,6 +29,11 @@ import java.util.List;
 
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.MapGenVillage;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 
 import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
@@ -36,12 +41,6 @@ import org.blockartistry.mod.Restructured.world.MobControl;
 import org.blockartistry.mod.Restructured.world.TerrainEventBusHandler;
 import org.blockartistry.mod.Restructured.world.themes.BlockThemes;
 import org.blockartistry.mod.Restructured.VersionCheck;
-
-import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 public class Proxy {
 

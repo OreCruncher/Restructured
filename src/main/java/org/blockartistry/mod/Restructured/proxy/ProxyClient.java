@@ -25,11 +25,11 @@
 package org.blockartistry.mod.Restructured.proxy;
 
 import org.blockartistry.mod.Restructured.LoginMessaging;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 
 public class ProxyClient extends Proxy {
 
-	public void postInit(FMLPostInitializationEvent event) {
+	public void postInit(final FMLPostInitializationEvent event) {
 		super.postInit(event);
 		LoginMessaging.register();
 	}

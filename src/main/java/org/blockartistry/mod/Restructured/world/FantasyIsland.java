@@ -26,8 +26,7 @@ package org.blockartistry.mod.Restructured.world;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldSettings;
-import net.minecraft.world.WorldType;
+import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
 
 /**
@@ -39,16 +38,21 @@ import net.minecraft.world.chunk.IChunkProvider;
 public class FantasyIsland extends World {
 
 	// Ordering is important...
-    private static final WorldSettings WORLD_SETTINGS = new WorldSettings(0, WorldSettings.GameType.CREATIVE, false, false, WorldType.FLAT);
+	private static final WorldProvider provider = new WorldProvider() {
+		@Override
+		public String getDimensionName() {
+			return "Restructured Dummy Provider";
+		}
+		@Override
+		public String getInternalNameSuffix() {
+			return "RDP";
+		}
+	};
+
 	public static final FantasyIsland instance = new FantasyIsland();
 	
-	// Used for rotation algorithm to capture translated meta
-	public int meta = 0;
-
 	public FantasyIsland() {
-        super(new SaveHandler(), "Restructured", WORLD_SETTINGS, null, null);
-		
-		this.isRemote = false;
+        super(new SaveHandler(), null, provider, null, false);
 	}
 
 	@Override
@@ -57,23 +61,12 @@ public class FantasyIsland extends World {
 	}
 
 	@Override
-	protected int func_152379_p() {
-		return 0;
-	}
-
-	@Override
 	public Entity getEntityByID(int p_73045_1_) {
 		return null;
 	}
 	
 	@Override
-	public int getBlockMetadata(final int x, final int y, final int z) {
-		return meta;
-	}
-
-	@Override
-	public boolean setBlockMetadataWithNotify(final int x, final int y, final int z, final int meta, final int flags) {
-		this.meta = meta;
-		return true;
+	protected int getRenderDistanceChunks() {
+		return 0;
 	}
 }

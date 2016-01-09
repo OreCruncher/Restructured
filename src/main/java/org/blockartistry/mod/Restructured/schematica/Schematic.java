@@ -39,7 +39,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -55,11 +55,11 @@ public class Schematic {
 
 	public static class SchematicTileEntity {
 
-		public final ChunkCoordinates coords;
+		public final BlockPos coords;
 		public final NBTTagCompound nbt;
 
 		public SchematicTileEntity(final NBTTagCompound nbt, final int x, final int y, final int z) {
-			this.coords = new ChunkCoordinates(x, y, z);
+			this.coords = new BlockPos(x, y, z);
 			this.nbt = nbt;
 		}
 		
@@ -136,6 +136,10 @@ public class Schematic {
 		return (SelectedBlock) this.data[getDataIndex(x, y, z)].clone();
 	}
 
+	public Block getBlock(final BlockPos pos) {
+		return getBlock(pos.getX(), pos.getY(), pos.getZ());
+	}
+	
 	public Block getBlock(final int x, final int y, final int z) {
 		if (!isValid(x, y, z))
 			return Blocks.air;
@@ -151,8 +155,8 @@ public class Schematic {
 
 	public SchematicTileEntity getTileEntity(final int x, final int y, final int z) {
 		for (final SchematicTileEntity entry : this.tileEntities) {
-			final ChunkCoordinates coords = entry.coords;
-			if (coords.posX == x && coords.posY == y && coords.posZ == z) {
+			final BlockPos coords = entry.coords;
+			if (coords.getX() == x && coords.getY() == y && coords.getZ() == z) {
 				return entry;
 			}
 		}
@@ -164,6 +168,10 @@ public class Schematic {
 		return this.tileEntities;
 	}
 
+	public void addTileEntity(final BlockPos pos, final NBTTagCompound nbt) {
+		addTileEntity(pos.getX(), pos.getY(), pos.getZ(), nbt);
+	}
+	
 	public void addTileEntity(final int x, final int y, final int z, final NBTTagCompound nbt) {
 		if (!isValid(x, y, z)) {
 			return;
@@ -180,8 +188,8 @@ public class Schematic {
 		final Iterator<SchematicTileEntity> iterator = this.tileEntities.iterator();
 
 		while (iterator.hasNext()) {
-			final ChunkCoordinates coord = iterator.next().coords;
-			if (coord.posX == x && coord.posY == y && coord.posZ == z)
+			final BlockPos coord = iterator.next().coords;
+			if (coord.getX() == x && coord.getY() == y && coord.getZ() == z)
 				iterator.remove();
 		}
 	}

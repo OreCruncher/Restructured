@@ -26,6 +26,8 @@ package org.blockartistry.mod.Restructured.util;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.block.IGrowable;
 import net.minecraft.init.Blocks;
 import net.minecraftforge.common.IPlantable;
@@ -95,7 +97,7 @@ public class BlockHelper {
 	}
 	
 	public boolean isDoor() {
-		return block == Blocks.iron_door || block == Blocks.wooden_door || block == Blocks.trapdoor;
+		return block instanceof BlockDoor || block instanceof BlockTrapDoor;
 	}
 
 	public boolean isSpawner() {

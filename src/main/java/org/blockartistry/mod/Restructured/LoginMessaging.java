@@ -26,18 +26,17 @@ package org.blockartistry.mod.Restructured;
 
 import org.blockartistry.mod.Restructured.assets.Assets;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 
 public class LoginMessaging {
 
 	public static void register() {
-		final LoginMessaging msg = new LoginMessaging();
-		FMLCommonHandler.instance().bus().register(msg);
+		MinecraftForge.EVENT_BUS.register(new LoginMessaging());
 	}
 	
 	@SubscribeEvent

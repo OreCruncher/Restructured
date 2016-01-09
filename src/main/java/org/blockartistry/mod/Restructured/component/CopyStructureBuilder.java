@@ -25,6 +25,7 @@
 package org.blockartistry.mod.Restructured.component;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -32,13 +33,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.Direction;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraftforge.common.ChestGenHooks;
-import net.minecraftforge.common.util.ForgeDirection;
 
 import org.apache.commons.lang3.StringUtils;
 import org.blockartistry.mod.Restructured.ModLog;
@@ -57,25 +58,29 @@ public class CopyStructureBuilder {
 	protected final IStructureBuilder structure;
 	protected final World world;
 	protected final StructureBoundingBox box;
-	protected final int orientation;
+	protected final EnumFacing orientation;
 	protected final SchematicProperties properties;
 
-	protected final Set<ChunkCoordinates> waitToPlace = new HashSet<ChunkCoordinates>();
-	protected final Set<ChunkCoordinates> blockList = new HashSet<ChunkCoordinates>();
+	protected final Set<BlockPos> waitToPlace = new HashSet<BlockPos>();
+	protected final Set<BlockPos> blockList = new HashSet<BlockPos>();
 
-	public CopyStructureBuilder(final World world, final StructureBoundingBox box, final int orientation,
+	public CopyStructureBuilder(final World world, final StructureBoundingBox box, final EnumFacing direction,
 			final SchematicProperties properties, final IStructureBuilder structure) {
 
 		this.world = world;
 		this.box = box;
-		this.orientation = orientation;
+		this.orientation = direction;
 		this.structure = structure;
 		this.properties = properties;
 	}
-	
+
 	public void place(final SelectedBlock block, final int x, final int y, final int z) {
 		handleRotation(block);
 		structure.placeBlock(world, block, x, y, z, box);
+	}
+
+	public boolean isVecInside(final BlockPos pos, final StructureBoundingBox box) {
+		return structure.isVecInside(pos.getX(), pos.getY(), pos.getZ(), box);
 	}
 
 	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
@@ -96,7 +101,7 @@ public class CopyStructureBuilder {
 					if (isVecInside(x, y, z, box)) {
 
 						final SelectedBlock block = schematic.getBlockEx(x, y, z);
-						final ChunkCoordinates v = new ChunkCoordinates(x, y, z);
+						final BlockPos v = new BlockPos(x, y, z);
 
 						// Do we skip placement?
 						if (doSkipSpawnerPlacement(block, v))
@@ -114,15 +119,15 @@ public class CopyStructureBuilder {
 				}
 
 		if (!waitToPlace.isEmpty()) {
-			for (final ChunkCoordinates v : waitToPlace) {
-				final SelectedBlock block = schematic.getBlockEx(v.posX, v.posY, v.posZ);
-				place(block, v.posX, v.posY, v.posZ);
+			for (final BlockPos v : waitToPlace) {
+				final SelectedBlock block = schematic.getBlockEx(v.getX(), v.getY(), v.getZ());
+				place(block, v.getX(), v.getY(), v.getZ());
 			}
 		}
 
 		for (final SchematicTileEntity e : schematic.getTileEntities()) {
-			final ChunkCoordinates coords = e.coords;
-			if (!isVecInside(coords.posX, coords.posY, coords.posZ, box))
+			final BlockPos coords = e.coords;
+			if (!isVecInside(coords.getX(), coords.getY(), coords.getZ(), box))
 				continue;
 
 			// If the block location is black listed we don't want
@@ -135,13 +140,11 @@ public class CopyStructureBuilder {
 				entity.validate();
 
 				// Update the entity with the proper state.
-				final BlockHelper helper = new BlockHelper(
-						schematic.getBlock(entity.xCoord, entity.yCoord, entity.zCoord));
+				final BlockHelper helper = new BlockHelper(schematic.getBlock(entity.getPos()));
 
 				// Place it into the world
-				final ChunkCoordinates coord = structure.getWorldCoordinates(entity.xCoord, entity.yCoord,
-						entity.zCoord);
-				world.setTileEntity(coord.posX, coord.posY, coord.posZ, entity);
+				final BlockPos coord = structure.getWorldCoordinates(entity.getPos());
+				world.setTileEntity(coord, entity);
 
 				if (doFillChestContents(helper)) {
 					generateChestContents((IInventory) entity, properties.chestContents, properties.chestContentsCount);
@@ -154,26 +157,27 @@ public class CopyStructureBuilder {
 		}
 
 		for (final SchematicEntity e : schematic.getEntities()) {
-			final ChunkCoordinates ec = e.coords;
+			final BlockPos ec = e.coords;
 
-			if (!isVecInside(ec.posX, ec.posY, ec.posZ, box))
+			if (!isVecInside(ec, box))
 				continue;
 
 			try {
 				final Entity entity = (Entity) e.getInstance(world);
 
+				// TODO: Looks like another mess
 				if (entity instanceof EntityHanging) {
 					final EntityHanging howsIt = (EntityHanging) entity;
-					final ChunkCoordinates coord = structure.getWorldCoordinates(howsIt.field_146063_b,
-							howsIt.field_146064_c, howsIt.field_146062_d);
-					howsIt.field_146063_b = coord.posX;
-					howsIt.field_146064_c = coord.posY;
-					howsIt.field_146062_d = coord.posZ;
+					final BlockPos coord = structure.getWorldCoordinates(howsIt.getPosition());
+					howsIt.setPosition(coord.getX(), coord.getY(), coord.getZ());
 					// Calls setPosition() internally
-					howsIt.setDirection(translateDirection(howsIt.hangingDirection));
+					// TODO: This is a direct assignment - not sure if the
+					// entity
+					// is properly updated to hang
+					howsIt.facingDirection = translateDirection(howsIt.facingDirection);
 				} else {
-					final ChunkCoordinates coord = structure.getWorldCoordinates(ec.posX, ec.posY, ec.posZ);
-					entity.setPosition(coord.posX + 0.5D, coord.posY + 0.5D, coord.posZ + 0.5D);
+					final BlockPos coord = structure.getWorldCoordinates(ec);
+					entity.setPosition(coord.getX() + 0.5D, coord.getY() + 0.5D, coord.getZ() + 0.5D);
 				}
 
 				world.spawnEntityInWorld(entity);
@@ -184,8 +188,8 @@ public class CopyStructureBuilder {
 	}
 
 	protected void generateChestContents(final IInventory inventory, final String category, final int count) {
-		final WeightedRandomChestContent[] contents = ChestGenHooks.getItems(category, rand);
-		if (contents == null || contents.length == 0)
+		final List<WeightedRandomChestContent> contents = ChestGenHooks.getItems(category, rand);
+		if (contents == null || contents.size() == 0)
 			ModLog.warn("Unable to get chest contents: %s", category);
 		else
 			WeightedRandomChestContent.generateChestContents(rand, contents, inventory, count);
@@ -195,7 +199,7 @@ public class CopyStructureBuilder {
 		return helper.isChest() && StringUtils.isNotEmpty(properties.chestContents);
 	}
 
-	protected boolean doSkipSpawnerPlacement(final BlockHelper helper, final ChunkCoordinates v) {
+	protected boolean doSkipSpawnerPlacement(final BlockHelper helper, final BlockPos v) {
 		if (helper.isSpawner() && rand.nextInt(100) >= properties.spawnerEnableChance) {
 			blockList.add(v);
 			return true;
@@ -207,62 +211,41 @@ public class CopyStructureBuilder {
 		return block.isTorch() || block.isLever() || block.isButton() || block.isDoor();
 	}
 
-	protected int translateDirection(final int dir) {
-
+	protected EnumFacing translateDirection(final EnumFacing dir) {
 		final int count = getRotationCount(dir);
 		if (count == 1)
-			return Direction.rotateRight[dir];
+			return dir.rotateAround(Axis.Y);
 		if (count == 2)
-			return Direction.rotateOpposite[dir];
+			return dir.getOpposite();
 		if (count == 3)
-			return Direction.rotateLeft[dir];
+			return dir.getOpposite().rotateAround(Axis.Y);
 
 		return dir;
 	}
 
-	protected int getRotationCount(final int dir) {
-		switch (dir) {
-		case 0:
-			return getRotationCount(ForgeDirection.SOUTH);
-		case 1:
-			return getRotationCount(ForgeDirection.WEST);
-		case 2:
-			return getRotationCount(ForgeDirection.NORTH);
-		case 4:
-			return getRotationCount(ForgeDirection.EAST);
-		default:
-			;
+	protected int getRotationCount(final EnumFacing dir) {
+		int count = 0;
+		if (this.orientation != null && dir != null) {
+			if (this.orientation == EnumFacing.WEST || this.orientation == EnumFacing.EAST)
+				count = 1;
+
+			if ((this.orientation == EnumFacing.NORTH || this.orientation == EnumFacing.EAST)
+					&& (dir == EnumFacing.NORTH || dir == EnumFacing.SOUTH))
+				count += 2;
 		}
-		return -1;
-	}
 
-	protected int getRotationCount(final ForgeDirection dir) {
-
-		int rotationCount = 0;
-		if (orientation == 1 || orientation == 3)
-			rotationCount++;
-
-		if ((orientation == 2 || orientation == 3) && (dir == ForgeDirection.NORTH || dir == ForgeDirection.SOUTH))
-			rotationCount += 2;
-
-		return rotationCount;
+		return count;
 	}
 
 	protected void handleRotation(final SelectedBlock block) {
 
-		// If the block is in natural position
-		// just return.
-		if (orientation == 0)
-			return;
-
 		// Get it's current facing. If it is unknown
 		// just return - it is not handled or it's a
 		// basic block like dirt.
-		final ForgeDirection direction = block.getOrientation();
-		if (direction == ForgeDirection.UNKNOWN || direction == ForgeDirection.UP || direction == ForgeDirection.DOWN) {
+		final EnumFacing direction = block.getOrientation();
+		if (direction == null)
 			return;
-		}
 
-		block.rotate(ForgeDirection.UP, getRotationCount(direction));
+		block.rotate(Axis.Y, getRotationCount(direction));
 	}
 }

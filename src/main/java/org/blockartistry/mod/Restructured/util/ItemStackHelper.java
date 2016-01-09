@@ -24,12 +24,13 @@
 
 package org.blockartistry.mod.Restructured.util;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
-import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.registry.GameData;
 import net.minecraftforge.oredict.OreDictionary;
 
 public final class ItemStackHelper {
@@ -71,12 +72,12 @@ public final class ItemStackHelper {
 
 		// Check the OreDictionary first for any alias matches. Otherwise
 		// go to the game registry to find a match.
-		final ArrayList<ItemStack> ores = OreDictionary.getOres(workingName);
+		final List<ItemStack> ores = OreDictionary.getOres(workingName);
 		if (!ores.isEmpty()) {
 			result = ores.get(0).copy();
 			result.stackSize = quantity;
 		} else {
-			final Item i = GameData.getItemRegistry().getObject(workingName);
+			final Item i = GameData.getItemRegistry().getObject(new ResourceLocation(workingName));
 			if (i != null) {
 				result = new ItemStack(i, quantity);
 			}

@@ -24,12 +24,14 @@
 
 package org.blockartistry.mod.Restructured.world;
 
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
 public final class RegionHelper {
-	
-	private RegionHelper() {}
+
+	private RegionHelper() {
+	}
 
 	public static class RegionStats {
 
@@ -40,31 +42,28 @@ public final class RegionHelper {
 
 		@Override
 		public String toString() {
-			return String.format(
-					"[area: %d; mean: %d; variance: %d, water: %d]", area,
-					mean, variance, water);
+			return String.format("[area: %d; mean: %d; variance: %d, water: %d]", area, mean, variance, water);
 		}
 	};
 
 	// Note that this routine can trigger chunk loading and generation
 	// as it traverses a region.
-	public static RegionStats getRegionStatsWithVariance(final World world,
-			final StructureBoundingBox worldBB) {
+	public static RegionStats getRegionStatsWithVariance(final World world, final StructureBoundingBox worldBB) {
 
 		final int avgGroundLevel = world.provider.getAverageGroundLevel() - 1;
 		final RegionStats result = new RegionStats();
 		result.area = worldBB.getXSize() * worldBB.getZSize();
-		
+
 		final int[] data = new int[result.area];
 		int total = 0;
 		int index = 0;
 
 		for (int z = worldBB.minZ; z <= worldBB.maxZ; ++z)
 			for (int x = worldBB.minX; x <= worldBB.maxX; ++x) {
-				int val = Math.max(world.getTopSolidOrLiquidBlock(x, z), avgGroundLevel); 
+				int val = Math.max(world.getTopSolidOrLiquidBlock(new BlockPos(x, 1, z)).getY(), avgGroundLevel);
 				total += val;
 				data[index++] = val;
-				if(world.getBlock(x, val - 1, z).getMaterial().isLiquid())
+				if (world.getBlockState(new BlockPos(x, val - 1, z)).getBlock().getMaterial().isLiquid())
 					result.water++;
 			}
 
@@ -76,22 +75,21 @@ public final class RegionHelper {
 			accum += (t * t);
 		}
 
-		result.variance = Math.round((float)accum / (float) index);
+		result.variance = Math.round((float) accum / (float) index);
 
 		return result;
 	}
 
-	public static int getRegionAverageGroundLevel(final World world,
-			final StructureBoundingBox worldBB) {
+	public static int getRegionAverageGroundLevel(final World world, final StructureBoundingBox worldBB) {
 
 		final int avgGroundLevel = world.provider.getAverageGroundLevel() - 1;
 		final int area = worldBB.getXSize() * worldBB.getZSize();
-		
+
 		int total = 0;
 
 		for (int z = worldBB.minZ; z <= worldBB.maxZ; ++z)
 			for (int x = worldBB.minX; x <= worldBB.maxX; ++x) {
-				total += Math.max(world.getTopSolidOrLiquidBlock(x, z), avgGroundLevel);
+				total += Math.max(world.getTopSolidOrLiquidBlock(new BlockPos(x, 1, z)).getY(), avgGroundLevel);
 			}
 
 		return total / area;

@@ -29,15 +29,16 @@ import java.util.Map;
 
 import org.blockartistry.mod.Restructured.util.SelectedBlock;
 
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.eventhandler.Event.Result;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.biome.BiomeGenMutated;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.BiomeEvent;
+import net.minecraftforge.fml.common.eventhandler.Event.Result;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public final class BlockThemes {
 
@@ -59,36 +60,7 @@ public final class BlockThemes {
 		if (mutation instanceof BiomeGenMutated)
 			themes.put(mutation, theme);
 	}
-
-	private static Block biomeBlockReplace(final BiomeGenBase biome, final SelectedBlock block) {
-		final Map<Block, SelectedBlock> replacements = themes.get(biome);
-		if (replacements == null)
-			return block.getBlock();
-		final SelectedBlock code = replacements.get(block.getBlock());
-		return code != null ? code.getBlock() : block.getBlock();
-	}
-
-	private static int biomeMetaReplace(final BiomeGenBase biome, final SelectedBlock block) {
-		final Map<Block, SelectedBlock> replacements = themes.get(biome);
-		if (replacements == null)
-			return block.getMeta();
-
-		final SelectedBlock code = replacements.get(block.getBlock());
-		if (code == null || code.getMeta() == KEEP_META)
-			return block.getMeta();
-
-		int replace = code.getMeta();
-
-		// Preserve slab orientation
-		if (block.isSlab())
-			replace |= (block.getMeta() & 8);
-		// Preserve log orientation
-		else if (block.isLog())
-			replace |= (block.getMeta() & 12);
-
-		return replace;
-	}
-
+	
 	/**
 	 * Provides an alternative block if the input block is a
 	 * monster egg.
@@ -116,24 +88,12 @@ public final class BlockThemes {
 	 * Invokes the Forge events to figure out any block replacements due to themes.
 	 */
 	public static SelectedBlock findReplacement(final BiomeGenBase biome, final SelectedBlock block) {
-		
-		Block theBlock = block.getBlock();
-		int meta = block.getMeta();
-
 		// Ask subscribers if they want to replace
-		final BiomeEvent.GetVillageBlockID event1 = new BiomeEvent.GetVillageBlockID(biome, theBlock, meta);
+		final BiomeEvent.GetVillageBlockID event1 = new BiomeEvent.GetVillageBlockID(biome, block.getBlockState());
 		MinecraftForge.TERRAIN_GEN_BUS.post(event1);
 		if (event1.getResult() == Result.DENY)
-			theBlock = event1.replacement;
-
-		final BiomeEvent.GetVillageBlockMeta event2 = new BiomeEvent.GetVillageBlockMeta(biome, block.getBlock(),
-				block.getMeta());
-		MinecraftForge.TERRAIN_GEN_BUS.post(event2);
-		if (event2.getResult() == Result.DENY)
-			meta = event2.replacement;
-
-		// Return back the new selected block
-		return new SelectedBlock(theBlock, meta);
+			return new SelectedBlock(event1.replacement);
+		return block;
 	}
 
 	public static void initialize() {
@@ -347,21 +307,32 @@ public final class BlockThemes {
 	public void blockReplaceEvent(final BiomeEvent.GetVillageBlockID event) {
 		if (event.getResult() == Result.DENY)
 			return;
-		final Block replace = biomeBlockReplace(event.biome, SelectedBlock.fly(event.original, event.type));
-		if (replace != event.original) {
-			event.replacement = replace;
-			event.setResult(Result.DENY);
-		}
-	}
-
-	@SubscribeEvent(priority = EventPriority.LOW)
-	public void blockMetaReplaceEvent(final BiomeEvent.GetVillageBlockMeta event) {
-		if (event.getResult() == Result.DENY)
+		final Map<Block, SelectedBlock> replacements = themes.get(event.biome);
+		if (replacements == null)
 			return;
-		final int replace = biomeMetaReplace(event.biome, SelectedBlock.fly(event.original, event.type));
-		if (replace != event.type) {
-			event.replacement = replace;
-			event.setResult(Result.DENY);
+		
+		// Crack the block portion
+		final IBlockState original = event.original;
+		final SelectedBlock code = replacements.get(original.getBlock());
+		if(code == null)
+			return;
+		
+		final Block newBlock = code.getBlock();
+		
+		// Handle the meta
+		int newMeta = code.getMeta();
+		if (newMeta != KEEP_META) {
+			// Preserve slab orientation
+			if (code.isSlab())
+				newMeta |= (code.getMeta() & 8);
+			// Preserve log orientation
+			else if (code.isLog())
+				newMeta |= (code.getMeta() & 12);
+		} else {
+			newMeta = original.getBlock().getMetaFromState(original);
 		}
+		
+		event.replacement = new SelectedBlock(newBlock, newMeta).getBlockState();
+		event.setResult(Result.DENY);
 	}
 }

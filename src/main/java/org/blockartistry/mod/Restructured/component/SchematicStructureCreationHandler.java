@@ -32,19 +32,21 @@ import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.util.Dimensions;
 
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.gen.structure.MapGenStructureIO;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureComponent;
 import net.minecraft.world.gen.structure.StructureVillagePieces.PieceWeight;
 import net.minecraft.world.gen.structure.StructureVillagePieces.Start;
-import cpw.mods.fml.common.registry.VillagerRegistry;
+import net.minecraft.world.gen.structure.StructureVillagePieces.Village;
+import net.minecraftforge.fml.common.registry.VillagerRegistry;
 
-public class SchematicStructureCreationHandler implements
-		VillagerRegistry.IVillageCreationHandler {
+public class SchematicStructureCreationHandler implements VillagerRegistry.IVillageCreationHandler {
 
 	static {
-		//MapGenStructureIO.registerStructure(SchematicStructure.class, "reSS");
-		MapGenStructureIO.func_143031_a(SchematicStructure.class, "reSS");
+		// MapGenStructureIO.registerStructure(SchematicStructure.class,
+		// "reSS");
+		MapGenStructureIO.registerStructureComponent(SchematicStructure.class, "reSS");
 	}
 
 	public SchematicStructureCreationHandler() {
@@ -61,11 +63,10 @@ public class SchematicStructureCreationHandler implements
 		return SchematicStructure.class;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Object buildComponent(final PieceWeight villagePiece, final Start startPiece,
-			final List pieces, final Random random, final int x, final int y, final int z, final int orientation,
-			final int type) {
+	public Village buildComponent(final PieceWeight villagePiece, final Start startPiece,
+			final List<StructureComponent> pieces, final Random random, final int x, final int y, final int z,
+			final EnumFacing facing, final int type) {
 
 		// This shouldn't happen, but just in case...
 		if (!(villagePiece instanceof SchematicPieceWeight))
@@ -82,19 +83,17 @@ public class SchematicStructureCreationHandler implements
 
 		// Bound it out
 		final Dimensions size = props.schematic.getDimensions();
-		final StructureBoundingBox _boundingBox = StructureBoundingBox
-				.getComponentToAddBoundingBox(x, y, z, 0, 0, 0, size.width,
-						size.height, size.length, orientation);
+		final StructureBoundingBox _boundingBox = StructureBoundingBox.getComponentToAddBoundingBox(x, y, z, 0, 0, 0,
+				size.width, size.height, size.length, facing);
 
 		// Check to see if the region is OK, and if so return back
 		// a SchematicStructure surrogate for the schematic.
 		if (canVillageGoDeeper(_boundingBox)) {
 			if (StructureComponent.findIntersecting(pieces, _boundingBox) == null) {
 				try {
-					ModLog.debug("Village structure [%s] @(%s); mode %d", props.name,
-							_boundingBox, orientation);
-					final SchematicStructure struct = new SchematicStructure(
-							startPiece, type, random, _boundingBox, orientation);
+					ModLog.debug("Village structure [%s] @(%s); mode %d", props.name, _boundingBox, facing);
+					final SchematicStructure struct = new SchematicStructure(startPiece, type, random, _boundingBox,
+							facing);
 					struct.setProperties(props);
 					return struct;
 				} catch (IllegalArgumentException e) {

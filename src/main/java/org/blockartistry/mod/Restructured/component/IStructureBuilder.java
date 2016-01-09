@@ -24,7 +24,7 @@
 
 package org.blockartistry.mod.Restructured.component;
 
-import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
@@ -60,8 +60,8 @@ public interface IStructureBuilder {
 	 * @param z
 	 * @return
 	 */
-	ChunkCoordinates getWorldCoordinates(int x, int y, int z);
-	ChunkCoordinates getWorldCoordinates(ChunkCoordinates v);
+	BlockPos getWorldCoordinates(int x, int y, int z);
+	BlockPos getWorldCoordinates(BlockPos v);
 
 	/**
 	 * Places a block into the world. The underlying logic is responsible for

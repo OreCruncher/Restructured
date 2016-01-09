@@ -28,11 +28,10 @@ import java.util.regex.Pattern;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.client.config.GuiConfigEntries.IConfigEntry;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
-
-import cpw.mods.fml.client.config.GuiConfigEntries.IConfigEntry;
 
 /**
  * This class offers advanced configurations capabilities, allowing to provide
@@ -1062,7 +1061,7 @@ public final class JarConfiguration
      * GuiConfig screen will be provided), {@code GuiPropertyList} (the parent GuiPropertyList will be provided), {@code IConfigElement}
      * (the IConfigElement for this Property will be provided).
      */
-    public JarConfiguration setCategoryConfigEntryClass(String category, @SuppressWarnings("rawtypes") final Class<? extends IConfigEntry> clazz)
+    public JarConfiguration setCategoryConfigEntryClass(String category, final Class<? extends IConfigEntry> clazz)
     {
         
         if (!caseSensitiveCustomCategories)

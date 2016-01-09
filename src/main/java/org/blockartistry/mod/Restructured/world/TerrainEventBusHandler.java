@@ -27,11 +27,11 @@ package org.blockartistry.mod.Restructured.world;
 import org.blockartistry.mod.Restructured.ModLog;
 import org.blockartistry.mod.Restructured.ModOptions;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.world.gen.structure.MapGenVillage;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.InitMapGenEvent;
 import net.minecraftforge.event.terraingen.InitMapGenEvent.EventType;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class TerrainEventBusHandler {
 

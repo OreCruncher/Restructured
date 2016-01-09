@@ -33,7 +33,8 @@ import org.blockartistry.mod.Restructured.util.BlockHelper;
 import org.blockartistry.mod.Restructured.util.Dimensions;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -46,11 +47,11 @@ public class SchematicStructure extends VillageStructureBase implements
 	protected BiomeGenBase biome;
 
 	public SchematicStructure() {
-		super(null, 0, null, null, 0);
+		super(null, 0, null, null, EnumFacing.NORTH);
 	}
 
 	public SchematicStructure(final Start start, final int type, final Random rand,
-			final StructureBoundingBox box, final int direction) {
+			final StructureBoundingBox box, final EnumFacing direction) {
 		super(start, type, rand, box, direction);
 		
 		this.biome = start.biome;
@@ -61,16 +62,16 @@ public class SchematicStructure extends VillageStructureBase implements
 	}
 
 	@Override
-	protected void func_143012_a(final NBTTagCompound nbt) {
-		super.func_143012_a(nbt);
+	protected void writeStructureToNBT(final NBTTagCompound nbt) {
+		super.writeStructureToNBT(nbt);
 
 		nbt.setString("key", properties.name);
 		nbt.setInteger("biome", biome.biomeID);
 	}
 
 	@Override
-	protected void func_143011_b(final NBTTagCompound nbt) {
-		super.func_143011_b(nbt);
+	protected void readStructureFromNBT(final NBTTagCompound nbt) {
+		super.readStructureFromNBT(nbt);
 
 		final String temp = nbt.getString("key");
 		if (temp != null)
@@ -107,7 +108,7 @@ public class SchematicStructure extends VillageStructureBase implements
 		builder.generate();
 	}
 
-	protected ChunkCoordinates getSafeVillagerLocation() {
+	protected BlockPos getSafeVillagerLocation() {
 
 		// Initialize starting point
 		final Dimensions size = properties.schematic.getDimensions();
@@ -135,7 +136,7 @@ public class SchematicStructure extends VillageStructureBase implements
 			z += 1 - rand.nextInt(3);
 		}
 
-		return new ChunkCoordinates(x, y, z);
+		return new BlockPos(x, y, z);
 	}
 
 	@Override
@@ -147,13 +148,13 @@ public class SchematicStructure extends VillageStructureBase implements
 		if (count == 0)
 			return;
 
-		final ChunkCoordinates loc = getSafeVillagerLocation();
-		this.spawnVillagers(world, box, loc.posX, loc.posY, loc.posZ,
+		final BlockPos loc = getSafeVillagerLocation();
+		this.spawnVillagers(world, box, loc.getX(), loc.getY(), loc.getZ(),
 				count);
 	}
 
 	@Override
-	protected int getVillagerType(final int p_74888_1_) {
+	protected int func_180779_c(final int count, final int proposedProfession) {
 		int type = properties.villagerProfession;
 		if (type == -1)
 			type = rand.nextInt(5);
@@ -162,18 +163,18 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	@Override
 	public boolean isVecInside(final int x, final int y, final int z, final StructureBoundingBox box) {
-		final ChunkCoordinates v = getWorldCoordinates(x, y, z);
-		return box.isVecInside(v.posX, v.posY, v.posZ);
+		final BlockPos v = getWorldCoordinates(x, y, z);
+		return box.isVecInside(v);
 	}
 
 	@Override
-	public ChunkCoordinates getWorldCoordinates(final int x, final int y, final int z) {
-		return new ChunkCoordinates(this.getXWithOffset(x, z), this.getYWithOffset(y),
+	public BlockPos getWorldCoordinates(final int x, final int y, final int z) {
+		return new BlockPos(this.getXWithOffset(x, z), this.getYWithOffset(y),
 				this.getZWithOffset(x, z));
 	}
 
 	@Override
-	public ChunkCoordinates getWorldCoordinates(final ChunkCoordinates v) {
-		return getWorldCoordinates(v.posX, v.posY, v.posZ);
+	public BlockPos getWorldCoordinates(final BlockPos v) {
+		return getWorldCoordinates(v.getX(), v.getY(), v.getZ());
 	}
 }

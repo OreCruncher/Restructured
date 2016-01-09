@@ -24,35 +24,18 @@
 
 package org.blockartistry.mod.Restructured.util;
 
-import org.blockartistry.mod.Restructured.world.FantasyIsland;
-
 import net.minecraft.block.Block;
+import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.common.util.RotationHelper;
+import net.minecraft.util.EnumFacing;
 
 public class SelectedBlock extends BlockHelper implements Cloneable {
-	
-	// The cached key is used by the various framework routines where a temporary
-	// key is generated just to index an internal table.  It's thread local so
-	// there should be no collision.  They key should not be cached or used in
-	// an index - unpredictable results will occur.
-	private static final ThreadLocal<SelectedBlock> flyweight = new ThreadLocal<SelectedBlock>() {
-        @Override
-		protected SelectedBlock initialValue() {
-            return new SelectedBlock();
-        }
-	};
-	
-	public static SelectedBlock fly(final Block block, final int meta) {
-		final SelectedBlock t = flyweight.get();
-		t.block = block;
-		t.meta = meta;
-		return t;
-	}
+
+	private static final PropertyDirection FACING = PropertyDirection.create("facing");
 
 	protected int meta;
-	
+
 	protected SelectedBlock() {
 		this(null, 0);
 	}
@@ -60,30 +43,50 @@ public class SelectedBlock extends BlockHelper implements Cloneable {
 	public SelectedBlock(final Block block) {
 		this(block, 0);
 	}
-	
+
 	public SelectedBlock(final Block block, final int meta) {
 		super(block);
 		this.meta = (block == Blocks.air) ? 0 : meta;
 	}
-	
+
+	public SelectedBlock(final IBlockState state) {
+		this(state.getBlock(), state.getBlock().getMetaFromState(state));
+	}
+
 	public int getMeta() {
 		return this.meta;
 	}
-	
-	public void rotate(final ForgeDirection axis, final int count) {
+
+	public void rotate(final EnumFacing.Axis axis, final int count) {
+
+		if (count == 0)
+			return;
+
 		// Use our Fantasy to satisfy Minecraft so we can rotate
 		// the block without having to place it into the world.
 		// Should expose methods that don't rely on a world instance. :\
-		FantasyIsland.instance.meta = this.meta;
-		for(int i = 0; i < count; i++)
-			RotationHelper.rotateVanillaBlock(this.block, FantasyIsland.instance, 0, 0, 0, axis);
-		this.meta = FantasyIsland.instance.meta;
+		EnumFacing current = getOrientation();
+		if (current == null)
+			return;
+
+		for (int i = 0; i < count; i++)
+			current = current.rotateAround(axis);
+
+		final IBlockState updated = getBlockState().withProperty(FACING, current);
+		this.meta = updated.getBlock().getMetaFromState(updated);
 	}
-	
-	public ForgeDirection getOrientation() {
-		return BlockType.getOrientation(this);
+
+	public EnumFacing getOrientation() {
+		final IBlockState state = getBlockState();
+		if (state.getPropertyNames().contains(FACING))
+			return state.getValue(FACING);
+		return null;
 	}
-	
+
+	public IBlockState getBlockState() {
+		return this.block.getStateFromMeta(this.meta);
+	}
+
 	@Override
 	public Object clone() {
 		return new SelectedBlock(this.block, this.meta);
