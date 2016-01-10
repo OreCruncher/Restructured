@@ -84,12 +84,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	@Override
 	public void placeBlock(final World world, final IBlockState state, final BlockPos v,
 			final StructureBoundingBox box) {
-
-		final int i1 = this.getXWithOffset(v.getX(), v.getZ());
-		final int j1 = this.getYWithOffset(v.getY());
-		final int k1 = this.getZWithOffset(v.getX(), v.getZ());
-		final BlockPos pos = new BlockPos(i1, j1, k1);
-
+		final BlockPos pos = getWorldCoordinates(v);
 		if (box.isVecInside(pos)) {
 			final IBlockState blockToPlace = BlockThemes.findReplacement(this.biome, state);
 			world.setBlockState(pos, blockToPlace, 2);
@@ -141,14 +136,14 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 	protected void clearUpwards(final int x, final int y, final int z, final StructureBoundingBox box) {
 		final int l = getXWithOffset(x, z);
 		final int j1 = getZWithOffset(x, z);
-		int i1 = getYWithOffset(y);
+		final int i1 = getYWithOffset(y);
 
-		final BlockPos pos = new BlockPos(l, i1, j1);
+		BlockPos pos = new BlockPos(l, i1, j1);
 
 		if (box.isVecInside(pos)) {
 			while (!world.isAirBlock(pos) && i1 < 255) {
 				world.setBlockState(pos, Blocks.air.getDefaultState(), 2);
-				pos.up();
+				pos = pos.up();
 			}
 		}
 	}
@@ -158,9 +153,9 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 
 		final int i1 = getXWithOffset(x, z);
 		final int k1 = getZWithOffset(x, z);
-		int j1 = getYWithOffset(y);
+		final int j1 = getYWithOffset(y);
 
-		final BlockPos pos = new BlockPos(i1, j1, k1);
+		BlockPos pos = new BlockPos(i1, j1, k1);
 
 		if (box.isVecInside(pos)) {
 
@@ -168,10 +163,10 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 				final IBlockState t = world.getBlockState(pos);
 				if (BlockHelper.isAir(t) || BlockHelper.isLiquid(t) || !BlockHelper.isSolid(t)) {
 					world.setBlockState(pos, state, 2);
-					pos.down();
+					pos = pos.down();
 				} else
 					break;
-			} while (j1 > 1);
+			} while (pos.getY() > 1);
 		}
 	}
 

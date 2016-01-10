@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
@@ -224,7 +223,6 @@ public class CopyStructureBuilder {
 	}
 
 	protected IBlockState handleRotation(final IBlockState state) {
-
 		// Get it's current facing. If it is unknown
 		// just return - it is not handled or it's a
 		// basic block like dirt.

@@ -51,8 +51,6 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 	private static final int MINIMUM_SPAWN_DISTANCE = 4; // chunks
 	private static final int MINIMUM_VILLAGE_DISTANCE_SQUARED = 64; // chunks
 	private static final int MINIMUM_GEN_DISTANCE_SQUARED = 64; // chunks
-	private static final EnumFacing[] orientations = { EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.EAST,
-			EnumFacing.WEST };
 
 	private static final Set<ChunkCoordIntPair> activeGeneration = new HashSet<ChunkCoordIntPair>();
 
@@ -111,6 +109,10 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 		return distanceSq(loc, world.getSpawnPoint()) < MINIMUM_SPAWN_DISTANCE;
 	}
 
+	private static EnumFacing randomDirection(final Random random) {
+		return EnumFacing.HORIZONTALS[random.nextInt(EnumFacing.HORIZONTALS.length)];
+	}
+
 	@Override
 	public void generate(final Random random, final int chunkX, final int chunkZ, final World world,
 			final IChunkProvider chunkGenerator, final IChunkProvider chunkProvider) {
@@ -157,7 +159,7 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 
 			// Pick a schematic and build it
 			final SchematicProperties props = structs.next().properties;
-			final EnumFacing orientation = orientations[random.nextInt(orientations.length)];
+			final EnumFacing orientation = randomDirection(random);
 			final SchematicWorldGenStructure structure = new SchematicWorldGenStructure(world, biome, orientation,
 					start.getX(), start.getZ(), props);
 			structure.build();
