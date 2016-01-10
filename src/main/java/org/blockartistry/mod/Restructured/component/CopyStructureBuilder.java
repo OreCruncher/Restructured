@@ -74,17 +74,17 @@ public class CopyStructureBuilder {
 	}
 
 	public void place(final IBlockState state, final BlockPos pos) {
-		structure.placeBlock(world, handleRotation(state), pos, box);
+		this.structure.placeBlock(this.world, handleRotation(state), pos, this.box);
 	}
 
 	public boolean isVecInside(final BlockPos pos, final StructureBoundingBox box) {
-		return structure.isVecInside(pos, box);
+		return this.structure.isVecInside(pos, box);
 	}
 
 	public void generate() {
 
-		final Schematic schematic = properties.schematic;
-		final Dimensions size = structure.getDimensions();
+		final Schematic schematic = this.properties.schematic;
+		final Dimensions size = this.structure.getDimensions();
 
 		// Scan from the ground up. This is important when
 		// replacing crops.
@@ -93,7 +93,7 @@ public class CopyStructureBuilder {
 				for (int z = 0; z < size.length; z++) {
 
 					final BlockPos v = new BlockPos(x, y, z);
-					if (isVecInside(v, box)) {
+					if (isVecInside(v, this.box)) {
 
 						final IBlockState state = schematic.getBlockState(v);
 
@@ -104,7 +104,7 @@ public class CopyStructureBuilder {
 						// Delay placing things that don't like being
 						// rotated or attached to blocks that change
 						if (waitToPlace(state)) {
-							waitToPlace.add(v);
+							this.waitToPlace.add(v);
 							continue;
 						}
 
@@ -112,21 +112,19 @@ public class CopyStructureBuilder {
 					}
 				}
 
-		if (!waitToPlace.isEmpty()) {
-			for (final BlockPos v : waitToPlace) {
-				final IBlockState state = schematic.getBlockState(v);
-				place(state, v);
-			}
+		for (final BlockPos v : this.waitToPlace) {
+			final IBlockState state = schematic.getBlockState(v);
+			place(state, v);
 		}
 
 		for (final SchematicTileEntity e : schematic.getTileEntities()) {
 			final BlockPos coords = e.coords;
-			if (!isVecInside(coords, box))
+			if (!isVecInside(coords, this.box))
 				continue;
 
 			// If the block location is black listed we don't want
 			// to create the tile entity at the location
-			if (blockList.contains(coords))
+			if (this.blockList.contains(coords))
 				continue;
 
 			try {
@@ -134,13 +132,14 @@ public class CopyStructureBuilder {
 				entity.validate();
 
 				// Place it into the world
-				final BlockPos worldCoord = structure.getWorldCoordinates(coords);
-				world.removeTileEntity(worldCoord);
-				world.setTileEntity(worldCoord, entity);
+				final BlockPos worldCoord = this.structure.getWorldCoordinates(coords);
+				this.world.removeTileEntity(worldCoord);
+				this.world.setTileEntity(worldCoord, entity);
 
 				final IBlockState state = schematic.getBlockState(coords);
 				if (doFillChestContents(state)) {
-					generateChestContents((IInventory) entity, properties.chestContents, properties.chestContentsCount);
+					generateChestContents((IInventory) entity, this.properties.chestContents,
+							this.properties.chestContentsCount);
 				}
 
 			} catch (Exception ex) {
@@ -150,25 +149,20 @@ public class CopyStructureBuilder {
 		}
 
 		for (final SchematicEntity e : schematic.getEntities()) {
-			final BlockPos ec = e.coords;
-
-			if (!isVecInside(ec, box))
+			if (!isVecInside(e.coords, this.box))
 				continue;
 
 			try {
-				final Entity entity = (Entity) e.getInstance(world);
-				final BlockPos coord = structure.getWorldCoordinates(ec);
-				final double spawnX = coord.getX();
-				final double spawnY = coord.getY();
-				final double spawnZ = coord.getZ();
-				entity.setPosition(spawnX, spawnY, spawnZ);
+				final Entity entity = (Entity) e.getInstance(this.world);
+				final BlockPos coord = this.structure.getWorldCoordinates(e.coords);
+				entity.setPosition(coord.getX(), coord.getY(), coord.getZ());
 
 				if (entity instanceof EntityHanging) {
 					final EntityHanging howsIt = (EntityHanging) entity;
 					howsIt.updateFacingWithBoundingBox(translateDirection(howsIt.facingDirection));
-					//ModLog.info(entity.getName() + " x:" + spawnX + ", y:" + spawnY + ", z:" + spawnZ);
+					// ModLog.info(entity.getName() + " " + coord.toString());
 				}
-				world.spawnEntityInWorld(entity);
+				this.world.spawnEntityInWorld(entity);
 			} catch (final Exception t) {
 				ModLog.warn("Unable to place entity");
 			}
@@ -184,12 +178,12 @@ public class CopyStructureBuilder {
 	}
 
 	protected boolean doFillChestContents(final IBlockState state) {
-		return BlockHelper.isChest(state) && StringUtils.isNotEmpty(properties.chestContents);
+		return BlockHelper.isChest(state) && StringUtils.isNotEmpty(this.properties.chestContents);
 	}
 
 	protected boolean doSkipSpawnerPlacement(final IBlockState state, final BlockPos v) {
-		if (BlockHelper.isSpawner(state) && rand.nextInt(100) >= properties.spawnerEnableChance) {
-			blockList.add(v);
+		if (BlockHelper.isSpawner(state) && rand.nextInt(100) >= this.properties.spawnerEnableChance) {
+			this.blockList.add(v);
 			return true;
 		}
 		return false;

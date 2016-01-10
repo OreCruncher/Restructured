@@ -66,15 +66,15 @@ public class SchematicPieceWeight extends PieceWeight {
 	 */
 	public SchematicProperties getNextStructure() {
 		
-		if(potentials.size() == 0)
+		if(this.potentials.size() == 0)
 			return null;
 		
-		final SchematicWeightItem item = potentials.next();
+		final SchematicWeightItem item = this.potentials.next();
 		final SchematicProperties props = item.properties;
 		
 		item.properties.limit--;
 		if(item.properties.limit == 0)
-			potentials.remove(item);
+			this.potentials.remove(item);
 
 		return props;
 	}

@@ -81,7 +81,8 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 			this.field_143015_k = this.getAverageGroundLevel(world, box);
 			if (this.field_143015_k < 0)
 				return true;
-			boundingBox.offset(0, this.field_143015_k - boundingBox.maxY + size.height - getGroundOffset() - 1, 0);
+			this.boundingBox.offset(0,
+					this.field_143015_k - this.boundingBox.maxY + size.height - getGroundOffset() - 1, 0);
 		}
 
 		// Ensure a platform for the structure

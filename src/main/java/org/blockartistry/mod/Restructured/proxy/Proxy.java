@@ -51,10 +51,8 @@ public class Proxy {
 	}
 
 	public void init(final FMLInitializationEvent event) {
-		
 		// Hook to patch up any village generation code
 		TerrainEventBusHandler.initialize();
-		
 	}
 
 	public void postInit(final FMLPostInitializationEvent event) {

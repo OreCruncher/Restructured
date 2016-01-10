@@ -33,49 +33,11 @@ import org.blockartistry.mod.Restructured.util.Dimensions;
 
 public interface IStructureBuilder {
 
-	/**
-	 * Gets the dimensions of the structure. Dimensions have been translated for
-	 * direction.
-	 * 
-	 * @return
-	 */
 	Dimensions getDimensions();
 
-	/**
-	 * Determines if the location is within the bounding boxes of the region.
-	 * 
-	 * @param x
-	 * @param y
-	 * @param z
-	 * @param boundingBox
-	 * @return
-	 */
-	//boolean isVecInside(int x, int y, int z, StructureBoundingBox box);
 	boolean isVecInside(final BlockPos pos, final StructureBoundingBox box);
 
-	/**
-	 * Gets the translated real world coordinates for the given location.
-	 * 
-	 * @param x
-	 * @param y
-	 * @param z
-	 * @return
-	 */
-	//BlockPos getWorldCoordinates(int x, int y, int z);
 	BlockPos getWorldCoordinates(final BlockPos v);
 
-	/**
-	 * Places a block into the world. The underlying logic is responsible for
-	 * translating locations before setting.
-	 * 
-	 * @param world
-	 * @param block
-	 * @param meta
-	 * @param x
-	 * @param y
-	 * @param z
-	 * @param boundingBox
-	 */
-	void placeBlock(World world, final IBlockState state, final BlockPos pos,
-			final StructureBoundingBox box);
+	void placeBlock(World world, final IBlockState state, final BlockPos pos, final StructureBoundingBox box);
 }

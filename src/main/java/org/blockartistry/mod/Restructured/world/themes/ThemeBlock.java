@@ -22,34 +22,31 @@
  * THE SOFTWARE.
  */
 
-package org.blockartistry.mod.Restructured.util;
+package org.blockartistry.mod.Restructured.world.themes;
+
+import org.blockartistry.mod.Restructured.util.BlockHelper;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 
-public class SelectedBlock implements Cloneable {
+class ThemeBlock {
 
 	protected Block block;
 	protected int meta;
 
-	protected SelectedBlock() {
+	protected ThemeBlock() {
 		this(null, 0);
 	}
 
-	public SelectedBlock(final Block block) {
+	public ThemeBlock(final Block block) {
 		this(block, 0);
 	}
 
-	public SelectedBlock(final Block block, final int meta) {
+	public ThemeBlock(final Block block, final int meta) {
 		this.block = block;
 		this.meta = (block == Blocks.air) ? 0 : meta;
 	}
 
-	public SelectedBlock(final IBlockState state) {
-		this(state.getBlock(), state.getBlock().getMetaFromState(state));
-	}
-	
 	public Block getBlock() {
 		return this.block;
 	}
@@ -58,20 +55,11 @@ public class SelectedBlock implements Cloneable {
 		return this.meta;
 	}
 
-	public IBlockState getBlockState() {
-		return this.block.getStateFromMeta(this.meta);
-	}
-	
 	public boolean isSlab() {
 		return BlockHelper.isSlab(this.block);
 	}
 	
 	public boolean isLog() {
 		return BlockHelper.isLog(this.block);
-	}
-
-	@Override
-	public Object clone() {
-		return new SelectedBlock(this.block, this.meta);
 	}
 }

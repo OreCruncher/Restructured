@@ -66,8 +66,8 @@ public class SchematicStructure extends VillageStructureBase implements
 	protected void writeStructureToNBT(final NBTTagCompound nbt) {
 		super.writeStructureToNBT(nbt);
 
-		nbt.setString("key", properties.name);
-		nbt.setInteger("biome", biome.biomeID);
+		nbt.setString("key", this.properties.name);
+		nbt.setInteger("biome", this.biome.biomeID);
 	}
 
 	@Override
@@ -89,38 +89,38 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	@Override
 	public Dimensions getDimensions() {
-		return properties.schematic.getDimensions();
+		return this.properties.schematic.getDimensions();
 	}
 
 	@Override
 	public int getGroundOffset() {
-		return properties.groundOffset;
+		return this.properties.groundOffset;
 	}
 
 	public String getName() {
-		return properties.name;
+		return this.properties.name;
 	}
 
 	@Override
 	public void build(final World world, final Random rand, final StructureBoundingBox box) {
 
 		final CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
-				coordBaseMode, properties, this);
+				this.coordBaseMode, this.properties, this);
 		builder.generate();
 	}
 
 	protected BlockPos getSafeVillagerLocation() {
 
 		// Initialize starting point
-		final Dimensions size = properties.schematic.getDimensions();
+		final Dimensions size = this.properties.schematic.getDimensions();
 		int x = size.width >> 1;
 		int z = size.length >> 1;
-		int y = properties.groundOffset;
+		int y = this.properties.groundOffset;
 
 		BlockPos pos = new BlockPos(x, y + 1, z);
 
 		// Try several times finding a suitable spot
-		final Schematic s = properties.schematic;
+		final Schematic s = this.properties.schematic;
 		for (int i = 0; i < 4; i++) {
 			
 			final IBlockState state = s.getBlockState(pos);
@@ -138,7 +138,7 @@ public class SchematicStructure extends VillageStructureBase implements
 	@Override
 	public void spawnPeople(final World world, final StructureBoundingBox box) {
 
-		int count = properties.villagerCount;
+		int count = this.properties.villagerCount;
 		if (count == -1)
 			count = rand.nextInt(4);
 		if (count == 0)
@@ -151,7 +151,7 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	@Override
 	protected int func_180779_c(final int count, final int proposedProfession) {
-		int type = properties.villagerProfession;
+		int type = this.properties.villagerProfession;
 		if (type == -1)
 			type = rand.nextInt(5);
 		return type;
