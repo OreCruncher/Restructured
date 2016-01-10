@@ -141,7 +141,7 @@ public class SchematicWorldGenStructure implements IStructureBuilder {
 		BlockPos pos = new BlockPos(l, i1, j1);
 
 		if (box.isVecInside(pos)) {
-			while (!world.isAirBlock(pos) && i1 < 255) {
+			while (!world.isAirBlock(pos) && i1 < pos.getY()) {
 				world.setBlockState(pos, Blocks.air.getDefaultState(), 2);
 				pos = pos.up();
 			}

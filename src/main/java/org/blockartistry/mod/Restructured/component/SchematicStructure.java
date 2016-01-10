@@ -103,7 +103,6 @@ public class SchematicStructure extends VillageStructureBase implements
 
 	@Override
 	public void build(final World world, final Random rand, final StructureBoundingBox box) {
-
 		final CopyStructureBuilder builder = new CopyStructureBuilder(world, box,
 				this.coordBaseMode, this.properties, this);
 		builder.generate();
@@ -117,14 +116,16 @@ public class SchematicStructure extends VillageStructureBase implements
 		int z = size.length >> 1;
 		int y = this.properties.groundOffset;
 
-		BlockPos pos = new BlockPos(x, y + 1, z);
+		BlockPos pos = new BlockPos(x, y, z);
 
 		// Try several times finding a suitable spot
 		final Schematic s = this.properties.schematic;
 		for (int i = 0; i < 4; i++) {
 			
-			final IBlockState state = s.getBlockState(pos);
+			final IBlockState state = s.getBlockState(pos.up());
 			if (BlockHelper.canBreath(state)) {
+				if(!BlockHelper.isAir(s.getBlockState(pos)))
+					pos = pos.up();
 				break;
 			}
 
@@ -132,7 +133,7 @@ public class SchematicStructure extends VillageStructureBase implements
 			pos = pos.add(1 - rand.nextInt(3), 0, 1 - rand.nextInt(3));
 		}
 
-		return pos.down();
+		return pos;
 	}
 
 	@Override

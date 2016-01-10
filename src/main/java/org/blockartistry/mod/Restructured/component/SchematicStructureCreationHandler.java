@@ -90,17 +90,11 @@ public class SchematicStructureCreationHandler implements VillagerRegistry.IVill
 		// a SchematicStructure surrogate for the schematic.
 		if (canVillageGoDeeper(_boundingBox)) {
 			if (StructureComponent.findIntersecting(pieces, _boundingBox) == null) {
-				try {
-					ModLog.debug("Village structure [%s] @(%s); mode %d", props.name, _boundingBox, facing);
-					final SchematicStructure struct = new SchematicStructure(startPiece, type, random, _boundingBox,
-							facing);
-					struct.setProperties(props);
-					return struct;
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (SecurityException e) {
-					e.printStackTrace();
-				}
+				ModLog.debug("Village structure [%s] @(%s); mode %d", props.name, _boundingBox, facing);
+				final SchematicStructure struct = new SchematicStructure(startPiece, type, random, _boundingBox,
+						facing);
+				struct.setProperties(props);
+				return struct;
 			}
 		}
 		return null;

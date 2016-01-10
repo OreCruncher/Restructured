@@ -65,10 +65,7 @@ public class Proxy {
 		final int[] additional = ModOptions.getAdditionalVillageBiomes();
 		if(additional.length > 0) {
 			final List<BiomeGenBase> newList = new ArrayList<BiomeGenBase>();
-			for(final Object o: MapGenVillage.villageSpawnBiomes) {
-				final BiomeGenBase b = (BiomeGenBase)o;
-				newList.add(b);
-			}
+			newList.addAll(MapGenVillage.villageSpawnBiomes);
 			
 			for(final int biomeId: additional) {
 				final BiomeGenBase biome = BiomeGenBase.getBiome(biomeId);

@@ -27,7 +27,6 @@ package org.blockartistry.mod.Restructured.component;
 import java.util.Random;
 
 import org.blockartistry.mod.Restructured.util.Dimensions;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -51,25 +50,9 @@ public abstract class VillageStructureBase extends StructureVillagePieces.Villag
 
 	public abstract int getGroundOffset();
 
-	/**
-	 * Public exposure of the placeBlockAtCurrentPosition() routine in a base
-	 * class.
-	 * 
-	 * @param world
-	 * @param block
-	 * @param meta
-	 * @param x
-	 * @param y
-	 * @param z
-	 * @param boundingBox
-	 */
 	public void placeBlock(final World world, final IBlockState state, final BlockPos pos,
 			final StructureBoundingBox box) {
 		setBlockState(world, state, pos.getX(), pos.getY(), pos.getZ(), box);
-	}
-
-	public int getMetaWithOffset(final Block block, final int meta) {
-		return getMetadataWithOffset(block, meta);
 	}
 
 	@Override

@@ -65,7 +65,7 @@ public final class BlockThemes {
 	 * Provides an alternative block if the input block is a monster egg.
 	 */
 	public static IBlockState scrubEggs(final IBlockState state) {
-		if (!BlockHelper.isMonsterEgg(state.getBlock()))
+		if (!BlockHelper.isMonsterEgg(state))
 			return state;
 		final int idx = state.getBlock().getMetaFromState(state);
 		if (idx >= monsterBlockMap.length)
