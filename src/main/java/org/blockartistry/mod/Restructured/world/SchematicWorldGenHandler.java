@@ -33,6 +33,7 @@ import org.blockartistry.mod.Restructured.ModOptions;
 import org.blockartistry.mod.Restructured.assets.Assets;
 import org.blockartistry.mod.Restructured.assets.SchematicProperties;
 import org.blockartistry.mod.Restructured.assets.SchematicWeightItem;
+import org.blockartistry.mod.Restructured.util.ElementRule;
 import org.blockartistry.mod.Restructured.util.WeightTable;
 
 import net.minecraft.util.BlockPos;
@@ -46,6 +47,8 @@ import net.minecraftforge.fml.common.IWorldGenerator;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class SchematicWorldGenHandler implements IWorldGenerator {
+
+	private static final ElementRule dimensionRule = ModOptions.getGlobalDimensionRule();
 
 	private static final int ONE_IN_N_CHANCE = ModOptions.getGenerationChance();
 	private static final int MINIMUM_SPAWN_DISTANCE = 4; // chunks
@@ -118,7 +121,7 @@ public class SchematicWorldGenHandler implements IWorldGenerator {
 			final IChunkProvider chunkGenerator, final IChunkProvider chunkProvider) {
 
 		// Saftey check...
-		if (world.isRemote)
+		if (world.isRemote || !dimensionRule.isOk(world.provider.getDimensionId()))
 			return;
 
 		// Only want to generate if world structures are enabled

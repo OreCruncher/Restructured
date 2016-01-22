@@ -24,6 +24,8 @@
 
 package org.blockartistry.mod.Restructured;
 
+import org.blockartistry.mod.Restructured.util.ElementRule;
+import org.blockartistry.mod.Restructured.util.ElementRule.Rule;
 import org.blockartistry.mod.Restructured.util.MyUtils;
 
 import net.minecraftforge.common.config.Configuration;
@@ -52,6 +54,10 @@ public final class ModOptions {
 	protected static int generationChance = 65;
 	protected static final String CONFIG_ENABLE_THEMING = "Enable Theming";
 	protected static boolean enableTheming = true;
+	protected static final String CONFIG_DIMENSION_LIST = "Dimension List";
+	protected static String dimensionList = "0";
+	protected static final String CONFIG_DIMENSION_LIST_TYPE = "Dimension List as Blacklist";
+	protected static boolean dimensionListAsBlacklist = false;
 
 	protected static final String CATEGORY_MOB_CONTROL = "mobcontrol";
 	protected static final String CONFIG_BLOCK_CREEPER_EXPLOSION = "Block Creeper Explosion";
@@ -60,7 +66,7 @@ public final class ModOptions {
 	protected static boolean blockEndermanGriefing = false;
 	protected static final String CONFIG_BLOCK_TREE_SPAWN = "Block spawning in/on trees";
 	protected static boolean blockMobsSpawningInTrees = true;
-	
+
 	protected static final String CATEGORY_MOB_SPAWN_FACTORS = "mobcontrol.spawn";
 	protected static final String CONFIG_MOB_SPAWN_MOB_FACTOR = "Monsters";
 	protected static int mobSpawnMobFactor = 0;
@@ -107,6 +113,13 @@ public final class ModOptions {
 
 		comment = "Enables/disables biome theming of structures";
 		enableTheming = config.getBoolean(CONFIG_ENABLE_THEMING, CATEGORY_GENERATION, enableTheming, comment);
+
+		comment = "List of dimensions to black/white list";
+		dimensionList = config.getString(CONFIG_DIMENSION_LIST, CATEGORY_GENERATION, dimensionList, comment);
+
+		comment = "Treat Dimension List as a Blacklist vs. Whitelist";
+		dimensionListAsBlacklist = config.getBoolean(CONFIG_DIMENSION_LIST_TYPE, CATEGORY_GENERATION,
+				dimensionListAsBlacklist, comment);
 
 		// CATEGORY_MOB_CONTROL
 		comment = "Prevent block destruction due to Creeper explosions";
@@ -170,15 +183,15 @@ public final class ModOptions {
 	public static boolean getBlockCreeperExplosion() {
 		return blockCreeperExplosion;
 	}
-	
+
 	public static boolean getBlockEndermanGriefing() {
 		return blockEndermanGriefing;
 	}
-	
+
 	public static boolean getBlockMobsSpawningInTrees() {
 		return blockMobsSpawningInTrees;
 	}
-	
+
 	public static int getMobSpawnMobFactor() {
 		return mobSpawnMobFactor;
 	}
@@ -193,5 +206,10 @@ public final class ModOptions {
 
 	public static int getMobSpawnWaterFactor() {
 		return mobSpawnWaterFactor;
+	}
+
+	public static ElementRule getGlobalDimensionRule() {
+		return new ElementRule(dimensionListAsBlacklist ? Rule.MUST_NOT_BE_IN : Rule.MUST_BE_IN,
+				MyUtils.splitToInts(dimensionList, ','));
 	}
 }
