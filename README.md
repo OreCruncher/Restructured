@@ -1,5 +1,5 @@
 ###Build Status
-Master Branch: [![Master Branch](https://travis-ci.org/OreCruncher/Restructured.svg?branch=master)](https://travis-ci.org/OreCruncher/Restructured)
+Master Branch: [![Master Branch](https://travis-ci.org/OreCruncher/Restructured.svg?branch=1.7.10)](https://travis-ci.org/OreCruncher/Restructured)
 
 
 ###Restructured
